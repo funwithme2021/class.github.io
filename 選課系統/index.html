@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>選課系統</title>
+    <style>
+          body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+        }
+        h1 {
+            text-align: center;
+            color: #007BFF;
+        }
+        .course {
+            border: 1px solid #ccc;
+            padding: 1px;
+            margin: 0px;
+            display: flex;
+            justify-content: space-between;
+            align-items: left;
+            background-color: #abaaaa;
+            border-radius: 0px;
+            transition: background-color 0.3s ease;
+        }
+        .course:hover {
+            background-color: #f0f0f0;
+        }
+        .course-info {
+            flex: 1;
+        }
+        .course-button {
+            background-color: #007BFF;
+            color: #fff;
+            border: none;
+            padding: 10px 20px;
+            cursor: pointer;
+            border-radius: 5px;
+            transition: background-color 0.3s ease;
+            display: block;
+            margin: 0 auto; /* 使按鈕置中 */
+            text-align: center;
+        }
+        .course-button:hover {
+            background-color: #0056b3;
+        }
+        #resultArea {
+            margin-top: 20px;
+            text-align: center;
+            font-weight: bold;
+            font-size: 30px;
+            color: red;
+        }
+        #filteringText {
+            margin-top: 10px;
+            text-align: center;
+        }
+        .course-quota {
+            font-size: 16px;
+            color: #555;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>選課系統</h1>
+        <div id="courses">
+            <!-- 課程列表將通過 JavaScript 動態生成 -->
+        </div>
+        <div id="resultArea">
+            <p id="filteringText"></p>
+            <!-- 用於顯示選課結果的區域 -->
+        </div>
+        <button id="startButton">開始選課</button>
+    </div>
+
+    <script>
+        const courses = [
+            { name: "永續資源", classroom: "教學317", quota: 5 },
+            { name: "愛情關係", classroom: "教學109", quota: 19 },
+            { name: "自信培養", classroom: "教學105", quota: 10 },
+            { name: "情商表達", classroom: "教學308", quota: 10 },
+            { name: "創新創意", classroom: "教學302", quota: 6 },
+            { name: "媒體識讀", classroom: "教學310", quota: 6 },
+        ];
+
+        const coursesContainer = document.getElementById("courses");
+        const resultArea = document.getElementById("resultArea");
+        const startButton = document.getElementById("startButton");
+        const filteringText = document.getElementById("filteringText");
+
+        function selectCourse(index) {
+            if (courses[index].quota > 0) {
+                filteringText.textContent = "篩選中...";
+                setTimeout(() => {
+                    const selectedCourseText = `恭喜您選中了課程：${courses[index].name}，教室：${courses[index].classroom}`;
+                    resultArea.textContent = selectedCourseText;
+                    courses[index].quota--;
+                    updateCourseList();
+                    filteringText.textContent = "";
+                }, 500);
+            } else {
+                alert("抱歉，該課程已滿額。");
+            }
+        }
+
+        function updateCourseList() {
+            coursesContainer.innerHTML = "";
+            courses.forEach((course, index) => {
+                const courseDiv = document.createElement("div");
+                courseDiv.classList.add("course");
+                courseDiv.innerHTML = `
+                    <p>課程名稱：${course.name}</p>
+                    <p>教室：${course.classroom}</p>
+                    <p>名額：${course.quota}</p>
+                `;
+                courseDiv.addEventListener("click", () => selectCourse(index));
+                coursesContainer.appendChild(courseDiv);
+            });
+        }
+
+        startButton.addEventListener("click", function () {
+            const availableCourses = courses.filter(course => course.quota > 0);
+            if (availableCourses.length === 0) {
+                resultArea.textContent = "所有課程已滿額，無法選課。";
+            } else {
+                resultArea.textContent = "篩選中...";
+                startButton.disabled = true;
+
+                setTimeout(function () {
+                    const randomIndex = Math.floor(Math.random() * availableCourses.length);
+                    const selectedCourse = availableCourses[randomIndex];
+                    const selectedCourseText = `恭喜您選中了課程：${selectedCourse.name}，上課教室：${selectedCourse.classroom}`;
+                    resultArea.textContent = selectedCourseText;
+
+                    courses.forEach(course => {
+                        if (course.name === selectedCourse.name) {
+                            course.quota--;
+                        }
+                    });
+
+                    updateCourseList();
+
+                    startButton.disabled = false;
+                }, 2000);
+            }
+        });
+
+        // 初始生成課程列表
+        updateCourseList();
+    </script>
+</body>
+</html>
