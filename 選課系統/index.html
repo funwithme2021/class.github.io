@@ -59,7 +59,7 @@
             margin-top: 20px;
             text-align: center;
             font-weight: bold;
-            font-size: 20px;
+            font-size: 10px;
             color: red;
         }
         #filteringText {
@@ -141,7 +141,7 @@
                 setTimeout(function () {
                     const randomIndex = Math.floor(Math.random() * availableCourses.length);
                     const selectedCourse = availableCourses[randomIndex];
-                    const selectedCourseText = `恭喜您選中了：${selectedCourse.name}，上課教室：${selectedCourse.classroom}`;
+                    const selectedCourseText = `恭喜您選中：${selectedCourse.name}，教室：${selectedCourse.classroom}`;
                     resultArea.textContent = selectedCourseText;
 
                     courses.forEach(course => {
