@@ -59,7 +59,7 @@
             margin-top: 20px;
             text-align: center;
             font-weight: bold;
-            font-size: 30px;
+            font-size: 20px;
             color: red;
         }
         #filteringText {
@@ -121,9 +121,9 @@
                 const courseDiv = document.createElement("div");
                 courseDiv.classList.add("course");
                 courseDiv.innerHTML = `
-                    <p>課程名稱：${course.name}</p>
+                    <p>課程：${course.name}</p>
                     <p>教室：${course.classroom}</p>
-                    <p>名額：${course.quota}</p>
+                    <p>餘額：${course.quota}</p>
                 `;
                 courseDiv.addEventListener("click", () => selectCourse(index));
                 coursesContainer.appendChild(courseDiv);
@@ -141,7 +141,7 @@
                 setTimeout(function () {
                     const randomIndex = Math.floor(Math.random() * availableCourses.length);
                     const selectedCourse = availableCourses[randomIndex];
-                    const selectedCourseText = `恭喜您選中了課程：${selectedCourse.name}，上課教室：${selectedCourse.classroom}`;
+                    const selectedCourseText = `恭喜您選中了：${selectedCourse.name}，上課教室：${selectedCourse.classroom}`;
                     resultArea.textContent = selectedCourseText;
 
                     courses.forEach(course => {
