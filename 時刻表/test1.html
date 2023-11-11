@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>列車時刻表查詢</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        table, th, td {
+            border: 1px solid #ddd;
+        }
+
+        th, td {
+            padding: 10px;
+            text-align: left;
+        }
+
+        th {
+            background-color: #f2f2f2;
+        }
+
+        select, button {
+            margin: 10px;
+            padding: 8px;
+        }
+    </style>
+</head>
+<body>
+
+<h2>列車時刻表查詢</h2>
+
+<label for="startStation">出發站：</label>
+<select id="startStation">
+    <!-- 選項將由JavaScript生成 -->
+</select>
+
+<label for="endStation">抵達站：</label>
+<select id="endStation">
+    <!-- 選項將由JavaScript生成 -->
+</select>
+
+<button onclick="filterTrainSchedule()">查詢時刻表</button>
+
+<table id="scheduleTable">
+    <thead>
+    <tr>
+        <th>車次</th>
+        <th>車種</th>
+        <th>第一個停靠站</th>
+        <th>最後一個停靠站</th>
+        <th>出發站時間</th>
+        <th>抵達站時間</th>
+    </tr>
+    </thead>
+    <tbody>
+    <!-- Table content will be inserted here -->
+    </tbody>
+</table>
+
+<script>
+    var trainSchedule = {
+        '111': {
+            '車種': '普悠瑪',
+            '車站時間': [
+                ['南港', '07:42'],
+                ['松山', '07:48'],
+                ['臺北', '08:00'],
+                ['板橋', '08:08'],
+                ['桃園', '08:25'],
+                ['臺中', '09:40'],
+                ['嘉義', '10:36'],
+                ['臺南', '11:12'],
+                ['高雄', '11:42'],
+                ['屏東', '11:57'],
+                ['潮州', '12:12'],
+                ['枋寮', '12:33']
+            ]
+        },
+        '143': {
+            '車種': '新自強',
+            '車站時間': [
+                ['七堵', '17:32'],
+                ['松山', '17:49'],
+                ['臺北', '18:00'],
+                ['板橋', '18:09'],
+                ['臺中', '19:48'],
+                ['彰化', '20:02'],
+                ['嘉義', '20:49'],
+                ['臺南', '21:27'],
+                ['高雄', '22:00'],
+                ['鳳山', '22:07'],
+                ['屏東', '22:20'],
+                ['潮州', '22:35']
+            ]
+        }
+        // Add more train schedules as needed
+    };
+
+    var stations = [
+        '七堵', '汐止', '南港', '松山', '臺北', '萬華', '板橋', '樹林', '桃園',
+        '中壢', '新竹', '竹南', '苗栗', '豐原', '臺中', '彰化', '員林', '斗六', '斗南',
+        '嘉義', '新營', '臺南', '新左營', '高雄', '鳳山', '九曲堂', '屏東', '潮州', '枋寮'
+    ];
+
+    // 動態生成車站下拉選單
+    function generateStationOptions() {
+        var startStationSelect = document.getElementById('startStation');
+        var endStationSelect = document.getElementById('endStation');
+
+        for (var i = 0; i < stations.length; i++) {
+            var option = document.createElement('option');
+            option.value = stations[i];
+            option.text = stations[i];
+            startStationSelect.add(option);
+
+            var optionClone = option.cloneNode(true);
+            endStationSelect.add(optionClone);
+        }
+    }
+
+    // 初始化生成車站下拉選單
+    generateStationOptions();
+
+    function filterTrainSchedule() {
+        var startStation = document.getElementById('startStation').value;
+        var endStation = document.getElementById('endStation').value;
+
+        var scheduleTable = document.getElementById('scheduleTable').getElementsByTagName('tbody')[0];
+        scheduleTable.innerHTML = ''; // Clear previous content
+
+        for (var trainNumber in trainSchedule) {
+            var stationTimes = trainSchedule[trainNumber]['車站時間'];
+            var startIndex = stationTimes.findIndex(station => station[0] === startStation);
+            var endIndex = stationTimes.findIndex(station => station[0] === endStation);
+
+            if (startIndex !== -1 && endIndex !== -1 && startIndex < endIndex) {
+                var row = scheduleTable.insertRow();
+                var cell1 = row.insertCell(0);
+                var cell2 = row.insertCell(1);
+                var cell3 = row.insertCell(2);
+                var cell4 = row.insertCell(3);
+                var cell5 = row.insertCell(4);
+                var cell6 = row.insertCell(5);
+
+                cell1.innerHTML = trainNumber;
+                cell2.innerHTML = trainSchedule[trainNumber]['車種'];
+                cell3.innerHTML = stationTimes[startIndex][0];
+                cell4.innerHTML = stationTimes[endIndex][0];
+                cell5.innerHTML = stationTimes[startIndex][1];
+                cell6.innerHTML = stationTimes[endIndex][1];
+            }
+        }
+    }
+</script>
+
+</body>
+</html>
