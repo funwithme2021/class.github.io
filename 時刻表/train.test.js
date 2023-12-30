@@ -2191,254 +2191,112 @@ var trainSchedule = {
   
   var stations = [
     '臺東', '鹿野', '關山', '池上', '富里', '玉里', '瑞穗', '光復', '萬榮', '鳳林',
-      '壽豐', '志學', '吉安', '花蓮', '新城', '和平', '南澳', '東澳', '蘇澳新', '冬山',
-      '羅東', '宜蘭', '礁溪', '頭城', '福隆', '雙溪', '瑞芳', '基隆', '八堵', '七堵',
-      '汐止', '汐科', '南港', '松山', '臺北', '萬華', '板橋', '樹林', '鶯歌', '桃園',
-      '中壢', '楊梅', '湖口', '竹北', '新竹', '竹南', '苗栗', '銅鑼', '三義', '后里',
-      '豐原', '潭子', '臺中', '新烏日', '彰化', '員林', '社頭', '田中', '二水', '斗六',
-      '斗南', '民雄', '嘉義', '新營', '善化', '永康', '臺南', '岡山', '新左營', '高雄',
-      '鳳山', '九曲堂', '屏東', '西勢', '潮州', '南州', '林邊', '枋寮'
+    '壽豐', '志學', '吉安', '花蓮', '新城', '和平', '南澳', '東澳', '蘇澳新', '冬山',
+    '羅東', '宜蘭', '礁溪', '頭城', '福隆', '雙溪', '瑞芳', '基隆', '八堵', '七堵',
+    '汐止', '汐科', '南港', '松山', '臺北', '萬華', '板橋', '樹林', '鶯歌', '桃園',
+    '中壢', '楊梅', '湖口', '竹北', '新竹', '竹南', '苗栗', '銅鑼', '三義', '后里',
+    '豐原', '潭子', '臺中', '新烏日', '彰化', '員林', '社頭', '田中', '二水', '斗六',
+    '斗南', '民雄', '嘉義', '新營', '善化', '永康', '臺南', '岡山', '新左營', '高雄',
+    '鳳山', '九曲堂', '屏東', '西勢', '潮州', '南州', '林邊', '枋寮'
   ];
-  
   
   console.log('trainSchedule:', trainSchedule);
   console.log('stations:', stations);
   
-  // 動態生成車站下拉選單
-  // 動態生成車站下拉選單
+  // 初始化生成车站下拉选单
+  generateStationOptions();
   
+  // 生成车站下拉选单的函數
   function generateStationOptions() {
     var startStationSelect = document.getElementById('startStation');
     var endStationSelect = document.getElementById('endStation');
-
+  
     for (var i = 0; i < stations.length; i++) {
-        var option1 = document.createElement('option');
-        option1.value = stations[i];
-        option1.text = stations[i];
-        startStationSelect.add(option1);
-
-        var option2 = option1.cloneNode(true);
-        endStationSelect.add(option2);
+      var option1 = document.createElement('option');
+      option1.value = stations[i];
+      option1.text = stations[i];
+      startStationSelect.add(option1);
+  
+      var option2 = option1.cloneNode(true);
+      endStationSelect.add(option2);
     }
-}
-
-// 初始化生成車站下拉選單
-generateStationOptions();
-
-function filterTrainScheduleByStation() {
-    var startStation = document.getElementById('startStation').value;
-    var endStation = document.getElementById('endStation').value;
-
-    var scheduleTable = document.getElementById('scheduleTableByStation').getElementsByTagName('tbody')[0];
-    scheduleTable.innerHTML = ''; // Clear previous content
-
-    var matchingTrains = [];
-
-    for (var trainNumberKey in trainSchedule) {
-        var stationTimes = trainSchedule[trainNumberKey]['車站時間'];
-        var startIndex = stationTimes.findIndex(station => station[0] === startStation);
-        var endIndex = stationTimes.findIndex(station => station[0] === endStation);
-
-        if (startIndex !== -1 && endIndex !== -1 && startIndex < endIndex) {
-            var transferStations = getTransferStations(startIndex, endIndex, stationTimes);
-
-            matchingTrains.push({
-                trainNumber: trainNumberKey,
-                trainType: getTrainTypeWithColor(trainSchedule[trainNumberKey]['車種']),
-                startStation: startStation,
-                endStation: endStation,
-                startTime: stationTimes[startIndex][1],
-                endTime: stationTimes[endIndex][1],
-                transferStations: transferStations
-            });
-        }
-    }
-
-    // Sort the matchingTrains array by start time
-    matchingTrains.sort(function (a, b) {
-        return a.startTime.localeCompare(b.startTime);
-    });
-
-    // Populate the schedule table with the sorted data
-    for (var i = 0; i < matchingTrains.length; i++) {
-        var row = scheduleTable.insertRow();
-        var cell1 = row.insertCell(0);
-        var cell2 = row.insertCell(1);
-        var cell3 = row.insertCell(2);
-        var cell4 = row.insertCell(3);
-        var cell5 = row.insertCell(4);
-        var cell6 = row.insertCell(5);
-        var cell7 = row.insertCell(6);
-        var cell8 = row.insertCell(7);
-        var cell9 = row.insertCell(8);
-        var cell10 = row.insertCell(9);
-
-        cell1.innerHTML = matchingTrains[i].trainNumber;
-        cell2.innerHTML = matchingTrains[i].trainType;
-        cell3.innerHTML = matchingTrains[i].startStation;
-        cell4.innerHTML = matchingTrains[i].startTime;
-        cell5.innerHTML = matchingTrains[i].transferStations.length > 0 ? matchingTrains[i].transferStations.join(', ') : '-';
-        cell6.innerHTML = matchingTrains[i].transferStations.length > 0 ? getTransferTrainsInfo(matchingTrains[i]) : '-';
-        cell7.innerHTML = matchingTrains[i].transferStations.length > 0 ? getTransferTrainTypesInfo(matchingTrains[i]) : '-';
-        cell8.innerHTML = matchingTrains[i].transferStations.length > 0 ? getTransferDepartureTimesInfo(matchingTrains[i]) : '-';
-        cell9.innerHTML = matchingTrains[i].endStation;
-        cell10.innerHTML = matchingTrains[i].endTime;
-
-        row.setAttribute('onclick', 'showTrainDetails(\'' + matchingTrains[i].trainNumber + '\')');
-    }
-}
-
-function getTransferStations(startIndex, endIndex, stationTimes) {
-    // Extract the stations between startIndex and endIndex (exclusive)
-    return stationTimes.slice(startIndex + 1, endIndex).map(station => station[0]);
-}
-
-function getTransferTrainsInfo(train) {
-    var transferInfo = '';
-
-    for (var i = 0; i < train.transferStations.length; i++) {
-        var currentStation = train.transferStations[i];
-        var nextStation = train.transferStations[i + 1];
-
-        if (nextStation) {
-            var transferTrain = findTransferTrain(currentStation, nextStation);
-            if (transferTrain) {
-                transferInfo += transferTrain + '，';
-            }
-        }
-    }
-
-    return transferInfo.slice(0, -1); // Remove the trailing comma
-}
-
-function getTransferTrainTypesInfo(train) {
-    var transferTrainTypesInfo = '';
-
-    for (var i = 0; i < train.transferStations.length; i++) {
-        var currentStation = train.transferStations[i];
-        var nextStation = train.transferStations[i + 1];
-
-        if (nextStation) {
-            var transferTrainType = findTransferTrainType(currentStation, nextStation);
-            if (transferTrainType) {
-                transferTrainTypesInfo += transferTrainType + '，';
-            }
-        }
-    }
-
-    return transferTrainTypesInfo.slice(0, -1); // Remove the trailing comma
-}
-
-function getTransferDepartureTimesInfo(train) {
-    var transferDepartureTimesInfo = '';
-
-    for (var i = 0; i < train.transferStations.length; i++) {
-        var currentStation = train.transferStations[i];
-        var nextStation = train.transferStations[i + 1];
-
-        if (nextStation) {
-            var transferDepartureTime = findTransferDepartureTime(currentStation, nextStation);
-            if (transferDepartureTime) {
-                transferDepartureTimesInfo += transferDepartureTime + '，';
-            }
-        }
-    }
-
-    return transferDepartureTimesInfo.slice(0, -1); // Remove the trailing comma
-}
-
-function findTransferTrain(currentStation, nextStation) {
-    // This is a placeholder function, you need to implement the logic to find the transfer train
-    // based on the currentStation and nextStation.
-    // Return the train number if found, otherwise return an empty string.
-    // Example:
-    // if (currentStation === '台北' && nextStation === '板橋') {
-    //     return '101'; // Assuming 101 is the transfer train from 台北 to 板橋
-    // }
-    // return '';
-    return '';
-}
-
-function findTransferTrainType(currentStation, nextStation) {
-    // This is a placeholder function, you need to implement the logic to find the transfer train type
-    // based on the currentStation and nextStation.
-    // Return the train type if found, otherwise return an empty string.
-    // Example:
-    // if (currentStation === '台北' && nextStation === '板橋') {
-    //     return '自強'; // Assuming '自強' is the train type for the transfer train from 台北 to 板橋
-    // }
-    // return '';
-    return '';
-}
-
-function findTransferDepartureTime(currentStation, nextStation) {
-    // This is a placeholder function, you need to implement the logic to find the transfer departure time
-    // based on the currentStation and nextStation.
-    // Return the departure time if found, otherwise return an empty string.
-    // Example:
-    // if (currentStation === '台北' && nextStation === '板橋') {
-    //     return '06:32'; // Assuming 06:32 is the departure time for the transfer train from 台北 to 板橋
-    // }
-    // return '';
-    return '';
-}
-
-function getTrainTypeWithColor(trainType) {
+  }
+  
+  // 查詢時刻表的函數
+  
+  
+  // 查找轉乘資訊的函數
+  function findTransfer(startStation, endStation) {
+    // 根據你的邏輯，這裡需要實現查找轉乘資訊的邏輯，返回一個物件，格式類似如下：
+    // return {
+    //   startStation: '...',
+    //   trainNumber: '...',
+    //   trainType: '...',
+    //   startTime: '...',
+    //   endStation: '...',
+    //   endTime: '...'
+    // };
+  
+    // 如果找不到轉乘資訊，返回 null
+    return null;
+  }
+  
+  function getTrainTypeWithColor(trainType) {
     var color = '';
-
+  
     switch (trainType) {
-        case '新自強':
-            color = 'purple';
-            break;
-        case '普悠瑪':
-            color = '#FF1493'; // Deep Pink
-            break;
-        case '自強號':
-            color = 'red';
-            break;
-        case '莒光號':
-            color = 'orange';
-            break;
-        case '區間快':
-            color = 'green';
-            break;
-        case '復興號':
-            color = 'lightblue';
-            break;
-        case '區間車':
-            color = 'black';
-            break;
-        case '加班車':
-            color = 'brown';
-            break;
-        default:
-            color = 'black';
+      case '新自強':
+        color = 'purple';
+        break;
+      case '普悠瑪':
+        color = '#FF1493'; // Deep Pink
+        break;
+      case '自強號':
+        color = 'red';
+        break;
+      case '莒光號':
+        color = 'orange';
+        break;
+      case '區間快':
+        color = 'green';
+        break;
+      case '復興號':
+        color = 'lightblue';
+        break;
+      case '區間車':
+        color = 'black';
+        break;
+      case '加班車':
+        color = 'brown';
+        break;
+      default:
+        color = 'black';
     }
-
+  
     return '<span style="color: ' + color + ';">' + trainType + '</span>';
-}
-
-function showTrainDetails(trainNumber) {
+  }
+  
+  function showTrainDetails(trainNumber) {
     var modalTitle = document.getElementById('modalTitle');
     var modalTable = document.getElementById('modalTable');
     var modalBody = modalTable.getElementsByTagName('tbody')[0];
     modalBody.innerHTML = ''; // Clear previous content
-
+  
     modalTitle.innerHTML = '列車詳細資訊 - 車次 ' + trainNumber;
-
+  
     var stationTimes = trainSchedule[trainNumber]['車站時間'];
     for (var i = 0; i < stationTimes.length; i++) {
-        var row = modalBody.insertRow();
-        var cell1 = row.insertCell(0);
-        var cell2 = row.insertCell(1);
-
-        cell1.innerHTML = stationTimes[i][0];
-        cell2.innerHTML = stationTimes[i][1];
+      var row = modalBody.insertRow();
+      var cell1 = row.insertCell(0);
+      var cell2 = row.insertCell(1);
+  
+      cell1.innerHTML = stationTimes[i][0];
+      cell2.innerHTML = stationTimes[i][1];
     }
-
+  
     document.getElementById('trainDetailsModal').style.display = 'block';
-}
-
-function closeTrainDetailsModal() {
+  }
+  
+  function closeTrainDetailsModal() {
     document.getElementById('trainDetailsModal').style.display = 'none';
-}
+  }
