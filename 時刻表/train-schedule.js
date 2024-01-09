@@ -2339,58 +2339,6 @@ function generateStationOptions() {
 generateStationOptions();
 
 
-// 查詢時刻表的函數（原先的函數）
-function filterTrainScheduleByStation() {
-  var startStation = document.getElementById('startStation').value;
-  var endStation = document.getElementById('endStation').value;
-
-  var scheduleTable = document.getElementById('scheduleTableByStation').getElementsByTagName('tbody')[0];
-  scheduleTable.innerHTML = ''; // Clear previous content
-
-  var matchingTrains = [];
-
-  for (var trainNumberKey in trainSchedule) {
-      var stationTimes = trainSchedule[trainNumberKey]['車站時間'];
-      var startIndex = stationTimes.findIndex(station => station[0] === startStation);
-      var endIndex = stationTimes.findIndex(station => station[0] === endStation);
-
-      if (startIndex !== -1 && endIndex !== -1 && startIndex < endIndex) {
-          matchingTrains.push({
-              trainNumber: trainNumberKey,
-              trainType: getTrainTypeWithColor(trainSchedule[trainNumberKey]['車種']),
-              startStation: stationTimes[startIndex][0],
-              endStation: stationTimes[endIndex][0],
-              startTime: stationTimes[startIndex][1],
-              endTime: stationTimes[endIndex][1]
-          });
-      }
-  }
-
-  // Sort the matchingTrains array by start time
-  matchingTrains.sort(function (a, b) {
-      return a.startTime.localeCompare(b.startTime);
-  });
-
-  // Populate the schedule table with the sorted data
-  for (var i = 0; i < matchingTrains.length; i++) {
-      var row = scheduleTable.insertRow();
-      var cell1 = row.insertCell(0);
-      var cell2 = row.insertCell(1);
-      var cell3 = row.insertCell(2);
-      var cell4 = row.insertCell(3);
-      var cell5 = row.insertCell(4);
-      var cell6 = row.insertCell(5);
-
-      cell1.innerHTML = matchingTrains[i].trainNumber;
-      cell2.innerHTML = matchingTrains[i].trainType;
-      cell3.innerHTML = matchingTrains[i].startStation;
-      cell4.innerHTML = matchingTrains[i].endStation;
-      cell5.innerHTML = matchingTrains[i].startTime;
-      cell6.innerHTML = matchingTrains[i].endTime;
-
-      row.setAttribute('onclick', 'showTrainDetails(\'' + matchingTrains[i].trainNumber + '\')');
-  }
-}
 
 
 
@@ -2403,12 +2351,15 @@ function filterTrainScheduleByNumber() {
   if (trainSchedule[trainNumber]) {
       var stationTimes = trainSchedule[trainNumber]['車站時間'];
 
+      var firstStop = stationTimes[0][0];
+      var lastStop = stationTimes.slice(-1)[0][0];
+
       var row = scheduleTable.insertRow();
       var cell1 = row.insertCell(0);
       var cell2 = row.insertCell(1);
 
       cell1.innerHTML = trainNumber;
-      cell2.innerHTML = trainSchedule[trainNumber]['車種'];
+      cell2.innerHTML = getTrainTypeWithColor(trainSchedule[trainNumber]['車種']) + ' (' + firstStop + ' ➝ ' + lastStop + ')';
 
       row.setAttribute('onclick', 'showTrainDetails(\'' + trainNumber + '\')');
 
@@ -2431,11 +2382,12 @@ function filterTrainScheduleByNumber() {
   }
 }
 
+
 function filterTrainScheduleByStationName() {
   var selectedStation = document.getElementById('stationSelect').value;
 
   var scheduleTable = document.getElementById('scheduleTableByStationName').getElementsByTagName('tbody')[0];
-  scheduleTable.innerHTML = ''; // Clear previous content
+  scheduleTable.innerHTML = ''; // 清除先前的內容
 
   // 將列車數據轉換為數組並根據車站時間排序
   var sortedTrains = Object.keys(trainSchedule).sort(function (a, b) {
@@ -2459,14 +2411,18 @@ function filterTrainScheduleByStationName() {
       var cell2 = row.insertCell(1);
       var cell3 = row.insertCell(2);
 
+      var firstStop = stationTimes[0][0];
+      var lastStop = stationTimes.slice(-1)[0][0];
+
       cell1.innerHTML = trainNumberKey;
-      cell2.innerHTML = getTrainTypeWithColor(trainSchedule[trainNumberKey]['車種']);
+      cell2.innerHTML = getTrainTypeWithColor(trainSchedule[trainNumberKey]['車種']) + ' (' + firstStop + ' ➝ ' + lastStop + ')';
       cell3.innerHTML = stationTimes[stationIndex][1];
 
       row.setAttribute('onclick', 'showTrainDetails(\'' + trainNumberKey + '\')');
     }
   }
 }
+
 
 // 使用 getDepartureTimeForStation 函数获取指定列车在指定站点的出发时间
 function getDepartureTimeForStation(trainNumber, station) {
@@ -2549,32 +2505,32 @@ function getTrainTypeWithColor(trainType) {
   var color = '';
 
   switch (trainType) {
-      case '新自強':
-          color = 'purple';
-          break;
-      case '普悠瑪':
-          color = '#FF1493'; // Deep Pink
-          break;
-      case '自強號':
-          color = 'red';
-          break;
-      case '莒光號':
-          color = 'orange';
-          break;
-      case '區間快':
-          color = 'green';
-          break;
-      case '復興號':
-          color = 'lightblue';
-          break;
-      case '區間車':
-          color = 'black';
-          break;
-      case '加班車':
-          color = 'brown';
-          break;
-      default:
-          color = 'black';
+    case '新自強':
+      color = 'purple';
+      break;
+    case '普悠瑪':
+      color = '#FF1493'; // Deep Pink
+      break;
+    case '自強號':
+      color = 'red';
+      break;
+    case '莒光號':
+      color = 'orange';
+      break;
+    case '區間快':
+      color = 'green';
+      break;
+    case '復興號':
+      color = 'lightblue';
+      break;
+    case '區間車':
+      color = 'black';
+      break;
+    case '加班車':
+      color = 'brown';
+      break;
+    default:
+      color = 'black';
   }
 
   return '<span style="color: ' + color + ';">' + trainType + '</span>';
