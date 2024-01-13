@@ -151,7 +151,7 @@ th {
 <select id="endStation"></select>
 
     <label for="trainTypeFilterSchedule">車種選擇：</label>
-<select id="trainTypeFilterSchedule" multiple>
+<select id="trainTypeFilterSchedule" multiple onchange="updateTrainTypeFilter()">
     <!-- 直接添加選項 -->
     <option value="新自強">新自強</option>
     <option value="普悠瑪">普悠瑪</option>
@@ -190,7 +190,7 @@ th {
 </select>
 
     <label for="trainTypeFilterStation">車種選擇：</label>
-<select id="trainTypeFilterStation" multiple>
+<select id="trainTypeFilterStation" multiple onchange="updateTrainTypeFilterForStation()">
     <!-- 直接添加選項 -->
     <option value="新自強">新自強</option>
     <option value="普悠瑪">普悠瑪</option>
