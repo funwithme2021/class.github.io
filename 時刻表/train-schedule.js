@@ -2552,6 +2552,21 @@ function getArrivalTimeForStation(trainNumber, station) {
 
 // 新增的 JavaScript 部分
 
+// 在頁面載入完成後執行初始化函數
+window.onload = function() {
+    initializeTrainTypeFilterForStation();
+
+    // 添加事件監聽器，監聽車種選擇框的變化
+    document.getElementById('trainTypeFilterStation').addEventListener('change', function() {
+        updateTrainTypeFilterForStation();
+    });
+};
+
+// ... 其他原有程式碼
+
+
+// 新增的 JavaScript 部分
+
 // 新增全域變數，用來存儲當前選擇的車種
 var selectedTrainTypesForStation = [];
 
