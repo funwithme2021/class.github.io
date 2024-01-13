@@ -2549,3 +2549,33 @@ function getArrivalTimeForStation(trainNumber, station) {
   return null;
 }
 
+function generateTrainTypeOptions() {
+    var trainTypeFilterSchedule = document.getElementById('trainTypeFilterSchedule');
+    var trainTypeFilterStation = document.getElementById('trainTypeFilterStation');
+
+    // 初始化車種下拉框
+    var allTrainTypes = getAllTrainTypes();
+    for (var i = 0; i < allTrainTypes.length; i++) {
+        var option1 = document.createElement('option');
+        option1.value = allTrainTypes[i];
+        option1.text = allTrainTypes[i];
+        trainTypeFilterSchedule.add(option1);
+
+        var option2 = option1.cloneNode(true);
+        trainTypeFilterStation.add(option2);
+    }
+}
+
+function getAllTrainTypes() {
+    var allTrainTypes = [];
+
+    for (var trainNumberKey in trainSchedule) {
+        var trainType = trainSchedule[trainNumberKey]['車種'];
+        if (!allTrainTypes.includes(trainType)) {
+            allTrainTypes.push(trainType);
+        }
+    }
+
+    return allTrainTypes;
+}
+
