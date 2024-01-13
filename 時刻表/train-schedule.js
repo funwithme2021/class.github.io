@@ -2579,3 +2579,43 @@ function getAllTrainTypes() {
     return allTrainTypes;
 }
 
+
+// 将这段代码添加到你的现有代码中
+
+// 在选择更改时触发过滤函数
+document.getElementById('trainTypeFilterSchedule').addEventListener('change', filterScheduleByTrainType);
+document.getElementById('trainTypeFilterStation').addEventListener('change', filterStationByTrainType);
+
+function filterScheduleByTrainType() {
+    var selectedTrainTypes = getSelectedTrainTypes('trainTypeFilterSchedule');
+    // 调用一个函数根据选择的列车类型更新时刻表
+    updateSchedule(selectedTrainTypes);
+}
+
+function filterStationByTrainType() {
+    var selectedTrainTypes = getSelectedTrainTypes('trainTypeFilterStation');
+    // 调用一个函数根据选择的列车类型更新车站信息
+    updateStation(selectedTrainTypes);
+}
+
+function getSelectedTrainTypes(selectId) {
+    var selectedTrainTypes = [];
+    var selectElement = document.getElementById(selectId);
+    for (var i = 0; i < selectElement.options.length; i++) {
+        if (selectElement.options[i].selected) {
+            selectedTrainTypes.push(selectElement.options[i].value);
+        }
+    }
+    return selectedTrainTypes;
+}
+
+function updateSchedule(selectedTrainTypes) {
+    // 根据选择的列车类型更新时刻表的逻辑
+    // 你需要实现这部分
+}
+
+function updateStation(selectedTrainTypes) {
+    // 根据选择的列车类型更新车站信息的逻辑
+    // 你需要实现这部分
+}
+
