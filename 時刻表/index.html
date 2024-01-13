@@ -150,6 +150,20 @@ th {
 <label for="endStation">抵達站：</label>
 <select id="endStation"></select>
 
+    <label for="trainTypeFilterSchedule">車種選擇：</label>
+<select id="trainTypeFilterSchedule" multiple>
+    <!-- 直接添加選項 -->
+    <option value="新自強">新自強</option>
+    <option value="普悠瑪">普悠瑪</option>
+    <option value="自強號">自強號</option>
+    <option value="莒光號">莒光號</option>
+    <option value="復興號">復興號</option>
+    <option value="區間快">區間快</option>
+    <option value="區間車">區間車</option>
+    <option value="加班車">加班車</option>
+</select>
+
+
 <button onclick="filterTrainScheduleByStation()">查詢時刻表</button>
 
 <table id="scheduleTableByStation">
@@ -175,6 +189,20 @@ th {
     <!-- 選項將由JavaScript生成 -->
 </select>
 
+    <label for="trainTypeFilterStation">車種選擇：</label>
+<select id="trainTypeFilterStation" multiple>
+    <!-- 直接添加選項 -->
+    <option value="新自強">新自強</option>
+    <option value="普悠瑪">普悠瑪</option>
+    <option value="自強號">自強號</option>
+    <option value="莒光號">莒光號</option>
+    <option value="復興號">復興號</option>
+    <option value="區間快">區間快</option>
+    <option value="區間車">區間車</option>
+    <option value="加班車">加班車</option>
+</select>
+
+    
 <button onclick="filterTrainScheduleByStationName()">查詢時刻表</button>
 
 <table id="scheduleTableByStationName">
