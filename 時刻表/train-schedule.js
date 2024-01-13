@@ -2580,42 +2580,49 @@ function getAllTrainTypes() {
 }
 
 
-// 将这段代码添加到你的现有代码中
-
 // 在选择更改时触发过滤函数
-document.getElementById('trainTypeFilterSchedule').addEventListener('change', filterScheduleByTrainType);
-document.getElementById('trainTypeFilterStation').addEventListener('change', filterStationByTrainType);
+document.getElementById('trainTypeFilterSchedule').addEventListener('change', filterTrainScheduleByStation);
+document.getElementById('trainTypeFilterStation').addEventListener('change', filterTrainScheduleByStationName);
 
-function filterScheduleByTrainType() {
+function filterTrainScheduleByStation() {
     var selectedTrainTypes = getSelectedTrainTypes('trainTypeFilterSchedule');
-    // 调用一个函数根据选择的列车类型更新时刻表
-    updateSchedule(selectedTrainTypes);
+    updateScheduleByStation(selectedTrainTypes);
 }
 
-function filterStationByTrainType() {
+function filterTrainScheduleByStationName() {
     var selectedTrainTypes = getSelectedTrainTypes('trainTypeFilterStation');
-    // 调用一个函数根据选择的列车类型更新车站信息
-    updateStation(selectedTrainTypes);
+    updateScheduleByStationName(selectedTrainTypes);
 }
 
-function getSelectedTrainTypes(selectId) {
-    var selectedTrainTypes = [];
-    var selectElement = document.getElementById(selectId);
-    for (var i = 0; i < selectElement.options.length; i++) {
-        if (selectElement.options[i].selected) {
-            selectedTrainTypes.push(selectElement.options[i].value);
+function updateScheduleByStation(selectedTrainTypes) {
+    var scheduleTable = document.getElementById('scheduleTableByStation').getElementsByTagName('tbody')[0];
+    scheduleTable.innerHTML = '';
+
+    for (var trainNumberKey in trainSchedule) {
+        var trainType = trainSchedule[trainNumberKey]['車種'];
+
+        if (selectedTrainTypes.includes(trainType)) {
+            // 添加符合車種的列車信息到表格
+            // 你需要自行實現這一部分的邏輯
+            var row = scheduleTable.insertRow();
+            // 添加單元格及相應數據
         }
     }
-    return selectedTrainTypes;
 }
 
-function updateSchedule(selectedTrainTypes) {
-    // 根据选择的列车类型更新时刻表的逻辑
-    // 你需要实现这部分
-}
+function updateScheduleByStationName(selectedTrainTypes) {
+    var scheduleTable = document.getElementById('scheduleTableByStationName').getElementsByTagName('tbody')[0];
+    scheduleTable.innerHTML = '';
 
-function updateStation(selectedTrainTypes) {
-    // 根据选择的列车类型更新车站信息的逻辑
-    // 你需要实现这部分
+    for (var trainNumberKey in trainSchedule) {
+        var trainType = trainSchedule[trainNumberKey]['車種'];
+
+        if (selectedTrainTypes.includes(trainType)) {
+            // 添加符合車種的車站信息到表格
+            // 你需要自行實現這一部分的邏輯
+            var row = scheduleTable.insertRow();
+            // 添加單元格及相應數據
+        }
+    }
 }
 
