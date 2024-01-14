@@ -2550,96 +2550,9 @@ function getArrivalTimeForStation(trainNumber, station) {
 }
 
 
-// 新增的 JavaScript 部分
-
-// 在頁面載入完成後執行初始化函數
-window.onload = function() {
-    initializeTrainTypeFilterForStation();
-
-    // 添加事件監聽器，監聽車種選擇框的變化
-    document.getElementById('trainTypeFilterStation').addEventListener('change', function() {
-        updateTrainTypeFilterForStation();
-    });
-};
-
-// ... 其他原有程式碼
-
-
-// 新增的 JavaScript 部分
-
-// 新增全域變數，用來存儲當前選擇的車種
-var selectedTrainTypesForStation = [];
-
-// 新增用於初始化車種選擇的函數
-function initializeTrainTypeFilterForStation() {
-    var trainTypeFilterSelect = document.getElementById('trainTypeFilterStation');
-
-    for (var i = 0; i < trainTypeFilterSelect.options.length; i++) {
-        trainTypeFilterSelect.options[i].selected = false;
-    }
-
-    selectedTrainTypesForStation = [];
-}
-
-// 新增用於更新車種篩選的函數
-function updateTrainTypeFilterForStation() {
-    selectedTrainTypesForStation = getSelectedTrainTypesForStation();
-
-    // 調用相應的篩選函數
-    if (selectedTrainTypesForStation.length > 0) {
-        filterTrainScheduleByTrainTypesForStation(selectedTrainTypesForStation);
-    } else {
-        // 如果沒有選擇車種，顯示所有車次
-        displayAllTrainsForStation();
-    }
-}
-
-// 新增用於獲取選擇的車種的函數
-function getSelectedTrainTypesForStation() {
-    var trainTypeFilterSelect = document.getElementById('trainTypeFilterStation');
-    var selectedTrainTypes = [];
-
-    // 遍歷所有選項，將被選中的車種添加到數組中
-    for (var i = 0; i < trainTypeFilterSelect.options.length; i++) {
-        var option = trainTypeFilterSelect.options[i];
-        if (option.selected) {
-            selectedTrainTypes.push(option.value);
-        }
-    }
-
-    return selectedTrainTypes;
-}
-
-// 新增用於篩選車次的函數
-function filterTrainScheduleByTrainTypesForStation(selectedTrainTypes) {
-    // 根據選擇的車種篩選時刻表
-    // 實現這個函數根據需要的邏輯，例如，只顯示符合車種的列車
-    // 這裡僅提供一個示例，實際上你可能需要更複雜的邏輯
-    // ...
-
-    // 例如，假設 trainSchedule 是一個物件，代表列車時刻表
-    for (var trainNumberKey in trainSchedule) {
-        var trainType = trainSchedule[trainNumberKey]['車種'];
-
-        // 檢查列車車種是否在選擇的車種中
-        if (selectedTrainTypes.includes(trainType)) {
-            // 顯示符合條件的列車，你可能需要將這些信息添加到表格中
-            console.log('Train Number:', trainNumberKey, 'Train Type:', trainType);
-        }
-    }
-}
-
-// 新增用於顯示所有車次的函數
-function displayAllTrainsForStation() {
-    // 顯示所有列車，你可能需要將這些信息添加到表格中
-    // 這個函數的內容取決於你的實際需求
-    console.log('Displaying all trains for station.');
-}
-
-      
 
 
 
-    
 
+  
 
