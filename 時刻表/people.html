@@ -76,11 +76,11 @@
         var stationMaxCapacities = {
             '新自強': 538,
             '普悠瑪': 376,
-            '自強號': 566,
-            '莒光號': 400,
-            '復興號': 400,
-            '區間快': 900,
-            '區間車': 900,
+            '自強號': 666,
+            '莒光號': 500,
+            '復興號': 500,
+            '區間快': 950,
+            '區間車': 950,
             '加班車': 538,
             // 其他車種的最大運量可以繼續添加
         };
@@ -168,7 +168,7 @@
 
             cell1.innerHTML = i + 1;  // 排名
             cell2.innerHTML = station;
-            cell3.innerHTML = stationTotalLoads[station].totalLoad.toFixed(2); // 保留兩位小數
+            cell3.innerHTML = stationTotalLoads[station].totalLoad.toFixed(0); // 保留兩位小數
             cell4.innerHTML = stationTotalTrains[station];
             cell5.innerHTML = stationTrainCounts[station]['新自強'];
             cell6.innerHTML = stationTrainCounts[station]['普悠瑪'];
