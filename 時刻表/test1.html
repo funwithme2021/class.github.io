@@ -1,167 +1,438 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>列車時刻表查詢</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 20px;
-        }
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Train Information Chart</title>
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      background-color: #f4f4f4;
+    }
 
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 20px;
-        }
+    .container {
+      max-width: 800px;
+      margin: 20px auto;
+      background-color: #fff;
+      padding: 20px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    }
 
-        table, th, td {
-            border: 1px solid #ddd;
-        }
+    .header {
+      text-align: center;
+    }
 
-        th, td {
-            padding: 10px;
-            text-align: left;
-        }
+    .station-selection {
+      margin-bottom: 20px;
+    }
 
-        th {
-            background-color: #f2f2f2;
-        }
+    .train-info {
+      display: flex;
+      flex-direction: column;
+    }
 
-        select, button {
-            margin: 10px;
-            padding: 8px;
-        }
-    </style>
+    .current-info {
+      margin-bottom: 20px;
+    }
+
+    .next-train-marquee {
+      overflow: hidden;
+      white-space: nowrap;
+      border: 1px solid #ddd;
+      padding: 8px;
+      margin-bottom: 20px;
+    }
+
+    .next-train-marquee p {
+  display: inline-block;
+  margin: 0;
+  animation: marquee 20s linear infinite; /* 將 duration 設置為一個固定值 */
+}
+
+@keyframes marquee {
+  from { transform: translateX(100%); }
+  to { transform: translateX(-100%); }
+}
+
+
+    
+
+    @keyframes bounce {
+      0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
+      40% { transform: translateY(-15px); }
+      60% { transform: translateY(-10px); }
+    }
+
+    .train-info-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+    }
+
+    .train-info-table th, .train-info-table td {
+      border: 1px solid #ddd;
+      padding: 8px;
+      text-align: center;
+    }
+
+    .train-info-table th {
+      background-color: #f2f2f2;
+    }
+
+    .no-train-info {
+      font-style: italic;
+    }
+
+/* 在你的 CSS 中加入這段樣式 */
+
+.departure-ball {
+  display: none;
+  width: 10px;
+  height: 10px;
+  background-color: red;
+  border-radius: 50%;
+  margin-right: 5px; /* 調整紅色小球和車次之間的距離 */
+}
+
+
+
+@keyframes flash {
+   100% {
+    color: red; /* 開始和結束時的顏色 */
+  }
+ 
+}
+
+
+  </style>
 </head>
 <body>
 
-<h2>列車時刻表查詢</h2>
+<!-- 第一個列車資訊板 -->
+<div class="container" id="container-1">
+    <div class="header">
+      <h1>列車資訊板 1</h1>
+    </div>
+    <div class="station-selection">
+      <label for="station-1">選擇車站：</label>
+      <select id="station-1"></select>
+    </div>
+    <div class="train-info">
+        <div class="current-info">
+          <h2 id="current-time"></h2>
+          <h3 id="current-station"></h3>
+        </div>
+    
+        <table class="train-info-table" id="upcoming-trains">
+          <thead>
+            <tr>
+              <th>車次</th>
+              <th>車種</th>
+              <th>開往</th>
+              <th>開車時間</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+    
+        <div id="ball-container"></div>
+    
+        <div class="next-train-marquee">
+          <p id="next-train-marquee"></p>
+        </div>
+      </div>
+    </div>
+  
+  <!-- 第二個列車資訊板 -->
+  <div class="container" id="container-2">
+    <div class="header">
+      <h1>列車資訊板 2</h1>
+    </div>
+    <div class="station-selection">
+      <label for="station-2">選擇車站：</label>
+      <select id="station-2"></select>
+    </div>
+    <div class="train-info">
+        <div class="current-info">
+          <h2 id="current-time"></h2>
+          <h3 id="current-station"></h3>
+        </div>
+    
+        <table class="train-info-table" id="upcoming-trains">
+          <thead>
+            <tr>
+              <th>車次</th>
+              <th>車種</th>
+              <th>開往</th>
+              <th>開車時間</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+    
+        <div id="ball-container"></div>
+    
+        <div class="next-train-marquee">
+          <p id="next-train-marquee"></p>
+        </div>
+      </div>
+    </div>
 
-<label for="startStation">出發站：</label>
-<select id="startStation">
-    <!-- 選項將由JavaScript生成 -->
-</select>
+    <div class="container" id="container-3">
+        <div class="header">
+          <h1>列車資訊板 3</h1>
+        </div>
+        <div class="station-selection">
+          <label for="station-3">選擇車站：</label>
+          <select id="station-3"></select>
+        </div>
+        <div class="train-info">
+            <div class="current-info">
+              <h2 id="current-time"></h2>
+              <h3 id="current-station"></h3>
+            </div>
+        
+            <table class="train-info-table" id="upcoming-trains">
+              <thead>
+                <tr>
+                  <th>車次</th>
+                  <th>車種</th>
+                  <th>開往</th>
+                  <th>開車時間</th>
+                </tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+        
+            <div id="ball-container"></div>
+        
+            <div class="next-train-marquee">
+              <p id="next-train-marquee"></p>
+            </div>
+          </div>
+        </div>
 
-<label for="endStation">抵達站：</label>
-<select id="endStation">
-    <!-- 選項將由JavaScript生成 -->
-</select>
+        <div class="container" id="container-4">
+            <div class="header">
+              <h1>列車資訊板 4</h1>
+            </div>
+            <div class="station-selection">
+              <label for="station-4">選擇車站：</label>
+              <select id="station-4"></select>
+            </div>
+            <div class="train-info">
+                <div class="current-info">
+                  <h2 id="current-time"></h2>
+                  <h3 id="current-station"></h3>
+                </div>
+            
+                <table class="train-info-table" id="upcoming-trains">
+                  <thead>
+                    <tr>
+                      <th>車次</th>
+                      <th>車種</th>
+                      <th>開往</th>
+                      <th>開車時間</th>
+                    </tr>
+                  </thead>
+                  <tbody></tbody>
+                </table>
+            
+                <div id="ball-container"></div>
+            
+                <div class="next-train-marquee">
+                  <p id="next-train-marquee"></p>
+                </div>
+              </div>
+            </div>
 
-<button onclick="filterTrainSchedule()">查詢時刻表</button>
+            <div class="container" id="container-5">
+                <div class="header">
+                  <h1>列車資訊板 5</h1>
+                </div>
+                <div class="station-selection">
+                  <label for="station-5">選擇車站：</label>
+                  <select id="station-5"></select>
+                </div>
+                <div class="train-info">
+                    <div class="current-info">
+                      <h2 id="current-time"></h2>
+                      <h3 id="current-station"></h3>
+                    </div>
+                
+                    <table class="train-info-table" id="upcoming-trains">
+                      <thead>
+                        <tr>
+                          <th>車次</th>
+                          <th>車種</th>
+                          <th>開往</th>
+                          <th>開車時間</th>
+                        </tr>
+                      </thead>
+                      <tbody></tbody>
+                    </table>
+                
+                    <div id="ball-container"></div>
+                
+                    <div class="next-train-marquee">
+                      <p id="next-train-marquee"></p>
+                    </div>
+                  </div>
+                </div>
 
-<table id="scheduleTable">
-    <thead>
-    <tr>
-        <th>車次</th>
-        <th>車種</th>
-        <th>第一個停靠站</th>
-        <th>最後一個停靠站</th>
-        <th>出發站時間</th>
-        <th>抵達站時間</th>
-    </tr>
-    </thead>
-    <tbody>
-    <!-- Table content will be inserted here -->
-    </tbody>
-</table>
+                <div class="container" id="container-6">
+                    <div class="header">
+                      <h1>列車資訊板 6</h1>
+                    </div>
+                    <div class="station-selection">
+                      <label for="station-6">選擇車站：</label>
+                      <select id="station-6"></select>
+                    </div>
+                    <div class="train-info">
+                        <div class="current-info">
+                          <h2 id="current-time"></h2>
+                          <h3 id="current-station"></h3>
+                        </div>
+                    
+                        <table class="train-info-table" id="upcoming-trains">
+                          <thead>
+                            <tr>
+                              <th>車次</th>
+                              <th>車種</th>
+                              <th>開往</th>
+                              <th>開車時間</th>
+                            </tr>
+                          </thead>
+                          <tbody></tbody>
+                        </table>
+                    
+                        <div id="ball-container"></div>
+                    
+                        <div class="next-train-marquee">
+                          <p id="next-train-marquee"></p>
+                        </div>
+                      </div>
+                    </div>
+
+<script src="train-schedule.js"></script>
 
 <script>
-    var trainSchedule = {
-        '111': {
-            '車種': '普悠瑪',
-            '車站時間': [
-                ['南港', '07:42'],
-                ['松山', '07:48'],
-                ['臺北', '08:00'],
-                ['板橋', '08:08'],
-                ['桃園', '08:25'],
-                ['臺中', '09:40'],
-                ['嘉義', '10:36'],
-                ['臺南', '11:12'],
-                ['高雄', '11:42'],
-                ['屏東', '11:57'],
-                ['潮州', '12:12'],
-                ['枋寮', '12:33']
-            ]
-        },
-        '143': {
-            '車種': '新自強',
-            '車站時間': [
-                ['七堵', '17:32'],
-                ['松山', '17:49'],
-                ['臺北', '18:00'],
-                ['板橋', '18:09'],
-                ['臺中', '19:48'],
-                ['彰化', '20:02'],
-                ['嘉義', '20:49'],
-                ['臺南', '21:27'],
-                ['高雄', '22:00'],
-                ['鳳山', '22:07'],
-                ['屏東', '22:20'],
-                ['潮州', '22:35']
-            ]
-        }
-        // Add more train schedules as needed
-    };
 
-    var stations = [
-        '七堵', '汐止', '南港', '松山', '臺北', '萬華', '板橋', '樹林', '桃園',
-        '中壢', '新竹', '竹南', '苗栗', '豐原', '臺中', '彰化', '員林', '斗六', '斗南',
-        '嘉義', '新營', '臺南', '新左營', '高雄', '鳳山', '九曲堂', '屏東', '潮州', '枋寮'
-    ];
+document.addEventListener("DOMContentLoaded", function () {
+  // 第一個列車資訊板的變數
+  const currentTimeElement1 = document.getElementById("current-time-1");
+  const currentStationElement1 = document.getElementById("current-station-1");
+  const upcomingTrainsTable1 = document.getElementById("upcoming-trains-1");
+  const nextTrainMarqueeElement1 = document.getElementById("next-train-marquee-1");
+  const stationSelect1 = document.getElementById("station-1");
+  const ballContainer1 = document.getElementById("ball-container-1");
 
-    // 動態生成車站下拉選單
-    function generateStationOptions() {
-        var startStationSelect = document.getElementById('startStation');
-        var endStationSelect = document.getElementById('endStation');
+  // 第二個列車資訊板的變數
+  const currentTimeElement2 = document.getElementById("current-time-2");
+  const currentStationElement2 = document.getElementById("current-station-2");
+  const upcomingTrainsTable2 = document.getElementById("upcoming-trains-2");
+  const nextTrainMarqueeElement2 = document.getElementById("next-train-marquee-2");
+  const stationSelect2 = document.getElementById("station-2");
+  const ballContainer2 = document.getElementById("ball-container-2");
 
-        for (var i = 0; i < stations.length; i++) {
-            var option = document.createElement('option');
-            option.value = stations[i];
-            option.text = stations[i];
-            startStationSelect.add(option);
+  const currentTimeElement3 = document.getElementById("current-time-3");
+  const currentStationElement3 = document.getElementById("current-station-3");
+  const upcomingTrainsTable3 = document.getElementById("upcoming-trains-3");
+  const nextTrainMarqueeElement3 = document.getElementById("next-train-marquee-3");
+  const stationSelect3 = document.getElementById("station-3");
+  const ballContainer3 = document.getElementById("ball-container-3");
 
-            var optionClone = option.cloneNode(true);
-            endStationSelect.add(optionClone);
-        }
+  const currentTimeElement4 = document.getElementById("current-time-4");
+  const currentStationElement4 = document.getElementById("current-station-4");
+  const upcomingTrainsTable4 = document.getElementById("upcoming-trains-4");
+  const nextTrainMarqueeElement4 = document.getElementById("next-train-marquee-4");
+  const stationSelect4 = document.getElementById("station-4");
+  const ballContainer4 = document.getElementById("ball-container-4");
+
+  const currentTimeElement5 = document.getElementById("current-time-5");
+  const currentStationElement5 = document.getElementById("current-station-5");
+  const upcomingTrainsTable5 = document.getElementById("upcoming-trains-5");
+  const nextTrainMarqueeElement5 = document.getElementById("next-train-marquee-5");
+  const stationSelect5 = document.getElementById("station-5");
+  const ballContainer5 = document.getElementById("ball-container-5");
+
+  const currentTimeElement6 = document.getElementById("current-time-6");
+  const currentStationElement6 = document.getElementById("current-station-6");
+  const upcomingTrainsTable6 = document.getElementById("upcoming-trains-6");
+  const nextTrainMarqueeElement6 = document.getElementById("next-train-marquee-6");
+  const stationSelect6 = document.getElementById("station-6");
+  const ballContainer6 = document.getElementById("ball-container-6");
+
+  // 生成車站選項
+  function generateStationOptions(stationSelect) {
+    for (var i = 0; i < stations.length; i++) {
+      var option = document.createElement('option');
+      option.value = stations[i];
+      option.text = stations[i];
+      stationSelect.add(option);
     }
+  }
 
-    // 初始化生成車站下拉選單
-    generateStationOptions();
+  // 第一個板子
+  generateStationOptions(stationSelect1);
+  // 其他邏輯不變，按照需要修改
 
-    function filterTrainSchedule() {
-        var startStation = document.getElementById('startStation').value;
-        var endStation = document.getElementById('endStation').value;
+  // 第二個板子
+  generateStationOptions(stationSelect2);
+  // 其他邏輯不變，按照需要修改
+  generateStationOptions(stationSelect3);
+  generateStationOptions(stationSelect4);
+  generateStationOptions(stationSelect5);
+  generateStationOptions(stationSelect6);
+  // 以此類推，為每個板子定義相應的邏輯
 
-        var scheduleTable = document.getElementById('scheduleTable').getElementsByTagName('tbody')[0];
-        scheduleTable.innerHTML = ''; // Clear previous content
+  // ...
 
-        for (var trainNumber in trainSchedule) {
-            var stationTimes = trainSchedule[trainNumber]['車站時間'];
-            var startIndex = stationTimes.findIndex(station => station[0] === startStation);
-            var endIndex = stationTimes.findIndex(station => station[0] === endStation);
+  // 初始執行
+  setInterval(() => updateTrainInfo(1), 1000); // 第一個板子
+  setInterval(() => updateTrainInfo(2), 1000); // 第二個板子
+  setInterval(() => updateTrainInfo(3), 1000); // 第一個板子
+  setInterval(() => updateTrainInfo(4), 1000); // 第二個板子
+  setInterval(() => updateTrainInfo(5), 1000); // 第一個板子
+  setInterval(() => updateTrainInfo(6), 1000); // 第二個板子
+  // 以此類推，為每個板子添加定時更新
 
-            if (startIndex !== -1 && endIndex !== -1 && startIndex < endIndex) {
-                var row = scheduleTable.insertRow();
-                var cell1 = row.insertCell(0);
-                var cell2 = row.insertCell(1);
-                var cell3 = row.insertCell(2);
-                var cell4 = row.insertCell(3);
-                var cell5 = row.insertCell(4);
-                var cell6 = row.insertCell(5);
+  // 更新列車資訊的主函數，接受板子的編號
+  function updateTrainInfo(boardNumber) {
+    const now = new Date();  // 在每次更新時重新獲取當前時間
+    const currentHours = now.getHours().toString().padStart(2, '0');
+    const currentMinutes = now.getMinutes().toString().padStart(2, '0');
+    const currentSeconds = now.getSeconds().toString().padStart(2, '0');
+    const formattedCurrentTime = `${currentHours}:${currentMinutes}:${currentSeconds}`;
 
-                cell1.innerHTML = trainNumber;
-                cell2.innerHTML = trainSchedule[trainNumber]['車種'];
-                cell3.innerHTML = stationTimes[startIndex][0];
-                cell4.innerHTML = stationTimes[endIndex][0];
-                cell5.innerHTML = stationTimes[startIndex][1];
-                cell6.innerHTML = stationTimes[endIndex][1];
-            }
-        }
-    }
+    const selectedStation = document.getElementById(`station-${boardNumber}`).value;
+
+    const nextTrain = findNextTrain(selectedStation, formattedCurrentTime);
+
+    const currentTimeElement = document.getElementById(`current-time-${boardNumber}`);
+    const upcomingTrainsTable = document.getElementById(`upcoming-trains-${boardNumber}`);
+    const nextTrainMarqueeElement = document.getElementById(`next-train-marquee-${boardNumber}`);
+
+    // 在這裡根據板子的編號更新相應的元素
+    currentTimeElement.textContent = formattedCurrentTime;
+    upcomingTrainsTable.querySelector('tbody').innerHTML = "";
+
+    // 其他邏輯不變，按照需要修改
+    // ...
+
+    // ...
+  }
+
+  // 其他邏輯不變，按照需要修改
+
+  // ...
+});
 </script>
+
 
 </body>
 </html>
+
