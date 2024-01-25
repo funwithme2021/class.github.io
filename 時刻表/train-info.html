@@ -228,22 +228,26 @@ for (let i = 0; i < 5; i++) {
 }
 
 
-    const upcomingStations = getUpcomingStations(selectedStation, nextTrain[0].destination);
-    const stopsText = upcomingStations.length > 0 ? '本列車沿途停靠：' + upcomingStations.join('、') : '本列車即將進站';
+const upcomingStations = getUpcomingStations(selectedStation, nextTrain[0]);
+  const stopsText = upcomingStations.length > 0 ? '本列車沿途停靠：' + upcomingStations.join('、') : '本列車即將進站';
 
-    nextTrainMarqueeElement.innerHTML = `${nextTrain[0].time} 開往 ${nextTrain[0].destination} 的 ${nextTrain[0].trainNumber} 次 ${getTrainTypeWithColor(nextTrain[0].trainType)} 即將進站，${stopsText}`;
-  }
+  nextTrainMarqueeElement.innerHTML = `${nextTrain[0].time} 開往 ${nextTrain[0].destination} 的 ${nextTrain[0].trainNumber} 次 ${getTrainTypeWithColor(nextTrain[0].trainType)} 即將進站，${stopsText}`;
+}
 
-  function getUpcomingStations(currentStation, destination) {
-    const stationIndex = stations.indexOf(currentStation);
-    const destinationIndex = stations.indexOf(destination);
+function getUpcomingStations(currentStation, train) {
+  const stationTimes = trainSchedule[train.trainNumber]["車站時間"];
+  const stationIndex = stationTimes.findIndex(entry => entry[0] === currentStation);
 
-    if (stationIndex !== -1 && destinationIndex !== -1 && stationIndex < destinationIndex) {
-      return stations.slice(stationIndex + 1, destinationIndex + 1);
+  if (stationIndex !== -1 && stationIndex < stationTimes.length - 1) {
+    const upcomingStations = [];
+    for (let i = stationIndex + 1; i < stationTimes.length - 1; i++) {
+      upcomingStations.push(stationTimes[i][0]);
     }
-
-    return [];
+    return upcomingStations;
   }
+
+  return [];
+}
 
   stationSelect.addEventListener("change", updateTrainInfo);
 
