@@ -1,543 +1,352 @@
-console.log('trainSchedule:', trainSchedule);
-console.log('stations:', stations);
-
-var trainSchedule = {
-  //新自強1xx
-
-  //普悠瑪2xx
-  '211': {
-      '車種': '普悠瑪',
-      '車站時間': [
-          ['南港', '07:42'],['松山', '07:48'],['臺北', '21:00'],['萬華', '08:05'],['板橋', '08:10'],
-          ['桃園', '08:26'],['臺中', '09:40'],['嘉義', '10:36'],['臺南', '11:12'],['高雄', '11:42'],
-          ['屏東', '11:57'],['潮州', '12:12'],['枋寮', '12:33']
-      ]
-  },
-  '265': {
-    '車種': '普悠瑪',
-    '車站時間': [
-        ['南港', '18:25'],['松山', '18:30'],['臺北', '18:40'],['萬華', '18:45'],['板橋', '18:51'],
-        ['新竹', '19:32'],['臺中', '20:28'],['嘉義', '21:10'],['臺南', '21:43'],['高雄', '22:11'],
-        ['屏東', '22:26'],['潮州', '22:30'],
-    ]
-},
-  '243': {
-      '車種': '新自強',
-      '車站時間': [
-          ['七堵', '17:32'],['松山', '17:49'],['臺北', '18:00'],['萬華', '18:05'],['板橋', '18:10'],
-          ['臺中', '19:48'],['彰化', '20:02'],['嘉義', '20:49'],['臺南', '21:27'],['高雄', '22:00'],
-          ['鳳山', '22:07'],['屏東', '22:20'],['潮州', '22:35']
-      ]
-  },
-
-  //自強號3xx
-  '101': {
-    '車種': '自強號',
-    '車站時間': [
-        ['瑞芳', '05:45'],['七堵', '06:00'],['汐止', '06:10'],['松山', '06:20'],['臺北', '06:30'],
-        ['萬華', '06:36'],['板橋', '06:42'],
-        ['桃園', '07:02'],['中壢', '07:12'],['新竹', '07:43'],
-        ['竹南', '07:56'],['苗栗', '07:08'],['豐原', '07:35'],
-        ['臺中', '07:47'],['彰化', '08:04'],
-        ['員林', '08:15'],['斗六', '08:46'],        
-        ['嘉義', '09:11'],['新營', '09:27'],['臺南', '09:54'],
-        ['新左營', '10:24'],['高雄', '10:36'],['鳳山', '10:44'],['屏東', '10:59'],['潮州', '11:12']
-    ]
-},
-'103': {
-  '車種': '自強號',
-  '車站時間': [
-      ['臺中', '05:47'],['新烏日', '05:55'],['彰化', '06:04'],
-      ['員林', '06:15'],['田中', '06:24'],['斗六', '06:46'],['斗南', '06:54'],        
-      ['嘉義', '07:02'],['新營', '07:18'],['善化', '07:33'],['永康', '07:43'],['臺南', '07:53'],
-      ['新左營', '08:20'],['高雄', '08:32'],['鳳山', '08:44'],['屏東', '08:55'],['潮州', '09:10'],['枋寮', '09:25']
-  ]
-},
-'105': {
-  '車種': '自強號',
-  '車站時間': [
-      ['基隆', '06:45'],['八堵', '06:53'],['七堵', '07:00'],['汐止', '07:10'],['松山', '07:20'],['臺北', '07:30'],
-      ['萬華', '07:36'],['板橋', '07:42'],['樹林', '07:52'],
-      ['桃園', '08:07'],['中壢', '08:18'],['湖口', '08:30'],['竹北', '08:45'],['新竹', '08:51'],
-      ['竹南', '09:06'],['苗栗', '09:18'],['后里', '09:36'],['豐原', '09:45'],
-      ['臺中', '09:58'],['彰化', '10:14'],
-      ['員林', '10:25'],['田中', '10:34'],['斗六', '10:56'],['斗南', '11:04'],        
-      ['嘉義', '11:11'],['新營', '11:27'],['善化', '11:47'],['臺南', '12:00'],
-      ['新左營', '12:27'],['高雄', '12:38'],['鳳山', '12:50'],['屏東', '13:00'],['潮州', '13:15'],['枋寮', '13:30']
-  ]
-},
-'107': {
-  '車種': '自強號',
-  '車站時間': [
-      ['七堵', '08:00'],['汐止', '08:10'],['松山', '08:20'],['臺北', '08:30'],
-      ['萬華', '08:36'],['板橋', '08:42'],
-      ['桃園', '09:02'],['中壢', '09:12'],['新竹', '09:43'],
-      ['竹南', '09:56'],['苗栗', '10:08'],['豐原', '10:35'],
-      ['臺中', '10:47'],['彰化', '11:04'],
-      ['員林', '11:15'],['斗六', '11:46'],        
-      ['嘉義', '12:11'],['新營', '12:27'],['臺南', '12:54'],
-      ['新左營', '13:24'],['高雄', '13:36'],['鳳山', '13:44'],['屏東', '13:59'],['潮州', '14:12']
-  ]
-},
-'109' : {
-      '車種': '自強號',
-      '車站時間': [
-          ['七堵', '09:00'],['汐止', '09:10'],['松山', '09:20'],['臺北', '09:30'],
-          ['萬華', '09:36'],['板橋', '09:42'],
-          ['桃園', '10:02'],['中壢', '10:12'],['新竹', '10:43'],
-          ['竹南', '10:56'],['苗栗', '11:08'],['豐原', '11:35'],
-          ['臺中', '11:47'],['彰化', '12:04'],
-          ['員林', '12:15'],['斗六', '12:46'],['斗南', '12:04'],        
-          ['嘉義', '13:11'],['新營', '13:27'],['臺南', '13:54'],
-          ['新左營', '14:24'],['高雄', '14:36'],['鳳山', '14:44'],['屏東', '14:59'],['潮州', '15:12']
-      ]
-  },
-'111': {
-  '車種': '自強號',
-  '車站時間': [
-    ['七堵', '10:00'],['汐止', '10:10'],['松山', '10:20'],['臺北', '10:30'],
-    ['萬華', '10:36'],['板橋', '10:42'],
-    ['桃園', '11:02'],['中壢', '11:12'],['新竹', '11:43'],
-    ['竹南', '11:56'],['苗栗', '12:08'],['豐原', '12:35'],
-    ['臺中', '12:47'],['彰化', '13:04'],
-    ['員林', '13:15'],['斗六', '13:46'],        
-    ['嘉義', '14:11'],['新營', '14:27'],['臺南', '14:54'],
-    ['新左營', '15:24'],['高雄', '15:36'],['鳳山', '15:44'],['屏東', '15:59'],['潮州', '16:12']
-  ]
-},
-'113': {
-  '車種': '自強號',
-  '車站時間': [
-    ['七堵', '11:00'],['汐止', '11:10'],['松山', '11:20'],['臺北', '11:30'],
-    ['萬華', '11:36'],['板橋', '11:42'],
-    ['桃園', '12:02'],['中壢', '12:12'],['新竹', '12:43'],
-    ['竹南', '12:56'],['苗栗', '13:08'],['豐原', '13:35'],
-    ['臺中', '13:47'],['彰化', '14:04'],
-    ['員林', '14:15'],['斗六', '14:46'],        
-    ['嘉義', '15:11'],['新營', '15:27'],['臺南', '15:54'],
-    ['新左營', '16:24'],['高雄', '16:36'],['鳳山', '16:44'],['屏東', '16:59'],['潮州', '17:12'],['枋寮', '13:27']
-  ]
-},
-'115': {
-  '車種': '自強號',
-  '車站時間': [
-      ['七堵', '12:30'],['汐止', '12:40'],['松山', '12:50'],['臺北', '13:00'],
-      ['萬華', '13:06'],['板橋', '13:12'],['樹林', '13:22'],
-      ['桃園', '13:32'],['中壢', '13:42'],['新竹', '14:13'],
-      ['竹南', '14:26'],['苗栗', '14:38'],['豐原', '15:05'],
-      ['臺中', '15:17'],['彰化', '15:34'],
-      ['員林', '15:45'],['斗六', '16:16'],['斗南', '16:34'],        
-      ['嘉義', '16:41'],['新營', '16:57'],['臺南', '17:24'],
-      ['新左營', '17:54'],['高雄', '18:06'],['鳳山', '18:14'],['屏東', '18:29'],['潮州', '18:42']
-  ]
-},
-'117': {
-  '車種': '自強號',
-  '車站時間': [
-    ['基隆', '13:15'],['八堵', '13:23'],['七堵', '13:30'],['汐止', '13:40'],['松山', '13:50'],['臺北', '14:00'],
-    ['萬華', '14:06'],['板橋', '14:12'],
-    ['桃園', '14:32'],['中壢', '14:42'],['新竹', '15:13'],
-    ['竹南', '15:26'],['苗栗', '15:38'],['豐原', '16:05'],
-    ['臺中', '16:17'],['彰化', '16:34'],
-    ['員林', '16:45'],['斗六', '17:16'],        
-    ['嘉義', '17:41'],['新營', '17:57'],['臺南', '18:24'],
-    ['新左營', '18:54'],['高雄', '19:06'],['鳳山', '19:14'],['屏東', '19:29'],['潮州', '19:42']
-  ]
-},
-'119': {
-  '車種': '自強號',
-  '車站時間': [
-      ['七堵', '15:00'],['汐止', '15:10'],['松山', '15:20'],['臺北', '15:30'],
-      ['萬華', '15:36'],['板橋', '15:42'],
-      ['桃園', '16:07'],['中壢', '16:18'],['湖口', '16:30'],['竹北', '16:45'],['新竹', '16:51'],
-      ['竹南', '17:06'],['苗栗', '17:18'],['后里', '17:36'],['豐原', '17:45'],
-      ['臺中', '17:58'],['彰化', '18:14'],
-      ['員林', '18:25'],['田中', '18:34'],['斗六', '18:56'],['斗南', '19:04'],        
-      ['嘉義', '19:21'],['新營', '19:37'],['善化', '19:57'],['臺南', '20:10'],
-      ['新左營', '20:37'],['高雄', '20:48'],['鳳山', '21:00'],['屏東', '21:10'],['潮州', '21:25']
-  ]
-},
-'121': {
-  '車種': '自強號',
-  '車站時間': [
-    ['七堵', '16:00'],['汐止', '16:10'],['松山', '16:20'],['臺北', '16:30'],
-    ['萬華', '16:36'],['板橋', '16:42'],
-    ['桃園', '17:02'],['中壢', '17:12'],['新竹', '17:43'],
-    ['竹南', '17:56'],['苗栗', '18:08'],['豐原', '18:35'],
-    ['臺中', '18:47'],['彰化', '19:04'],
-    ['員林', '19:15'],['斗六', '19:46'],        
-    ['嘉義', '20:11'],['新營', '20:27'],['臺南', '20:57'],
-    ['新左營', '21:24'],['高雄', '21:36'],['鳳山', '21:54'],['屏東', '22:09'],['潮州', '22:24']
-  ]
-},
-'123': {
-  '車種': '自強號',
-  '車站時間': [
-    ['基隆', '16:45'],['八堵', '16:53'],['七堵', '17:00'],['汐止', '17:10'],['松山', '17:20'],['臺北', '17:30'],
-    ['萬華', '17:36'],['板橋', '17:42'],
-    ['桃園', '18:02'],['中壢', '18:12'],['新竹', '18:43'],
-    ['竹南', '18:56'],['苗栗', '19:08'],['豐原', '19:35'],
-    ['臺中', '19:47'],['彰化', '20:04'],
-    ['員林', '20:15'],['斗六', '20:46'],        
-    ['嘉義', '21:11'],['新營', '21:27'],['臺南', '21:57'],
-    ['新左營', '22:24'],['高雄', '22:36'],['鳳山', '22:54'],['屏東', '23:09'],['潮州', '23:24']
-  ]
-},
-'125': {
-  '車種': '自強號',
-  '車站時間': [
-    ['瑞芳', '17:45'],['七堵', '18:00'],['汐止', '18:10'],['松山', '18:20'],['臺北', '18:30'],
-    ['萬華', '18:36'],['板橋', '18:42'],
-    ['桃園', '19:02'],['中壢', '19:12'],['新竹', '19:43'],
-    ['竹南', '19:56'],['苗栗', '20:08'],['豐原', '20:35'],
-    ['臺中', '20:47'],['彰化', '21:04'],
-    ['員林', '21:15'],['斗六', '21:46'],        
-    ['嘉義', '22:11'],['新營', '22:27'],['臺南', '22:57'],
-    ['新左營', '23:24'],['高雄', '23:36'],['鳳山', '23:54'],['屏東', '00:09'],['潮州', '00:24']
-  ]
-},
-'127': {
-  '車種': '自強號',
-  '車站時間': [
-    ['瑞芳', '19:00'],['七堵', '19:15'],['松山', '19:35'],['臺北', '19:45'],
-    ['萬華', '19:51'],['板橋', '19:57'],
-    ['桃園', '20:17'],['中壢', '20:27'],['新竹', '20:58'],
-    ['竹南', '21:11'],['苗栗', '21:23'],['豐原', '21:50'],
-    ['臺中', '22:02'],['彰化', '22:19'],
-    ['員林', '22:30'],['斗六', '23:01'],       
-    ['嘉義', '23:26'],['新營', '23:42'],['臺南', '23:12'],
-    ['新左營', '23:39'],['高雄', '23:51'],['鳳山', '00:09'],['屏東', '00:24']
-  ]
-},
-'129': {
-  '車種': '自強號',
-  '車站時間': [
-    ['七堵', '20:30'],['汐止', '20:40']['松山', '20:50'],['臺北', '21:00'],
-    ['萬華', '21:06'],['板橋', '21:12'],
-    ['桃園', '21:32'],['中壢', '21:42'],['新竹', '22:13'],
-    ['竹南', '22:26'],['苗栗', '22:38'],['豐原', '23:05'],
-    ['臺中', '23:17'],['彰化', '23:34'],
-    ['員林', '23:45'],['斗六', '00:16'],['斗南', '00:25'],        
-    ['嘉義', '00:41']
-  ]
-},
-'131': {
-  '車種': '自強號',
-  '車站時間': [
-      ['七堵', '21:00'],['汐止', '21:10'],['松山', '21:20'],['臺北', '21:30'],
-      ['萬華', '21:36'],['板橋', '21:42'],['樹林', '21:52'],
-      ['桃園', '22:07'],['中壢', '22:18'],['湖口', '22:30'],['竹北', '22:45'],['新竹', '22:51'],
-      ['竹南', '23:06'],['苗栗', '23:18'],['后里', '23:36'],['豐原', '23:45'],
-      ['臺中', '23:58'],['彰化', '00:14'],
-  ]
-},
-
-
-
-
-
-
-
-  //莒光號4xx
-
-  //區間快2xxx
-
-  //區間車1xxx
-
-  //復興號5xx
-
-  //加班車5xxx
-
-};
-
-var stations = [
-  '臺東', '鹿野', '關山', '池上', '富里', '玉里', '瑞穗', '光復', '萬榮', '鳳林',
-    '壽豐', '志學', '吉安', '花蓮', '新城', '和平', '南澳', '東澳', '蘇澳新', '冬山',
-    '羅東', '宜蘭', '礁溪', '頭城', '福隆', '雙溪', '瑞芳', '基隆', '八堵', '七堵',
-    '汐止', '汐科', '南港', '松山', '臺北', '萬華', '板橋', '樹林', '鶯歌', '桃園',
-    '中壢', '楊梅', '湖口', '竹北', '新竹', '竹南', '苗栗', '銅鑼', '三義', '后里',
-    '豐原', '潭子', '臺中', '新烏日', '彰化', '員林', '社頭', '田中', '二水', '斗六',
-    '斗南', '民雄', '嘉義', '新營', '善化', '永康', '臺南', '岡山', '新左營', '高雄',
-    '鳳山', '九曲堂', '屏東', '西勢', '潮州', '南州', '林邊', '枋寮'
-];
-
-// 動態生成車站下拉選單
-// 動態生成車站下拉選單
-function generateStationOptions() {
-  var startStationSelect = document.getElementById('startStation');
-  var endStationSelect = document.getElementById('endStation');
-  var stationSelect = document.getElementById('stationSelect');
-
-  for (var i = 0; i < stations.length; i++) {
-      var option1 = document.createElement('option');
-      option1.value = stations[i];
-      option1.text = stations[i];
-      startStationSelect.add(option1);
-
-      var option2 = option1.cloneNode(true);
-      endStationSelect.add(option2);
-
-      var option3 = option1.cloneNode(true);
-      stationSelect.add(option3);
-  }
-}
-
-// 初始化生成車站下拉選單
-generateStationOptions();
-
-
-// 查詢時刻表的函數（原先的函數）
-function filterTrainScheduleByStation() {
-  var startStation = document.getElementById('startStation').value;
-  var endStation = document.getElementById('endStation').value;
-
-  var scheduleTable = document.getElementById('scheduleTableByStation').getElementsByTagName('tbody')[0];
-  scheduleTable.innerHTML = ''; // Clear previous content
-
-  var matchingTrains = [];
-
-  for (var trainNumberKey in trainSchedule) {
-      var stationTimes = trainSchedule[trainNumberKey]['車站時間'];
-      var startIndex = stationTimes.findIndex(station => station[0] === startStation);
-      var endIndex = stationTimes.findIndex(station => station[0] === endStation);
-
-      if (startIndex !== -1 && endIndex !== -1 && startIndex < endIndex) {
-          matchingTrains.push({
-              trainNumber: trainNumberKey,
-              trainType: getTrainTypeWithColor(trainSchedule[trainNumberKey]['車種']),
-              startStation: stationTimes[startIndex][0],
-              endStation: stationTimes[endIndex][0],
-              startTime: stationTimes[startIndex][1],
-              endTime: stationTimes[endIndex][1]
-          });
-      }
-  }
-
-  // Sort the matchingTrains array by start time
-  matchingTrains.sort(function (a, b) {
-      return a.startTime.localeCompare(b.startTime);
-  });
-
-  // Populate the schedule table with the sorted data
-  for (var i = 0; i < matchingTrains.length; i++) {
-      var row = scheduleTable.insertRow();
-      var cell1 = row.insertCell(0);
-      var cell2 = row.insertCell(1);
-      var cell3 = row.insertCell(2);
-      var cell4 = row.insertCell(3);
-      var cell5 = row.insertCell(4);
-      var cell6 = row.insertCell(5);
-
-      cell1.innerHTML = matchingTrains[i].trainNumber;
-      cell2.innerHTML = matchingTrains[i].trainType;
-      cell3.innerHTML = matchingTrains[i].startStation;
-      cell4.innerHTML = matchingTrains[i].endStation;
-      cell5.innerHTML = matchingTrains[i].startTime;
-      cell6.innerHTML = matchingTrains[i].endTime;
-
-      row.setAttribute('onclick', 'showTrainDetails(\'' + matchingTrains[i].trainNumber + '\')');
-  }
-}
-
-
-
-function filterTrainScheduleByNumber() {
-  var trainNumber = document.getElementById('trainNumber').value;
-
-  var scheduleTable = document.getElementById('scheduleTableByNumber').getElementsByTagName('tbody')[0];
-  scheduleTable.innerHTML = ''; // Clear previous content
-
-  if (trainSchedule[trainNumber]) {
-      var stationTimes = trainSchedule[trainNumber]['車站時間'];
-
-      var row = scheduleTable.insertRow();
-      var cell1 = row.insertCell(0);
-      var cell2 = row.insertCell(1);
-
-      cell1.innerHTML = trainNumber;
-      cell2.innerHTML = trainSchedule[trainNumber]['車種'];
-
-      row.setAttribute('onclick', 'showTrainDetails(\'' + trainNumber + '\')');
-
-      // Show detailed information in the modal
-      var modalTitle = document.getElementById('modalTitle');
-      var modalTable = document.getElementById('modalTable');
-      var modalBody = modalTable.getElementsByTagName('tbody')[0];
-      modalBody.innerHTML = ''; // Clear previous content
-
-      modalTitle.innerHTML = '列車詳細資訊 - 車次' + trainNumber  ;
-
-      for (var i = 0; i < stationTimes.length; i++) {
-          var rowModal = modalBody.insertRow();
-          var cell1Modal = rowModal.insertCell(0);
-          var cell2Modal = rowModal.insertCell(1);
-
-          cell1Modal.innerHTML = stationTimes[i][0];
-          cell2Modal.innerHTML = stationTimes[i][1];
-      }
-  }
-}
-
-function filterTrainScheduleByStationName() {
-  var selectedStation = document.getElementById('stationSelect').value;
-
-  var scheduleTable = document.getElementById('scheduleTableByStationName').getElementsByTagName('tbody')[0];
-  scheduleTable.innerHTML = ''; // Clear previous content
-
-  // 將列車數據轉換為數組並根據車站時間排序
-  var sortedTrains = Object.keys(trainSchedule).sort(function (a, b) {
-    var timeA = getDepartureTimeForStation(a, selectedStation);
-    var timeB = getDepartureTimeForStation(b, selectedStation);
-    return timeA.localeCompare(timeB);
-  });
-
-  // 遍歷排序後的列車數組
-  for (var i = 0; i < sortedTrains.length; i++) {
-    var trainNumberKey = sortedTrains[i];
-    var stationTimes = trainSchedule[trainNumberKey]['車站時間'];
-
-    // 查找所选择车站的索引
-    var stationIndex = stationTimes.findIndex(stationInfo => stationInfo[0] === selectedStation);
-
-    // 只显示有停靠所选择车站的列车信息
-    if (stationIndex !== -1) {
-      var row = scheduleTable.insertRow();
-      var cell1 = row.insertCell(0);
-      var cell2 = row.insertCell(1);
-      var cell3 = row.insertCell(2);
-
-      cell1.innerHTML = trainNumberKey;
-      cell2.innerHTML = getTrainTypeWithColor(trainSchedule[trainNumberKey]['車種']);
-      cell3.innerHTML = stationTimes[stationIndex][1];
-
-      row.setAttribute('onclick', 'showTrainDetails(\'' + trainNumberKey + '\')');
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Train Information Chart</title>
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      background-color: #f4f4f4;
     }
+
+    .container {
+      max-width: 800px;
+      margin: 20px auto;
+      background-color: #fff;
+      padding: 20px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    }
+
+    .header {
+      text-align: center;
+    }
+
+    .station-selection {
+      margin-bottom: 20px;
+    }
+
+    .train-info {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .current-info {
+      margin-bottom: 20px;
+    }
+
+    .next-train-marquee {
+      overflow: hidden;
+      white-space: nowrap;
+      border: 1px solid #ddd;
+      padding: 8px;
+      margin-bottom: 20px;
+    }
+
+    .next-train-marquee p {
+  display: inline-block;
+  margin: 0;
+  animation: marquee 20s linear infinite; /* 將 duration 設置為一個固定值 */
+}
+
+@keyframes marquee {
+  from { transform: translateX(100%); }
+  to { transform: translateX(-100%); }
+}
+
+
+    
+
+    @keyframes bounce {
+      0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
+      40% { transform: translateY(-15px); }
+      60% { transform: translateY(-10px); }
+    }
+
+    .train-info-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+    }
+
+    .train-info-table th, .train-info-table td {
+      border: 1px solid #ddd;
+      padding: 8px;
+      text-align: center;
+    }
+
+    .train-info-table th {
+      background-color: #f2f2f2;
+    }
+
+    .no-train-info {
+      font-style: italic;
+    }
+
+/* 在你的 CSS 中加入這段樣式 */
+
+.departure-ball {
+  display: none;
+  width: 10px;
+  height: 10px;
+  background-color: red;
+  border-radius: 50%;
+  margin-right: 5px; /* 調整紅色小球和車次之間的距離 */
+}
+
+
+
+@keyframes flash {
+   100% {
+    color: red; /* 開始和結束時的顏色 */
   }
-}
-
-// 使用 getDepartureTimeForStation 函数获取指定列车在指定站点的出发时间
-function getDepartureTimeForStation(trainNumber, station) {
-  var stationTimes = trainSchedule[trainNumber]['車站時間'];
-  var stationIndex = stationTimes.findIndex(stationInfo => stationInfo[0] === station);
-  return stationIndex !== -1 ? stationTimes[stationIndex][1] : '';
+ 
 }
 
 
+  </style>
+</head>
+<body>
+    <a href="index.html"><strong><font size="3">時刻表</font></strong></a>
+    <a href="train-info.html"><strong><font size="3">車站資訊板</font></strong></a>
+    <a href="train-info4.html"><strong><font size="3">多站車站資訊板</font></strong></a>
+    <a href="people.html"><strong><font size="3">運量查詢</font></strong></a>
+<div class="container">
+  <div class="header">
+    <h1>列車資訊板</h1>
+  </div>
 
+  <div class="station-selection">
+    <label for="station">選擇車站：</label>
+    <select id="station"></select>
+  </div>
 
+  <div class="train-info">
+    <div class="current-info">
+      <h2 id="current-time"></h2>
+      <h3 id="current-station"></h3>
+    </div>
 
+    <table class="train-info-table" id="upcoming-trains">
+      <thead>
+        <tr>
+          <th>車次</th>
+          <th>車種</th>
+          <th>開往</th>
+          <th>開車時間</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
 
+    <div id="ball-container"></div>
 
+    <div class="next-train-marquee">
+      <p id="next-train-marquee"></p>
+    </div>
+  </div>
+</div>
 
-function showTrainDetails(trainNumber) {
-  var modalTitle = document.getElementById('modalTitle');
-  var modalTable = document.getElementById('modalTable');
-  var modalBody = modalTable.getElementsByTagName('tbody')[0];
-  modalBody.innerHTML = ''; // Clear previous content
+<script src="train-schedule.js"></script>
 
-  modalTitle.innerHTML = '列車詳細資訊 - 車次 ' + trainNumber;
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+  const currentTimeElement = document.getElementById("current-time");
+  const currentStationElement = document.getElementById("current-station");
+  const upcomingTrainsTable = document.getElementById("upcoming-trains");
+  const nextTrainMarqueeElement = document.getElementById("next-train-marquee");
+  const stationSelect = document.getElementById("station");
+  const ballContainer = document.getElementById("ball-container");
 
-  var stationTimes = trainSchedule[trainNumber]['車站時間'];
-  for (var i = 0; i < stationTimes.length; i++) {
-      var row = modalBody.insertRow();
-      var cell1 = row.insertCell(0);
-      var cell2 = row.insertCell(1);
+  function generateStationOptions() {
+    var stationSelect = document.getElementById('station');
 
-      cell1.innerHTML = stationTimes[i][0];
-      cell2.innerHTML = stationTimes[i][1];
-  }
-
-
-
-
-  document.getElementById('trainDetailsModal').style.display = 'block';
-}
-
-function closeTrainDetailsModal() {
-  document.getElementById('trainDetailsModal').style.display = 'none';
-}
-
-// 新增的 JavaScript 部分
-function generateStationFilterOptions() {
-  var stationFilterSelect = document.getElementById('stationFilter');
-
-  for (var i = 0; i < stations.length; i++) {
+    for (var i = 0; i < stations.length; i++) {
       var option = document.createElement('option');
       option.value = stations[i];
       option.text = stations[i];
-      stationFilterSelect.add(option);
+      stationSelect.add(option);
+    }
+  }
+
+  generateStationOptions();
+
+  function updateTrainInfo() {
+    const now = new Date();  // 在每次更新時重新獲取當前時間
+    const currentHours = now.getHours().toString().padStart(2, '0');
+    const currentMinutes = now.getMinutes().toString().padStart(2, '0');
+    const currentSeconds = now.getSeconds().toString().padStart(2, '0');
+    const formattedCurrentTime = `${currentHours}:${currentMinutes}:${currentSeconds}`;
+
+    const selectedStation = stationSelect.value;
+
+    const nextTrain = findNextTrain(selectedStation, formattedCurrentTime);
+
+    currentTimeElement.textContent = formattedCurrentTime;  // 更新當前時間
+
+    upcomingTrainsTable.querySelector('tbody').innerHTML = "";
+
+// 在 updateTrainInfo 函式中找到產生車次元素的部分
+for (let i = 0; i < 5; i++) {
+  const train = nextTrain[i];
+  const tbody = upcomingTrainsTable.querySelector('tbody');
+
+  if (train) {
+    const row = tbody.insertRow();
+    const trainNumberCell = row.insertCell(0);
+    const trainTypeCell = row.insertCell(1);
+    const destinationCell = row.insertCell(2);
+    const timeCell = row.insertCell(3);
+
+    // 修改這一行，將紅色小球的 HTML 放在車次數字前面
+    trainNumberCell.innerHTML = `<span class="departure-ball"></span>${train.trainNumber}`;
+
+    // 在這裡新增閃爍邏輯
+    if (isTrainUpcoming(train.time) && isWithinThreeMinutes(train.time)) {
+      trainNumberCell.querySelector(".departure-ball").style.display = "inline-block";
+      trainNumberCell.classList.add("flashing-text");
+    } else {
+      trainNumberCell.querySelector(".departure-ball").style.display = "none";
+      trainNumberCell.classList.remove("flashing-text");
+    }
+
+    trainTypeCell.innerHTML = getTrainTypeWithColor(train.trainType);
+    destinationCell.textContent = train.destination;
+    timeCell.textContent = train.time;
+  } else {
+    const row = tbody.insertRow();
+    const cell = row.insertCell(0);
+    cell.colSpan = 4;
+    cell.classList.add("no-train-info");
+    cell.textContent = "本日已無列車";
+    break;
   }
 }
 
-function filterTrainsByStation() {
-  var selectedStation = document.getElementById('stationFilter').value;
 
-  var filteredTrainsTable = document.getElementById('filteredTrainsTable').getElementsByTagName('tbody')[0];
-  filteredTrainsTable.innerHTML = ''; // Clear previous content
+    const upcomingStations = getUpcomingStations(selectedStation, nextTrain[0].destination);
+    const stopsText = upcomingStations.length > 0 ? '本列車沿途停靠：' + upcomingStations.join('、') : '本列車即將進站';
 
-  for (var trainNumberKey in trainSchedule) {
-      var stationTimes = trainSchedule[trainNumberKey]['車站時間'];
-      var stationIndex = stationTimes.findIndex(station => station[0] === selectedStation);
+    nextTrainMarqueeElement.innerHTML = `${nextTrain[0].time} 開往 ${nextTrain[0].destination} 的 ${nextTrain[0].trainNumber} 次 ${getTrainTypeWithColor(nextTrain[0].trainType)} 即將進站，${stopsText}`;
+  }
 
-      if (stationIndex !== -1) {
-          var row = filteredTrainsTable.insertRow();
-          var cell1 = row.insertCell(0);
-          var cell2 = row.insertCell(1);
-          var cell3 = row.insertCell(2);
+  function getUpcomingStations(currentStation, destination) {
+    const stationIndex = stations.indexOf(currentStation);
+    const destinationIndex = stations.indexOf(destination);
 
-          cell1.innerHTML = trainNumberKey;
-          cell2.innerHTML = getTrainTypeWithColor(trainSchedule[trainNumberKey]['車種']);
-          cell3.innerHTML = stationTimes[stationIndex][1];
+    if (stationIndex !== -1 && destinationIndex !== -1 && stationIndex < destinationIndex) {
+      return stations.slice(stationIndex + 1, destinationIndex + 1);
+    }
+
+    return [];
+  }
+
+  stationSelect.addEventListener("change", updateTrainInfo);
+
+  // 初始執行
+  setInterval(() => updateTrainInfo(), 1000);
+
+  function findNextTrain(station, currentTime) {
+    const stationIndex = stations.indexOf(station);
+    const nextTrainList = [];
+
+    for (const trainNumber in trainSchedule) {
+      const stationTimes = trainSchedule[trainNumber]["車站時間"];
+      const departureTime = getDepartureTimeForStation(trainNumber, station);
+
+      if (departureTime && compareTime(currentTime, departureTime) < 0) {
+        nextTrainList.push({
+          trainNumber: trainNumber,
+          trainType: trainSchedule[trainNumber]["車種"],
+          destination: stationTimes[stationTimes.length - 1][0],
+          time: departureTime,
+
+        
+
+        });
+
       }
-  }
-}
+    }
 
-function getTrainTypeWithColor(trainType) {
-  var color = '';
+    nextTrainList.sort((a, b) => compareTime(a.time, b.time));
 
-  switch (trainType) {
-      case '新自強':
-          color = 'purple';
-          break;
-      case '普悠瑪':
-          color = '#FF1493'; // Deep Pink
-          break;
-      case '自強號':
-          color = 'red';
-          break;
-      case '莒光號':
-          color = 'orange';
-          break;
-      case '區間快':
-          color = 'green';
-          break;
-      case '復興號':
-          color = 'lightblue';
-          break;
-      case '區間車':
-          color = 'black';
-          break;
-      case '加班車':
-          color = 'brown';
-          break;
-      default:
-          color = 'black';
+    return nextTrainList.slice(0, 5);
   }
 
-  return '<span style="color: ' + color + ';">' + trainType + '</span>';
-}
+  function compareTime(time1, time2) {
+    const [hours1, minutes1, seconds1] = time1.split(":").map(Number);
+    const [hours2, minutes2, seconds2] = time2.split(":").map(Number);
 
+    if (hours1 !== hours2) {
+      return hours1 - hours2;
+    } else if (minutes1 !== minutes2) {
+      return minutes1 - minutes2;
+    } else {
+      return seconds1 - seconds2;
+    }
+  }
 
+  function getDepartureTimeForStation(trainNumber, station) {
+    const stationTimes = trainSchedule[trainNumber]["車站時間"];
+    const stationIndex = stationTimes.findIndex(entry => entry[0] === station);
 
-// 新增幫助函數
-function getArrivalTimeForStation(trainNumber, station) {
-  var stationTimes = trainSchedule[trainNumber]['車站時間'];
-  var stationIndex = stationTimes.findIndex(s => s[0] === station);
-  
-  if (stationIndex !== -1) {
+    if (stationIndex !== -1 && stationIndex < stationTimes.length - 1) {
       return stationTimes[stationIndex][1];
+    }
+
+    return null;
   }
-  return null;
-}
+
+  function isTrainUpcoming(departureTime) {
+    const now = new Date();
+    const [hours, minutes, seconds] = departureTime.split(':').map(Number);
+    const departureDateTime = new Date(now.getFullYear(), now.getMonth(), now.getDate(), hours, minutes, seconds);
+    const timeDifference = departureDateTime - now;
+    const minutesDifference = Math.floor((timeDifference % (1000 * 60 * 60)) / (1000 * 60));
+
+    return minutesDifference <= 3 && minutesDifference >= 0;
+  }
+
+  function getTrainTypeWithColor(trainType) {
+    var color = '';
+
+    switch (trainType) {
+      case '新自強':
+        color = '#8600FF';
+        break;
+      case '普悠瑪':
+        color = '#FF1493'; // Deep Pink
+        break;
+      case '自強號':
+        color = 'red';
+        break;
+      case '莒光號':
+        color = 'orange';
+        break;
+      case '區間快':
+        color = 'green';
+        break;
+      case '復興號':
+        color = '#0080FF';
+        break;
+      case '區間車':
+        color = 'black';
+        break;
+      case '加班車':
+        color = 'brown';
+        break;
+      default:
+        color = 'black';
+    }
+
+    return `<span style="color: ${color};">${trainType}</span>`;
+  }
+});
+</script>
 
 
+</body>
+</html>

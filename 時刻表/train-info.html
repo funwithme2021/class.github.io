@@ -153,7 +153,6 @@
 <script src="train-schedule.js"></script>
 
 <script>
-
 document.addEventListener("DOMContentLoaded", function () {
   const currentTimeElement = document.getElementById("current-time");
   const currentStationElement = document.getElementById("current-station");
@@ -231,6 +230,11 @@ for (let i = 0; i < 5; i++) {
 const upcomingStations = getUpcomingStations(selectedStation, nextTrain[0]);
   const stopsText = upcomingStations.length > 0 ? '本列車沿途停靠：' + upcomingStations.join('、') : '本列車即將進站';
 
+  // 如果終點站不在跑馬燈中，則加入終點站
+  if (!upcomingStations.includes(nextTrain[0].destination)) {
+    upcomingStations.push(nextTrain[0].destination);
+  }
+
   nextTrainMarqueeElement.innerHTML = `${nextTrain[0].time} 開往 ${nextTrain[0].destination} 的 ${nextTrain[0].trainNumber} 次 ${getTrainTypeWithColor(nextTrain[0].trainType)} 即將進站，${stopsText}`;
 }
 
@@ -240,7 +244,7 @@ function getUpcomingStations(currentStation, train) {
 
   if (stationIndex !== -1 && stationIndex < stationTimes.length - 1) {
     const upcomingStations = [];
-    for (let i = stationIndex + 1; i < stationTimes.length - 1; i++) {
+    for (let i = stationIndex + 1; i < stationTimes.length; i++) {
       upcomingStations.push(stationTimes[i][0]);
     }
     return upcomingStations;
@@ -249,33 +253,49 @@ function getUpcomingStations(currentStation, train) {
   return [];
 }
 
+
   stationSelect.addEventListener("change", updateTrainInfo);
 
   // 初始執行
   setInterval(() => updateTrainInfo(), 1000);
 
-  function findNextTrain(station, currentTime) {
-    const stationIndex = stations.indexOf(station);
-    const nextTrainList = [];
+  function findNextTrain(selectedStation, currentTime) {
+  const nextTrainList = [];
 
-    for (const trainNumber in trainSchedule) {
-      const stationTimes = trainSchedule[trainNumber]["車站時間"];
-      const departureTime = getDepartureTimeForStation(trainNumber, station);
+  for (const trainNumber in trainSchedule) {
+    const stationTimes = trainSchedule[trainNumber]["車站時間"];
+    const stationIndex = stationTimes.findIndex(entry => entry[0] === selectedStation);
 
-      if (departureTime && compareTime(currentTime, departureTime) < 0) {
+    if (stationIndex !== -1) {
+      const departureTime = stationTimes[stationIndex][1];
+      const destination = stationTimes[stationTimes.length - 1][0];
+
+      if (compareTime(currentTime, departureTime) < 0) {
         nextTrainList.push({
           trainNumber: trainNumber,
           trainType: trainSchedule[trainNumber]["車種"],
-          destination: stationTimes[stationTimes.length - 1][0],
+          destination: destination,
           time: departureTime,
         });
+
+        // 如果終點站和選擇的車站不同，並且終點站不在 nextTrainList 中，則加入終點站的資訊
+        if (destination !== selectedStation && !nextTrainList.some(train => train.destination === destination)) {
+          nextTrainList.push({
+            trainNumber: trainNumber,
+            trainType: trainSchedule[trainNumber]["車種"],
+            destination: destination,
+            time: getDepartureTimeForStation(trainNumber, destination),
+          });
+        }
       }
     }
-
-    nextTrainList.sort((a, b) => compareTime(a.time, b.time));
-
-    return nextTrainList.slice(0, 5);
   }
+
+  nextTrainList.sort((a, b) => compareTime(a.time, b.time));
+
+  return nextTrainList.slice(0, 5);
+}
+
 
   function compareTime(time1, time2) {
     const [hours1, minutes1, seconds1] = time1.split(":").map(Number);
