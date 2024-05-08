@@ -110,13 +110,13 @@
   </style>
 </head>
 <body>
-    <a href="index.html"><strong><font size="3">時刻表</font></strong></a>
-    <a href="train-info.html"><strong><font size="3">車站資訊板</font></strong></a>
-    <a href="train-info4.html"><strong><font size="3">多站車站資訊板</font></strong></a>
-    <a href="people.html"><strong><font size="3">運量查詢</font></strong></a>
+    <a href="index-speed.html"><strong><font size="3">高鐵時刻表</font></strong></a>
+    <a href="train-speed-info.html"><strong><font size="3">高鐵車站資訊板</font></strong></a>
+    <a href="train-speed-info4.html"><strong><font size="3">高鐵多站車站資訊板</font></strong></a>
+    <a href="speed-people.html"><strong><font size="3">高鐵運量查詢</font></strong></a>
 <div class="container">
   <div class="header">
-    <h1>列車資訊板</h1>
+    <h1>台灣高鐵列車資訊板</h1>
   </div>
 
   <div class="station-selection">
@@ -134,7 +134,7 @@
       <thead>
         <tr>
           <th>車次</th>
-          <th>車種</th>
+          <th>行駛日</th>
           <th>開往</th>
           <th>開車時間</th>
         </tr>
@@ -150,7 +150,7 @@
   </div>
 </div>
 
-<script src="train-schedule.js"></script>
+<script src="train-speed-schedule.js"></script>
 
 <script>
 document.addEventListener("DOMContentLoaded", function () {
@@ -335,29 +335,20 @@ function getUpcomingStations(currentStation, train) {
     var color = '';
 
     switch (trainType) {
-      case '新自強':
+        case '每日行駛':
         color = '#8600FF';
         break;
-      case '普悠瑪':
+      case '六行駛':
         color = '#FF1493'; // Deep Pink
         break;
-      case '自強號':
+      case '日行駛':
         color = 'red';
         break;
-      case '莒光號':
+      case '四行駛':
         color = 'orange';
         break;
-      case '區間快':
+      case '五行駛':
         color = 'green';
-        break;
-      case '復興號':
-        color = '#0080FF';
-        break;
-      case '區間車':
-        color = 'black';
-        break;
-      case '加班車':
-        color = 'brown';
         break;
       default:
         color = 'black';

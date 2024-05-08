@@ -161,14 +161,14 @@ th {
 
 </head>
 <body>
-  <a href="index-speed.html"><strong><font size="3">高鐵時刻表</font></strong></a>
-  <a href="index.html"><strong><font size="3">時刻表</font></strong></a>
-  <a href="train-info.html"><strong><font size="3">車站資訊板</font></strong></a>
-  <a href="train-info4.html"><strong><font size="3">多站車站資訊板</font></strong></a>
-  <a href="people.html"><strong><font size="3">運量查詢</font></strong></a>
+    <a href="index.html"><strong><font size="3">時刻表</font></strong></a>
+    <a href="index-speed.html"><strong><font size="3">高鐵時刻表</font></strong></a>
+    <a href="train-speed-info.html"><strong><font size="3">高鐵車站資訊板</font></strong></a>
+    <a href="train-speed-info4.html"><strong><font size="3">高鐵多站車站資訊板</font></strong></a>
+    <a href="speed-people.html"><strong><font size="3">高鐵運量查詢</font></strong></a>
 
   
-<h1>列車時刻表查詢</h1>
+<h1>台灣高鐵列車時刻表查詢</h1>
 
 <h2>出發站和抵達站查詢</h2>
 <label for="startStation">出發站：</label>
@@ -202,7 +202,7 @@ th {
     <thead>
     <tr>
       <th style="white-space: nowrap;">車次</th>
-      <th style="white-space: nowrap;">車種</th>
+      <th style="white-space: nowrap;">行駛日</th>
       <th style="white-space: nowrap;">出發站(時間)</th>
       <th style="white-space: nowrap;">抵達站(時間)</th>
       <th>沿途停靠站</th>    
@@ -243,7 +243,7 @@ th {
     <thead>
     <tr>
         <th>車次</th>
-        <th>車種</th>
+        <th>行駛日</th>
         <th>開車時間</th>
     </tr>
     </thead>
@@ -262,7 +262,7 @@ th {
     <thead>
     <tr>
         <th>車次</th>
-        <th>車種</th>
+        <th>行駛日</th>
     </tr>
     </thead>
     <tbody>
@@ -290,7 +290,7 @@ th {
     <button onclick="closeTrainDetailsModal()">關閉</button>
 </div>
 
-<script src="train-schedule.js"></script>
+<script src="train-speed-schedule.js"></script>
 <script>
    // 確保 stations 陣列存在
    var stations = [
@@ -440,9 +440,3 @@ function getTransferStations(startIndex, endIndex, stationTimes) {
 </script>
 </body>
 </html>
-
-
-
-
-
-
