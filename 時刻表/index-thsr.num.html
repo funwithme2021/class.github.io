@@ -161,100 +161,17 @@ th {
 
 </head>
 <body>
-  <a href="index-speed.html"><strong><font size="3">高鐵時刻表</font></strong></a>
-  <a href="index-thsr.html"><strong><font size="3">高鐵時刻表(專用)</font></strong></a>
-  <a href="index.html"><strong><font size="3">時刻表</font></strong></a>
-  <a href="train-info.html"><strong><font size="3">車站資訊板</font></strong></a>
-  <a href="train-info4.html"><strong><font size="3">多站車站資訊板</font></strong></a>
-  <a href="people.html"><strong><font size="3">運量查詢</font></strong></a>
+
 
   
-<h1>台鐵列車時刻表查詢</h1>
+<h1>台灣高鐵<h1>台灣高鐵
+  <a href="index-thsr.html"><strong><font size="3">時刻表</font></strong></a>
+  <a href="index-thsr.info.html"><strong><font size="3">車站資訊板</font></strong></a>
+  <a href="index-thsr.station.html"><strong><font size="3">依車站時刻查詢</font></strong></a>
+  <a href="index-thsr.num.html"><strong><font size="3">依車次時刻查詢</font></strong></a>
+</h1>
 
-<h2>出發站和抵達站查詢</h2>
-<label for="startStation">出發站：</label>
-<select id="startStation"></select>
-<label for="endStation">抵達站：</label>
-<select id="endStation"></select>
 
-<div id="trainTypeButtons">
-  <input type="checkbox" id="trainTypeNew" class="train-type-checkbox" onclick="toggleTrainTypeFilter('新自強')">
-  <label for="trainTypeNew">新自強</label>
-  <input type="checkbox" id="trainTypePuyuma" class="train-type-checkbox" onclick="toggleTrainTypeFilter('普悠瑪')">
-  <label for="trainTypePuyuma">普悠瑪</label>
-  <input type="checkbox" id="trainTypeZiqiang" class="train-type-checkbox" onclick="toggleTrainTypeFilter('自強號')">
-  <label for="trainTypeZiqiang">自強號</label>
-  <input type="checkbox" id="trainTypeJuguang" class="train-type-checkbox" onclick="toggleTrainTypeFilter('莒光號')">
-  <label for="trainTypeJuguang">莒光號</label>
-  <input type="checkbox" id="trainTypeFuxing" class="train-type-checkbox" onclick="toggleTrainTypeFilter('復興號')">
-  <label for="trainTypeFuxing">復興號</label>
-  <input type="checkbox" id="trainTypeQujiankuai" class="train-type-checkbox" onclick="toggleTrainTypeFilter('區間快')">
-  <label for="trainTypeQujiankuai">區間快</label>
-  <input type="checkbox" id="trainTypeQujianche" class="train-type-checkbox" onclick="toggleTrainTypeFilter('區間車')">
-  <label for="trainTypeQujianche">區間車</label>
-  <input type="checkbox" id="trainTypeJiabanche" class="train-type-checkbox" onclick="toggleTrainTypeFilter('加班車')">
-  <label for="trainTypeJiabanche">加班車</label>
-  
-  <button onclick="filterTrainScheduleByStation()">查詢時刻表</button>
-</div>
-
-<table id="scheduleTableByStation">
-    <thead>
-    <tr>
-      <th style="white-space: nowrap;">車次</th>
-      <th style="white-space: nowrap;">車種</th>
-      <th style="white-space: nowrap;">出發站(時間)</th>
-      <th style="white-space: nowrap;">抵達站(時間)</th>
-      <th>沿途停靠站</th>    
-    </tr>
-    </thead>
-    <tbody>
-    <!-- 表格内容将由JavaScript生成 -->
-    </tbody>
-</table>
-
-<h2>車站查詢</h2>
-<label for="stationSelect">選擇車站：</label>
-<select id="stationSelect">
-    <!-- 選項將由JavaScript生成 -->
-</select>
-<label for="directionSelect">選擇方向：</label>
-<select id="directionSelect">
-    <option value="northbound">北上</option>
-    <option value="southbound">南下</option>
-</select>
-<div id="trainTypeButtonsStation">
-  <input type="checkbox" id="trainTypeNewStation" class="train-type-checkbox" onclick="toggleTrainTypeFilterStation('新自強')">
-  <label for="trainTypeNewStation">新自強</label>
-  <input type="checkbox" id="trainTypePuyumaStation" class="train-type-checkbox" onclick="toggleTrainTypeFilterStation('普悠瑪')">
-  <label for="trainTypePuyumaStation">普悠瑪</label>
-  <input type="checkbox" id="trainTypeZiqiangStation" class="train-type-checkbox" onclick="toggleTrainTypeFilterStation('自強號')">
-  <label for="trainTypeZiqiangStation">自強號</label>
-  <input type="checkbox" id="trainTypeJuguangStation" class="train-type-checkbox" onclick="toggleTrainTypeFilterStation('莒光號')">
-  <label for="trainTypeJuguangStation">莒光號</label>
-  <input type="checkbox" id="trainTypeFuxingStation" class="train-type-checkbox" onclick="toggleTrainTypeFilterStation('復興號')">
-  <label for="trainTypeFuxingStation">復興號</label>
-  <input type="checkbox" id="trainTypeQujiankuaiStation" class="train-type-checkbox" onclick="toggleTrainTypeFilterStation('區間快')">
-  <label for="trainTypeQujiankuaiStation">區間快</label>
-  <input type="checkbox" id="trainTypeQujiancheStation" class="train-type-checkbox" onclick="toggleTrainTypeFilterStation('區間車')">
-  <label for="trainTypeQujiancheStation">區間車</label>
-  <input type="checkbox" id="trainTypeJiabancheStation" class="train-type-checkbox" onclick="toggleTrainTypeFilterStation('加班車')">
-  <label for="trainTypeJiabancheStation">加班車</label>
-  
-  <button onclick="filterTrainScheduleByStationName()">查詢時刻表</button>
-</div>
-<table id="scheduleTableByStationName">
-    <thead>
-    <tr>
-        <th>車次</th>
-        <th>車種</th>
-        <th>開車時間</th>
-    </tr>
-    </thead>
-    <tbody>
-    <!-- Table content will be inserted here -->
-    </tbody>
-</table>
 
 <h2>車次查詢</h2>
 <label for="trainNumber">車次：</label>
@@ -266,7 +183,7 @@ th {
     <thead>
     <tr>
         <th>車次</th>
-        <th>車種</th>
+        <th>行駛日</th>
     </tr>
     </thead>
     <tbody>
@@ -294,7 +211,7 @@ th {
     <button onclick="closeTrainDetailsModal()">關閉</button>
 </div>
 
-<script src="train-schedule.js"></script>
+<script src="train-speed-schedule.js"></script>
 <script>
    // 確保 stations 陣列存在
    var stations = [
@@ -395,63 +312,45 @@ function getTransferStations(startIndex, endIndex, stationTimes) {
 
 
     function filterTrainScheduleByStationName() {
-    var selectedStation = document.getElementById('stationSelect').value;
-    var selectedDirection = document.getElementById('directionSelect').value;
+  var selectedStation = document.getElementById('stationSelect').value;
 
-    var scheduleTable = document.getElementById('scheduleTableByStationName').getElementsByTagName('tbody')[0];
-    scheduleTable.innerHTML = ''; // 清除先前的內容
+  var scheduleTable = document.getElementById('scheduleTableByStationName').getElementsByTagName('tbody')[0];
+  scheduleTable.innerHTML = ''; // 清除先前的內容
 
-    // 将列车数据转换为数组并根据车站时间排序
-    var sortedTrains = Object.keys(trainSchedule).sort(function (a, b) {
-      var timeA = getDepartureTimeForStation(a, selectedStation);
-      var timeB = getDepartureTimeForStation(b, selectedStation);
-      return timeA.localeCompare(timeB);
-    });
+  // 將列車數據轉換為數組並根據車站時間排序
+  var sortedTrains = Object.keys(trainSchedule).sort(function (a, b) {
+    var timeA = getDepartureTimeForStation(a, selectedStation);
+    var timeB = getDepartureTimeForStation(b, selectedStation);
+    return timeA.localeCompare(timeB);
+  });
 
-    // 遍历排序后的列车数组
-    for (var i = 0; i < sortedTrains.length; i++) {
-      var trainNumberKey = sortedTrains[i];
-      var stationTimes = trainSchedule[trainNumberKey]['車站時間'];
+  // 遍歷排序後的列車數組
+  for (var i = 0; i < sortedTrains.length; i++) {
+    var trainNumberKey = sortedTrains[i];
+    var stationTimes = trainSchedule[trainNumberKey]['車站時間'];
 
-      // 查找所选择车站的索引
-      var stationIndex = stationTimes.findIndex(stationInfo => stationInfo[0] === selectedStation);
+    // 查找所选择车站的索引
+    var stationIndex = stationTimes.findIndex(stationInfo => stationInfo[0] === selectedStation);
 
-      // 只显示有停靠所选择车站的列车信息，并根据方向过滤列车
-      if (stationIndex !== -1) {
-        var direction = getDirection(trainNumberKey);
-        if ((selectedDirection === "northbound" && direction === "northbound") ||
-            (selectedDirection === "southbound" && direction === "southbound")) {
-          var row = scheduleTable.insertRow();
-          var cell1 = row.insertCell(0);
-          var cell2 = row.insertCell(1);
-          var cell3 = row.insertCell(2);
+    // 只显示有停靠所选择车站的列车信息
+    if (stationIndex !== -1) {
+      var row = scheduleTable.insertRow();
+      var cell1 = row.insertCell(0);
+      var cell2 = row.insertCell(1);
+      var cell3 = row.insertCell(2);
 
-          var firstStop = stationTimes[0][0];
-          var lastStop = stationTimes.slice(-1)[0][0];
+      var firstStop = stationTimes[0][0];
+      var lastStop = stationTimes.slice(-1)[0][0];
 
-          cell1.innerHTML = trainNumberKey;
-          cell2.innerHTML = getTrainTypeWithColor(trainSchedule[trainNumberKey]['車種']) + ' (' + firstStop + '➝' + lastStop + ')';
-          cell3.innerHTML = stationTimes[stationIndex][1];
+      cell1.innerHTML = trainNumberKey;
+      cell2.innerHTML = getTrainTypeWithColor(trainSchedule[trainNumberKey]['車種']) + ' (' + firstStop + '➝' + lastStop + ')';
+      cell3.innerHTML = stationTimes[stationIndex][1];
 
-          row.setAttribute('onclick', 'showTrainDetails(\'' + trainNumberKey + '\')');
-        }
-      }
+      row.setAttribute('onclick', 'showTrainDetails(\'' + trainNumberKey + '\')');
     }
   }
-
-  function getDirection(trainNumber) {
-    // 根据车次号判断列车方向，您需要根据实际情况实现此函数
-    // 例如，偶数车次为北上，奇数车次为南下
-    return trainNumber % 2 === 0 ? "northbound" : "southbound";
-  }
-
+}
 
 </script>
 </body>
 </html>
-
-
-
-
-
-
