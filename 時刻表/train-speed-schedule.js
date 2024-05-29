@@ -1298,25 +1298,30 @@ var trainSchedule = {
     var modalTitle = document.getElementById('modalTitle');
     var modalTable = document.getElementById('modalTable');
     var modalBody = modalTable.getElementsByTagName('tbody')[0];
-    modalBody.innerHTML = ''; // Clear previous content
-  
-    modalTitle.innerHTML = '列車詳細資訊 - 車次 ' + trainNumber;
-  
-    var stationTimes = trainSchedule[trainNumber]['車站時間'];
-    for (var i = 0; i < stationTimes.length; i++) {
-        var row = modalBody.insertRow();
-        var cell1 = row.insertCell(0);
-        var cell2 = row.insertCell(1);
-  
-        cell1.innerHTML = stationTimes[i][0];
-        cell2.innerHTML = stationTimes[i][1];
+    modalBody.innerHTML = ''; // 清除之前的內容
+
+    if (trainSchedule[trainNumber] && trainSchedule[trainNumber]['車站時間']) {
+        var stationTimes = trainSchedule[trainNumber]['車站時間'];
+        
+        // 取得車種資訊
+        var trainType = trainSchedule[trainNumber]['車種'];
+        modalTitle.innerHTML = '列車詳細訊息 :' + trainNumber + '車次 ' + trainType;
+
+        for (var i = 0; i < stationTimes.length; i++) {
+            var row = modalBody.insertRow();
+            var cell1 = row.insertCell(0);
+            var cell2 = row.insertCell(1);
+
+            cell1.innerHTML = stationTimes[i][0];
+            cell2.innerHTML = stationTimes[i][1];
+        }
+    } else {
+        // 若找不到相應的資料，顯示一個錯誤訊息或採取其他操作
+        modalTitle.innerHTML = '找不到車次資訊';
     }
-  
-  
-  
-  
+
     document.getElementById('trainDetailsModal').style.display = 'block';
-  }
+}
   
   function closeTrainDetailsModal() {
     document.getElementById('trainDetailsModal').style.display = 'none';

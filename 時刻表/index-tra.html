@@ -82,7 +82,27 @@ th {
   color: #fff;
 }
 
+.modal {
+            display: none;
+            position: fixed;
+            z-index: 1;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgb(0, 0, 0);
+            background-color: rgba(0, 0, 0, 0.4);
+        }
 
+        .modal-content {
+            background-color: #fff;
+            margin: 15% auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 80%;
+            border-radius: 8px;
+        }
 
 #trainDetailsModal h3 {
   color: #000000;
@@ -221,29 +241,24 @@ th {
 
 
 
-
-
-
-
-
-<div id="trainDetailsModal">
-    <h3 id="modalTitle"></h3>
-    <table id="modalTable">
-        <thead>
-        <tr>
-            <th>沿途停靠站</th>
-            <th>開車時間</th>
-        </tr>
-        </thead>
-        <tbody>
-        <!-- Modal content will be inserted here -->
-        </tbody>
-    </table>
-    <button onclick="closeTrainDetailsModal()">關閉</button>
+<!-- 詳情模態框 -->
+<div id="trainDetailsModal" class="modal">
+  <div class="modal-content">
+      <span class="close" onclick="closeTrainDetailsModal()">&times;</span>
+      <h2 id="modalTitle">沿途停靠站</h2>
+      <table id="modalTable">
+          <thead>
+              <tr>
+                  <th>車站</th>
+                  <th>時間</th>
+              </tr>
+          </thead>
+          <tbody>
+              <!-- 動態生成的列車詳情信息 -->
+          </tbody>
+      </table>
+  </div>
 </div>
-
-
-
 
 
 
