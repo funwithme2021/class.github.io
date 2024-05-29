@@ -106,71 +106,68 @@
 
         // 過濾顯示指定車站的列車
         function filterTrainsByStation() {
-            var selectedStation = document.getElementById('stationFilter').value;
-            var direction = document.getElementById('directionFilter').value;
-            var scheduleDisplay = document.getElementById('scheduleDisplay');
-            scheduleDisplay.innerHTML = ''; // 清除之前的內容
-            var hourlyTrains = {};
+    var selectedStation = document.getElementById('stationFilter').value;
+    var direction = document.getElementById('directionFilter').value;
+    var scheduleDisplay = document.getElementById('scheduleDisplay');
+    scheduleDisplay.innerHTML = ''; // 清除之前的內容
+    var hourlyTrains = {};
 
-            for (var trainNumberKey in trainSchedule) {
-                var stationTimes = trainSchedule[trainNumberKey]['車站時間'];
-                var stationIndex = stationTimes.findIndex(station => station[0] === selectedStation);
-                if (stationIndex !== -1) {
-                    var time = stationTimes[stationIndex][1];
-                    var hour = parseInt(time.split(':')[0], 10); // 只保留整數部分
-                    var trainNumber = parseInt(trainNumberKey, 10); // 將車次轉換為數字
-                    if (direction === 'north' && trainNumber % 2 === 0) {
-                        // 如果是北上且車次為偶數，則加入列表
-                        if (!hourlyTrains[hour]) {
-                            hourlyTrains[hour] = [];
-                        }
-                        hourlyTrains[hour].push({
-                            minute: time.split(':')[1], // 保留分鐘部分
-                            number: trainNumberKey,
-                            type: trainSchedule[trainNumberKey]['車種'],
-                            destination: stationTimes.slice(-1)[0][0]
-                        });
-                    } else if (direction === 'south' && trainNumber % 2 !== 0) {
-                        // 如果是南下且車次為奇數，則加入列表
-                        if (!hourlyTrains[hour]) {
-                            hourlyTrains[hour] = [];
-                        }
-                        hourlyTrains[hour].push({
-                            minute: time.split(':')[1], // 保留分鐘部分
-                            number: trainNumberKey,
-                            type: trainSchedule[trainNumberKey]['車種'],
-                            destination: stationTimes.slice(-1)[0][0]
-                        });
-                    }
-                }
+    for (var trainNumberKey in trainSchedule) {
+        var stationTimes = trainSchedule[trainNumberKey]['車站時間'];
+        var stationIndex = stationTimes.findIndex(station => station[0] === selectedStation);
+        if (stationIndex !== -1) {
+            var time = stationTimes[stationIndex][1];
+            var hour = parseInt(time.split(':')[0], 10); // 只保留整數部分
+            var minute = parseInt(time.split(':')[1], 10); // 只保留整數部分
+            var trainNumber = parseInt(trainNumberKey, 10); // 將車次轉換為數字
+            if (!hourlyTrains[hour]) {
+                hourlyTrains[hour] = {};
             }
-
-            var hours = Object.keys(hourlyTrains).sort((a, b) => a - b);
-            hours.forEach(function(hour) {
-                var hourDiv = document.createElement('div');
-                hourDiv.classList.add('schedule-hour');
-                var hourTitle = document.createElement('h2');
-                hourTitle.textContent = parseInt(hour, 10) + '時'; // 只顯示整數部分
-                hourDiv.appendChild(hourTitle);
-
-                var scheduleRow = document.createElement('div');
-                scheduleRow.classList.add('schedule-row');
-
-                hourlyTrains[hour].forEach(function(train) {
-                    var itemDiv = document.createElement('div');
-                    itemDiv.classList.add('schedule-item');
-                    itemDiv.innerHTML = `
-                        <div class="train-type-number">${getTrainTypeWithColor(train.type)} ${train.number}</div>
-                        <div class="train-minute">${train.minute}</div>
-                        <div class="train-destination">${train.destination}</div>
-                    `;
-                    scheduleRow.appendChild(itemDiv);
+            if (!hourlyTrains[hour][minute]) {
+                hourlyTrains[hour][minute] = [];
+            }
+            var trainDirection = (trainNumber % 2 === 0) ? 'north' : 'south'; // 判斷列車方向
+            if (trainDirection === direction) { // 檢查列車方向是否符合選擇的方向
+                hourlyTrains[hour][minute].push({
+                    number: trainNumberKey,
+                    type: trainSchedule[trainNumberKey]['車種'],
+                    destination: stationTimes.slice(-1)[0][0]
                 });
-
-                hourDiv.appendChild(scheduleRow);
-                scheduleDisplay.appendChild(hourDiv);
-            });
+            }
         }
+    }
+
+    var hours = Object.keys(hourlyTrains).sort((a, b) => a - b);
+    hours.forEach(function(hour) {
+        var hourDiv = document.createElement('div');
+        hourDiv.classList.add('schedule-hour');
+        var hourTitle = document.createElement('h2');
+        hourTitle.textContent = parseInt(hour, 10) + '時'; // 只顯示整數部分
+        hourDiv.appendChild(hourTitle);
+
+        var scheduleRow = document.createElement('div');
+        scheduleRow.classList.add('schedule-row');
+
+        var minutes = Object.keys(hourlyTrains[hour]).sort((a, b) => a - b);
+        minutes.forEach(function(minute) {
+            hourlyTrains[hour][minute].forEach(function(train) {
+                var itemDiv = document.createElement('div');
+                itemDiv.classList.add('schedule-item');
+                itemDiv.innerHTML = `
+                    <div class="train-type-number">${getTrainTypeWithColor(train.type)} ${train.number}</div>
+                    <div class="train-minute">${minute}</div>
+                    <div class="train-destination">${train.destination}</div>
+                `;
+                itemDiv.setAttribute('onclick', 'showTrainDetails(\'' + train.number + '\')');
+                scheduleRow.appendChild(itemDiv);
+            });
+        });
+
+        hourDiv.appendChild(scheduleRow);
+        scheduleDisplay.appendChild(hourDiv);
+    });
+}
+
 
         // 根據車種獲取帶顏色的名稱
         function getTrainTypeWithColor(trainType) {
