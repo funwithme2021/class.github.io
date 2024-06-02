@@ -118,7 +118,7 @@
             <thead>
                 <tr>
                     <th>車次</th>
-                    <th>車種</th>
+                    <th>車種(行駛區間)</th>
                     <th>到達時間</th>
                 </tr>
             </thead>
@@ -193,8 +193,13 @@
                     var cell2 = row.insertCell(1);
                     var cell3 = row.insertCell(2);
     
+                    var trainType = trainSchedule[trainNumberKey]['車種'];
+                    var startStation = stationTimes[0][0];
+                    var endStation = stationTimes[stationTimes.length - 1][0];
+                    var direction = `(${startStation} ➝ ${endStation})`;
+    
                     cell1.innerHTML = trainNumberKey;
-                    cell2.innerHTML = getTrainTypeWithColor(trainSchedule[trainNumberKey]['車種']);
+                    cell2.innerHTML = `${getTrainTypeWithColor(trainType)} ${direction}`;
                     cell3.innerHTML = stationTimes[stationTimes.length - 1][1]; // 取最後一站的到達時間
     
                     row.setAttribute('onclick', 'showTrainDetails(\'' + trainNumberKey + '\')');
@@ -205,12 +210,12 @@
         // 過濾顯示指定車站的列車
         function filterTrainsByStation() {
             var selectedStation = document.getElementById('stationFilter').value;
-    
             var filteredTrainsTable = document.getElementById('filteredTrainsTable').getElementsByTagName('tbody')[0];
             filteredTrainsTable.innerHTML = ''; // 清除之前的內容
     
             for (var trainNumberKey in trainSchedule) {
-                var stationTimes = trainSchedule[trainNumberKey]['車站時間'];
+                var trainData = trainSchedule[trainNumberKey];
+                var stationTimes = trainData['車站時間'];
                 var stationIndex = stationTimes.findIndex(station => station[0] === selectedStation);
     
                 if (stationIndex !== -1) {
@@ -219,8 +224,13 @@
                     var cell2 = row.insertCell(1);
                     var cell3 = row.insertCell(2);
     
+                    var trainType = trainData['車種'];
+                    var startStation = stationTimes[0][0];
+                    var endStation = stationTimes[stationTimes.length - 1][0];
+                    var direction = `(${startStation} ➝ ${endStation})`;
+    
                     cell1.innerHTML = trainNumberKey;
-                    cell2.innerHTML = getTrainTypeWithColor(trainSchedule[trainNumberKey]['車種']);
+                    cell2.innerHTML = `${getTrainTypeWithColor(trainType)} ${direction}`;
                     cell3.innerHTML = stationTimes[stationIndex][1];
     
                     row.setAttribute('onclick', 'showTrainDetails(\'' + trainNumberKey + '\')');
@@ -230,25 +240,30 @@
     
         // 顯示列車詳細資訊
         function showTrainDetails(trainNumber) {
-            var modalTitle = document.getElementById('modalTitle');
-            var modalTable = document.getElementById('modalTable');
-            var modalBody = modalTable.getElementsByTagName('tbody')[0];
-            modalBody.innerHTML = ''; // 清除之前的內容
+    var modalTitle = document.getElementById('modalTitle');
+    var modalTable = document.getElementById('modalTable');
+    var modalBody = modalTable.getElementsByTagName('tbody')[0];
+    modalBody.innerHTML = ''; // 清除之前的內容
+
+    var trainData = trainSchedule[trainNumber];
+    var trainType = trainData['車種'];
     
-            modalTitle.innerHTML = '列車詳細信息 - 車次 ' + trainNumber;
-    
-            var stationTimes = trainSchedule[trainNumber]['車站時間'];
-            for (var i = 0; i < stationTimes.length; i++) {
-                var row = modalBody.insertRow();
-                var cell1 = row.insertCell(0);
-                var cell2 = row.insertCell(1);
-    
-                cell1.innerHTML = stationTimes[i][0];
-                cell2.innerHTML = stationTimes[i][1];
-            }
-    
-            document.getElementById('trainDetailsModal').style.display = 'block';
-        }
+    // 顯示列車詳細信息和車種
+    modalTitle.innerHTML = '列車詳細信息: ' + trainNumber + ' 車次 ' + trainType  ;
+
+    var stationTimes = trainData['車站時間'];
+    for (var i = 0; i < stationTimes.length; i++) {
+        var row = modalBody.insertRow();
+        var cell1 = row.insertCell(0);
+        var cell2 = row.insertCell(1);
+
+        cell1.innerHTML = stationTimes[i][0];
+        cell2.innerHTML = stationTimes[i][1];
+    }
+
+    document.getElementById('trainDetailsModal').style.display = 'block';
+}
+
     
         // 關閉模態框
         function closeTrainDetailsModal() {
@@ -297,6 +312,8 @@
         filterTrainsByDirection(); // 根據方向篩選列車
     
     </script>
+    
+    
     
 </body>
 </html>
