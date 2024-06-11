@@ -6,157 +6,289 @@
     <title>列車時刻表查詢</title>
 
     <style>
-        /* 样式部分保持不变，这里省略 */
-        body {
-  font-family: 'Arial', sans-serif;
-  margin: 0;
-  padding: 0;
-  background-color: #f4f4f4;
-  margin-left: 30px;
-  margin-bottom: 80px;
+     /* 基本樣式設置保持不變 */
+body {
+    font-family: 'Arial', sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #f0f2f5;
+    margin-left: 30px;
+    margin-bottom: 80px;
 }
 
 .container {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 20px;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
 }
 
 header {
-  background-color: #333;
-  color: #fff;
-  text-align: center;
-  padding: 10px 0;
+    background-color: #333;
+    color: #fff;
+    text-align: center;
+    padding: 20px 0;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    border-bottom: 3px solid #242424;
 }
 
 h1 {
-  color: #333;
-  text-align: center;
+    color: #333;
+    text-align: center;
+    margin-bottom: 40px;
+    font-weight: 300;
+    letter-spacing: 1px;
 }
 
 h2 {
-  color: #333;
-  margin-top: 20px;
+    color: #333;
+    margin-top: 40px;
+    margin-bottom: 20px;
+    font-weight: 300;
+    border-left: 5px solid #130058;
+    padding-left: 10px;
 }
 
 label {
-  display:inline;
-  margin: 10px 0;
-  color: #555;
+    margin: 15px 10px 5px 0;
+    color: #555;
+    font-weight: 600;
 }
 
 select, input, button {
-  margin: 10px 0;
-  padding: 8px;
-  font-size: 16px;
+    margin: 10px 10px;
+    padding: 7px 15px;
+    font-size: 14px;
+    border-radius: 4px;
+    border: 1px solid #ddd;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
 }
 
 button {
-  background-color: rgb(44, 148, 213);
-  color: #fff;
-  cursor: pointer;
-  border: none;
-  border-radius: 4px;
+    background-color: #0460fe;
+    color: #fff;
+    cursor: pointer;
+    border: none;
+    border-radius: 4px;
+    padding: 7px 15px;
+    transition: background-color 0.3s ease, transform 0.3s ease;
 }
 
 button:hover {
-  background-color: #1b288a;
+    background-color: #242424;
+    transform: translateY(-2px);
+}
+
+button:active {
+    background-color: #242424;
+    transform: translateY(0);
 }
 
 table {
-  width: 95%;
-  border-collapse: collapse;
-  margin-top: 20px;
-  margin-left: 0px;
-  background-color: #fff;
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 10px;
+    background-color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
 }
 
 th, td {
-  border: 1px solid #ddd;
-  padding: 10px;
-  text-align: left;
+    border: none;
+    padding: 10px;
+    text-align: left;
+    border-bottom: 1px solid #ddd;
 }
 
 th {
-  background-color: #7f8580;
-  color: #fff;
+    background-color: #333;
+    color: #fff;
+    font-weight: 500;
 }
 
+tr:nth-child(even) {
+    background-color: #f9f9f9;
+}
 
+tr:hover {
+    background-color: #f1f1f1;
+}
+
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(0, 0, 0, 0.5);
+}
+
+.modal-content {
+    background-color: #fff;
+    margin: 10% auto;
+    padding: 15px;
+    border: none;
+    width: 60%;
+    border-radius: 8px;
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+    animation: slide-down 0.3s ease-out;
+}
+
+@keyframes slide-down {
+    from {
+        transform: translateY(-50%);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
 
 #trainDetailsModal h3 {
-  color: #000000;
+    color: #333;
+    font-weight: 500;
+    margin-bottom: 10px;
+    border-left: 5px solid #17004e;
+    padding-left: 10px;
 }
 
 #trainDetailsModal table {
-  margin-top: 10px;
+    margin-top: 10px;
+    width: 100%;
+    border-collapse: collapse;
+}
+
+#trainDetailsModal th, #trainDetailsModal td {
+    padding: 7px 7px;
+    border-bottom: 1px solid #ddd;
+}
+
+#trainDetailsModal th {
+    background-color: #000000;
+    font-weight: 500;
 }
 
 #trainDetailsModal button {
-  background-color: rgb(44, 148, 213);
-  color: #fff;
-  cursor: pointer;
-  border: none;
-  border-radius: 4px;
-  padding: 10px;
-  font-size: 16px;
+    background-color: #242424;
+    color: #fff;
+    cursor: pointer;
+    border: none;
+    border-radius: 4px;
+    padding: 7px 15px;
+    font-size: 16px;
+    transition: background-color 0.3s ease, transform 0.3s ease;
+    margin-top: 20px;
+    display: block;
+    width: 7%;
 }
 
 #trainDetailsModal button:hover {
-  background-color: #1b288a;
+    background-color: #242424;
+    transform: translateY(-2px);
+}
+
+#trainDetailsModal button:active {
+    background-color: #242424;
+    transform: translateY(0);
 }
 
 /* Additional Styles for the New Feature */
 #stationFilterContainer {
-  text-align: center;
-  margin-top: 30px;
+    text-align: center;
+    margin-top: 40px;
 }
 
 #filteredTrainsTable {
-  width: 90%;
-  border-collapse: collapse;
-  margin-top: 20px;
-  background-color: #fff;
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+    background-color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
 }
 
 #filteredTrainsTable th, #filteredTrainsTable td {
-  border: 1px solid #ddd;
-  padding: 10px;
-  text-align: left;
+    border: none;
+    padding: 15px;
+    text-align: left;
+    border-bottom: 1px solid #ddd;
 }
 
 #filteredTrainsTable th {
-  background-color: #333;
-  color: #fff;
+    background-color: #333;
+    color: #fff;
+    font-weight: 500;
 }
 
-#filteredTrainsTable span {
-  display: inline-block;
-  padding: 50px 100px;
-  border-radius: 4px;
+#filteredTrainsTable tr:nth-child(even) {
+    background-color: #f9f9f9;
 }
 
-/* 未選擇的按鈕樣式 */
+#filteredTrainsTable tr:hover {
+    background-color: #f1f1f1;
+}
+
 .train-type-button, .train-type-checkbox {
-            margin-right: 10px;
-        }
+    margin-right: 10px;
+}
 
-        .train-type-button {
-            border: 1px solid #ccc;
-            padding: 5px;
-            cursor: pointer;
-        }
+.train-type-button {
+    border: 1px solid #ddd;
+    padding: 10px 15px;
+    cursor: pointer;
+    border-radius: 4px;
+    transition: background-color 0.3s ease, color 0.3s ease;
+}
 
-        .train-type-checkbox {
-            cursor: pointer;
-        }
+.train-type-button:hover {
+    background-color: #242424;
+    color: white;
+}
 
-        .selected {
-            /* 已選擇的按鈕樣式 */
-            background-color: #4CAF50;
-            color: white;
-        }
+.train-type-checkbox {
+    cursor: pointer;
+    margin-right: 5px;
+}
 
+.selected {
+    background-color: #242424;
+    color: white;
+}
+
+/* Flexbox layout for filters */
+#filterContainer {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 20px;
+}
+
+.filter-group {
+    display: flex;
+    align-items: center;
+    margin-right: 15px;
+}
+
+#trainTypeButtons {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.filter-group label {
+    margin-right: 10px;
+}
+
+.filter-group select, .filter-group input, .filter-group button {
+    margin-right: 10px;
+}
     </style>
 
 </head>
@@ -176,7 +308,10 @@ th {
 
 <h2>車次查詢</h2>
 <label for="trainNumber">車次：</label>
-<input type="text" id="trainNumber" placeholder="請輸入車次">
+<input type="text" id="trainNumberInput" placeholder="請輸入車次" oninput="filterTrainNumbers()">
+<select id="trainNumbersDropdown" onchange="selectTrainNumber()">
+     <option value="" selected>參考車次</option>
+</select>
 
 <button onclick="filterTrainScheduleByNumber()">查詢時刻表</button>
 
@@ -351,7 +486,64 @@ function getTransferStations(startIndex, endIndex, stationTimes) {
     }
   }
 }
+function filterTrainNumbers() {
+    var inputTrainNumber = document.getElementById('trainNumberInput').value.trim();
+    var trainNumbersDropdown = document.getElementById('trainNumbersDropdown');
 
+    trainNumbersDropdown.innerHTML = ''; // 清除先前的内容
+
+    var matchingTrains = [];
+
+    for (var trainNumberKey in trainSchedule) {
+        if (trainNumberKey.startsWith(inputTrainNumber)) {
+            matchingTrains.push(trainNumberKey);
+        }
+    }
+
+    if (matchingTrains.length > 0) {
+        for (var i = 0; i < matchingTrains.length; i++) {
+            var option = document.createElement('option');
+            option.value = matchingTrains[i];
+            option.text = matchingTrains[i];
+            trainNumbersDropdown.add(option);
+        }
+    } else {
+        var option = document.createElement('option');
+        option.text = 'No matching train numbers found.';
+        trainNumbersDropdown.add(option);
+    }
+}
+
+function selectTrainNumber() {
+    var selectedTrainNumber = document.getElementById('trainNumbersDropdown').value;
+    var trainNumberInput = document.getElementById('trainNumberInput');
+    trainNumberInput.value = selectedTrainNumber;
+}
+
+function filterTrainScheduleByNumber() {
+    var trainNumber = document.getElementById('trainNumberInput').value;
+
+    var scheduleTable = document.getElementById('scheduleTableByNumber').getElementsByTagName('tbody')[0];
+    scheduleTable.innerHTML = ''; // 清除先前的内容
+
+    if (trainSchedule[trainNumber]) {
+        var trainInfo = trainSchedule[trainNumber];
+        var row = scheduleTable.insertRow();
+        var cell1 = row.insertCell(0);
+        var cell2 = row.insertCell(1);
+
+        cell1.innerHTML = trainNumber;
+        if (trainInfo['車站時間'] !== undefined && trainInfo['車站時間'].length > 0) {
+            var firstStop = trainInfo['車站時間'][0][0];
+            var lastStop = trainInfo['車站時間'][trainInfo['車站時間'].length - 1][0];
+            cell2.innerHTML = getTrainTypeWithColor(trainInfo['車種']) + ' (' + firstStop + ' ➝ ' + lastStop + ')';
+        } else {
+            cell2.innerHTML = getTrainTypeWithColor(trainInfo['車種']) + ' (Unknown ➝ Unknown)';
+        }
+
+        row.setAttribute('onclick', 'showTrainDetails(\'' + trainNumber + '\')');
+    }
+}
 </script>
 </body>
 </html>

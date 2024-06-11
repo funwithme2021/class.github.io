@@ -178,9 +178,12 @@ th {
         </h1>
 
 
-<h2>車次查詢</h2>
-<label for="trainNumber">車次：</label>
-<input type="text" id="trainNumber" placeholder="請輸入車次">
+        <h2>車次查詢</h2>
+        <label for="trainNumber">車次：</label>
+        <input type="text" id="trainNumberInput" placeholder="請輸入車次" oninput="filterTrainNumbers()">
+        <select id="trainNumbersDropdown" onchange="selectTrainNumber()">
+            <option value="" selected>參考車次</option>
+        </select>
 
 <button onclick="filterTrainScheduleByNumber()">查詢時刻表</button>
 
@@ -367,7 +370,63 @@ function getTransferStations(startIndex, endIndex, stationTimes) {
     return trainNumber % 2 === 0 ? "northbound" : "southbound";
   }
 
+  function filterTrainNumbers() {
+    var inputTrainNumber = document.getElementById('trainNumberInput').value.trim();
+    var trainNumbersDropdown = document.getElementById('trainNumbersDropdown');
 
+    trainNumbersDropdown.innerHTML = ''; // 清除先前的内容
+
+    var matchingTrains = [];
+
+    for (var trainNumberKey in trainSchedule) {
+        if (trainNumberKey.startsWith(inputTrainNumber)) {
+            matchingTrains.push(trainNumberKey);
+        }
+    }
+
+    if (matchingTrains.length > 0) {
+        for (var i = 0; i < matchingTrains.length; i++) {
+            var option = document.createElement('option');
+            option.value = matchingTrains[i];
+            option.text = matchingTrains[i];
+            trainNumbersDropdown.add(option);
+        }
+    } else {
+        var option = document.createElement('option');
+        option.text = 'No matching train numbers found.';
+        trainNumbersDropdown.add(option);
+    }
+}
+
+function selectTrainNumber() {
+    var selectedTrainNumber = document.getElementById('trainNumbersDropdown').value;
+    var trainNumberInput = document.getElementById('trainNumberInput');
+    trainNumberInput.value = selectedTrainNumber;
+}
+function filterTrainScheduleByNumber() {
+    var trainNumber = document.getElementById('trainNumberInput').value;
+
+    var scheduleTable = document.getElementById('scheduleTableByNumber').getElementsByTagName('tbody')[0];
+    scheduleTable.innerHTML = ''; // 清除先前的内容
+
+    if (trainSchedule[trainNumber]) {
+        var trainInfo = trainSchedule[trainNumber];
+        var row = scheduleTable.insertRow();
+        var cell1 = row.insertCell(0);
+        var cell2 = row.insertCell(1);
+
+        cell1.innerHTML = trainNumber;
+        if (trainInfo['車站時間'] !== undefined && trainInfo['車站時間'].length > 0) {
+            var firstStop = trainInfo['車站時間'][0][0];
+            var lastStop = trainInfo['車站時間'][trainInfo['車站時間'].length - 1][0];
+            cell2.innerHTML = getTrainTypeWithColor(trainInfo['車種']) + ' (' + firstStop + ' ➝ ' + lastStop + ')';
+        } else {
+            cell2.innerHTML = getTrainTypeWithColor(trainInfo['車種']) + ' (Unknown ➝ Unknown)';
+        }
+
+        row.setAttribute('onclick', 'showTrainDetails(\'' + trainNumber + '\')');
+    }
+}
 </script>
 </body>
 </html>
