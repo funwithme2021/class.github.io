@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>小組成員互評表 - 管理者版本</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f0f2f5;
+            margin: 0;
+            padding: 20px;
+            color: #333;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: #fff;
+            padding: 20px 30px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            border-radius: 10px;
+        }
+        h1, h2, h3 {
+            font-weight: 300;
+            color: #2c3e50;
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #34495e;
+        }
+        select, textarea, button {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 20px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        button {
+            background-color: #3498db;
+            color: white;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            border: none;
+        }
+        button:hover {
+            background-color: #2980b9;
+        }
+        .hidden {
+            display: none;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 10px;
+            text-align: center;
+            font-size: 14px;
+        }
+        th {
+            background-color: #f7f7f7;
+        }
+        .final-scores {
+            margin-top: 20px;
+        }
+        .member-details {
+            background-color: #f9f9f9;
+            padding: 10px;
+            border-radius: 5px;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>小組成員互評表 - 管理者版本</h1>
+        <div id="manager-section">
+            <label for="manager">選擇評分者(管理者):</label>
+            <select id="manager">
+                <option value="">--選擇評分者--</option>
+                <option value="邱偉軒">邱偉軒</option>
+                <option value="林郁萱">林郁萱</option>
+                <option value="王芊驊">王芊驊</option>
+                <option value="鄧詠蔙">鄧詠蔙</option>
+                <option value="隋昀芝">隋昀芝</option>
+                <option value="馬玉宣">馬玉宣</option>
+                <option value="何冠儀">何冠儀</option>
+                <option value="喻楷倫">喻楷倫</option>
+                <option value="韋芳敏">韋芳敏</option>
+                <option value="黃嫣謠">黃嫣謠</option>
+            </select>
+            <button onclick="showScoreInputs()">輸入評分</button>
+        </div>
+
+        <div id="score-inputs" class="hidden">
+            <h2>輸入評分</h2>
+            <div id="member-score-inputs"></div>
+            <button onclick="calculateAverages()">計算平均分</button>
+        </div>
+
+        <div id="average-scores" class="hidden final-scores">
+            <h2>各成員平均分與總分</h2>
+            <table id="average-table">
+                <tr>
+                    <th>被評人</th>
+                    <th>準時性 (30%)</th>
+                    <th>參與度 (30%)</th>
+                    <th>實質貢獻率 (40%)</th>
+                    <th>總分</th>
+                </tr>
+            </table>
+        </div>
+
+        <div id="copy-code" class="hidden">
+            <h2>複製下方程式碼</h2>
+            <textarea id="code-output" rows="5" style="width: 100%;"></textarea>
+        </div>
+
+        <div id="member-details-modal" class="hidden">
+            <div id="member-details-content" class="member-details">
+                <h2 id="member-details-header">詳細分數</h2>
+                <div id="member-details-body"></div>
+                <button onclick="closeModal()">關閉</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const members = ["邱偉軒", "林郁萱", "王芊驊", "鄧詠蔙", "隋昀芝", "馬玉宣", "何冠儀", "喻楷倫", "韋芳敏", "黃嫣謠"];
+        const categories = ["準時性", "參與度", "實質貢獻率"];
+        const scores = {};
+        let manager = '';
+        let currentMember = '';
+        let codeOutput = '';
+
+        document.getElementById('manager').addEventListener('change', function() {
+            manager = this.value;
+            if (manager) {
+                this.disabled = true;
+                document.getElementById('score-inputs').classList.remove('hidden');
+                document.getElementById('copy-code').classList.remove('hidden');
+                generateScoreInputs();
+            } else {
+                document.getElementById('score-inputs').classList.add('hidden');
+                document.getElementById('copy-code').classList.add('hidden');
+            }
+        });
+
+        function generateScoreInputs() {
+            const memberScoreInputs = document.getElementById('member-score-inputs');
+            memberScoreInputs.innerHTML = '';
+
+            members.forEach(member => {
+                scores[member] = {};
+                const memberDiv = document.createElement('div');
+                memberDiv.innerHTML = `<h3>${member}</h3>`;
+                
+                categories.forEach(category => {
+                    const input = document.createElement('input');
+                    input.type = 'number';
+                    input.placeholder = `${category} (0-100)`;
+                    input.setAttribute('min', '0');
+                    input.setAttribute('max', '100');
+                    input.setAttribute('step', '0.1');
+                    scores[member][category] = 0;
+                    input.addEventListener('input', function() {
+                        scores[member][category] = parseFloat(this.value);
+                    });
+                    memberDiv.appendChild(input);
+                });
+
+                memberScoreInputs.appendChild(memberDiv);
+            });
+        }
+
+        function showScoreInputs() {
+            document.getElementById('score-inputs').classList.remove('hidden');
+        }
+
+        function calculateAverages() {
+            const averageScoresDiv = document.getElementById('average-scores');
+            averageScoresDiv.classList.remove('hidden');
+            const averageTable = document.getElementById('average-table');
+            averageTable.innerHTML = `<tr><th>被評人</th><th>準時性 (30%)</th><th>參與度 (30%)</th><th>實質貢獻率 (40%)</th><th>總分</th></tr>`;
+
+            members.forEach(member => {
+                let total = 0;
+                categories.forEach(category => {
+                    total += scores[member][category];
+                });
+                const average = (total / 3).toFixed(2);
+                const row = averageTable.insertRow();
+                row.innerHTML = `<td><a href="#" onclick="showMemberDetails('${member}')">${member}</a></td><td>${scores[member]['準時性']}</td><td>${scores[member]['參與度']}</td><td>${scores[member]['實質貢獻率']}</td><td>${average}</td>`;
+            });
+
+            codeOutput = generateCodeOutput();
+            document.getElementById('code-output').value = codeOutput;
+        }
+
+        function generateCodeOutput() {
+            let code = '';
+            members.forEach(member => {
+                code += `評分["${member}"] = {\n`;
+                categories.forEach(category => {
+                    code += `    "${category}": ${scores[member][category]},\n`;
+                });
+                code += '};\n\n';
+            });
+            return code;
+        }
+
+        function showMemberDetails(member) {
+            currentMember = member;
+            const modal = document.getElementById('member-details-modal');
+            const memberDetailsContent = document.getElementById('member-details-content');
+            const memberDetailsBody = document.getElementById('member-details-body');
+            const memberDetailsHeader = document.getElementById('member-details-header');
+
+            memberDetailsHeader.textContent = `${member} 的詳細分數`;
+            memberDetailsBody.innerHTML = `
+                <p>準時性 (30%): ${scores[member]['準時性']}</p>
+                <p>參與度 (30%): ${scores[member]['參與度']}</p>
+                <p>實質貢獻率 (40%): ${scores[member]['實質貢獻率']}</p>
+            `;
+            modal.classList.remove('hidden');
+        }
+
+        function closeModal() {
+            const modal = document.getElementById('member-details-modal');
+            modal.classList.add('hidden');
+        }
+    </script>
+</body>
+</html>
+
