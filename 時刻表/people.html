@@ -24,17 +24,35 @@ body {
     padding: 20px;
 }
 
-header {
-    background-color: #333;
-    color: #fff;
-    text-align: center;
-    padding: 20px 0;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    border-bottom: 3px solid #242424;
-}
+.header {
+      background-color: #333;
+      color: #fff;
+      padding: 10px 0;
+      text-align: center;
+    }
+
+    .header h1 {
+      margin: 0;
+      font-size: 28px;
+    }
+
+    .header nav {
+      margin-top: 10px;
+    }
+
+    .header nav a {
+      color: #fff;
+      text-decoration: none;
+      font-size: 16px;
+      margin: 0 15px;
+    }
+
+    .header nav a:hover {
+      text-decoration: underline;
+    }
 
 h1 {
-    color: #333;
+    color: #ffffff;
     text-align: center;
     margin-bottom: 40px;
     font-weight: 300;
@@ -294,15 +312,15 @@ tr:hover {
     </style>
 </head>
 <body>
+    <div class="header">  <h1>各站點平均運量</h1> <nav>
     <a href="index.html"><strong><font size="3">時刻表</font></strong></a>
     <a href="index-tra.easy.html"><strong><font size="3">簡式時刻表</font></strong></a>
     <a href="index-tra.type.html"><strong><font size="3">依車種時刻表</font></strong></a>
     <a href="train-info.html"><strong><font size="3">車站資訊板</font></strong></a>
     <a href="train-info4.html"><strong><font size="3">多站車站資訊板</font></strong></a>
     <a href="people.html"><strong><font size="3">運量查詢</font></strong></a>
+</nav></div>
 
-
-    <h1>各站點平均運量</h1>
     <table border="1">
         <tr>
             <th>排名</th>

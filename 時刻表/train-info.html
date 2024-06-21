@@ -6,87 +6,146 @@
   <title>Train Information Chart</title>
   <link rel="stylesheet" href="styles.css">
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      margin: 0;
-      padding: 0;
-      background-color: #f4f4f4;
-    }
-
-    .container {
-      max-width: 800px;
-      margin: 20px auto;
-      background-color: #fff;
-      padding: 20px;
-      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-    }
-
-    .header {
-      text-align: center;
-    }
-
-    .station-selection {
-      margin-bottom: 20px;
-    }
-
-    .train-info {
-      display: flex;
-      flex-direction: column;
-    }
-
-    .current-info {
-      margin-bottom: 20px;
-    }
-
-    .next-train-marquee {
-      overflow: hidden;
-      white-space: nowrap;
-      border: 1px solid #ddd;
-      padding: 8px;
-      margin-bottom: 20px;
-    }
-
-    .next-train-marquee p {
-  display: inline-block;
+   /* General styles */
+body {
+  font-family: 'Arial', sans-serif;
+  background-color: #f4f4f4;
   margin: 0;
-  animation: marquee 20s linear infinite; /* 將 duration 設置為一個固定值 */
+  padding: 0;
+  color: #333;
 }
 
-@keyframes marquee {
-  from { transform: translateX(100%); }
-  to { transform: translateX(-100%); }
+.container {
+  max-width: 800px;
+  margin: 20px auto;
+  background-color: #fff;
+  padding: 20px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  border-radius: 8px;
 }
 
+.station-selection,
+.direction-filter,
+.current-time {
+  display: inline-block;
+  vertical-align: top;
+  margin-right: 20px;
+}
 
-    
+.header {
+  background-color: #333;
+  color: #fff;
+  padding: 10px 0;
+  text-align: center;
+  border-top-left-radius: 8px;
+  border-top-right-radius: 8px;
+}
 
-    @keyframes bounce {
-      0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
-      40% { transform: translateY(-15px); }
-      60% { transform: translateY(-10px); }
-    }
+.header h1 {
+  margin: 0;
+  font-size: 28px;
+}
 
-    .train-info-table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 20px;
-    }
+.header nav {
+  margin-top: 10px;
+}
 
-    .train-info-table th, .train-info-table td {
-      border: 1px solid #ddd;
-      padding: 8px;
-      text-align: center;
-    }
+.header nav a {
+  color: #fff;
+  text-decoration: none;
+  font-size: 16px;
+  margin: 0 15px;
+}
 
-    .train-info-table th {
-      background-color: #f2f2f2;
-    }
+.header nav a:hover {
+  text-decoration: underline;
+}
 
-    .no-train-info {
-      font-style: italic;
-    }
+.station-selection,
+.direction-filter {
+  margin-bottom: 15px;
+}
 
-/* 在你的 CSS 中加入這段樣式 */
+label {
+  font-weight: bold;
+}
+
+select {
+  padding: 5px;
+  font-size: 12px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+.train-info {
+  margin-top: 20px;
+}
+
+.current-info {
+  margin-bottom: 20px;
+  text-align: center;
+}
+
+.current-info h2 {
+  font-size: 24px;
+  margin: 5px 0;
+}
+
+.current-info h3 {
+  font-size: 18px;
+  margin: 5px 0;
+  color: #777;
+}
+
+.train-info-table {
+  width: 100%;
+  margin-top: 0px;
+  border-spacing: 0; /* Remove default spacing between table cells */
+}
+
+.train-info-table th,
+.train-info-table td {
+  padding: 7px;
+  text-align: center;
+}
+
+.train-info-table th {
+  background-color: #000000;
+  color: #fff;
+  font-weight: bold;
+  border-bottom: 2px solid #ddd; /* Add bottom border to header cells */
+}
+
+.train-info-table td {
+  background-color: #f7f7f7; /* Alternate row background */
+  color: #000000;
+}
+
+.train-info-table tbody tr:nth-child(even) td {
+  background-color: #e7e7e7; /* Alternate row background */
+}
+
+.no-train-info {
+  font-style: italic;
+  text-align: center;
+}
+
+.next-train-marquee {
+  overflow: hidden;
+  white-space: nowrap;
+  border: 1px solid #e8e6e6;
+  padding: 9px;
+  margin-top: 0px;
+  background-color: #fcfeff;
+  box-shadow: 0 0px 0px rgba(0, 0, 0, 0.1);
+  border-radius: 0px;
+}
+
+.next-train-marquee p {
+  margin: 0;
+  font-size: 16px;
+  animation: marquee 25s linear infinite;
+}
 
 .departure-ball {
   display: none;
@@ -94,32 +153,32 @@
   height: 10px;
   background-color: red;
   border-radius: 50%;
-  margin-right: 5px; /* 調整紅色小球和車次之間的距離 */
+  margin-right: 5px;
 }
 
-
-
-@keyframes flash {
-   100% {
-    color: red; /* 開始和結束時的顏色 */
+@keyframes marquee {
+  from {
+    transform: translateX(100%);
   }
- 
-}
 
+  to {
+    transform: translateX(-100%);
+  }
+}
 
   </style>
 </head>
 <body>
+  <div class="header">  <h1>列車資訊板</h1> <nav>
     <a href="index.html"><strong><font size="3">時刻表</font></strong></a>
     <a href="index-tra.easy.html"><strong><font size="3">簡式時刻表</font></strong></a>
     <a href="index-tra.type.html"><strong><font size="3">依車種時刻表</font></strong></a>
     <a href="train-info.html"><strong><font size="3">車站資訊板</font></strong></a>
     <a href="train-info4.html"><strong><font size="3">多站車站資訊板</font></strong></a>
     <a href="people.html"><strong><font size="3">運量查詢</font></strong></a>
+  </nav></div>
 <div class="container">
-  <div class="header">
-    <h1>列車資訊板</h1>
-  </div>
+
 
   <div class="station-selection">
     <label for="station">選擇車站：</label>
@@ -200,7 +259,7 @@
   
     upcomingTrainsTable.querySelector('tbody').innerHTML = "";
   
-    for (let i = 0; i < 5; i++) {
+    for (let i = 0; i < 10; i++) {
       const train = nextTrain[i];
       const tbody = upcomingTrainsTable.querySelector('tbody');
   
@@ -227,7 +286,7 @@
       } else {
         const row = tbody.insertRow();
         const cell = row.insertCell(0);
-        cell.colSpan = 4;
+        cell.colSpan = 9;
         cell.classList.add("no-train-info");
         cell.textContent = "本日已無列車";
         break;
@@ -306,7 +365,7 @@
   
     nextTrainList.sort((a, b) => compareTime(a.time, b.time));
   
-    return nextTrainList.slice(0, 5);
+    return nextTrainList.slice(0, 10);
   }
   
   
