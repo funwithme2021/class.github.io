@@ -5,115 +5,120 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>頂威公司廣告投放數據 - 地區數據</title>
   <link rel="stylesheet" href="styles.css">
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <!-- 添加 jVectorMap 相关的 CDN 链接 -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jvectormap/2.0.6/jquery-jvectormap.min.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jvectormap/2.0.6/jquery-jvectormap.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jvectormap/2.0.6/maps/jquery-jvectormap-world-mill.js"></script>
+
   <style>
     /* 全局样式 */
-body {
-  font-family: Arial, sans-serif;
-  background-color: #ffffff;
-  margin: 0;
-  padding: 0;
-}
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #ffffff;
+      margin: 0;
+      padding: 0;
+    }
 
-header {
-  background-color: #333;
-  color: white;
-  padding: 10px 20px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
+    header {
+      background-color: #333;
+      color: white;
+      padding: 10px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
 
-header h1 {
-  margin: 0;
-}
+    header h1 {
+      margin: 0;
+    }
 
-nav ul {
-  list-style-type: none;
-  padding: 0;
-  margin: 0;
-}
+    nav ul {
+      list-style-type: none;
+      padding: 0;
+      margin: 0;
+    }
 
-nav ul li {
-  display: inline;
-  margin-right: 10px;
-}
+    nav ul li {
+      display: inline;
+      margin-right: 10px;
+    }
 
-nav ul li a {
-  color: white;
-  text-decoration: none;
-}
+    nav ul li a {
+      color: white;
+      text-decoration: none;
+    }
 
-nav ul li a:hover {
-  text-decoration: underline;
-}
+    nav ul li a:hover {
+      text-decoration: underline;
+    }
 
-main {
-  width: 100%;
-  padding: 20px;
-  background-color: white;
-  box-shadow: 0 0 10px rgba(0,0,0,0.1);
-  box-sizing: border-box;
-}
+    main {
+      width: 100%;
+      padding: 20px;
+      background-color: white;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      box-sizing: border-box;
+    }
 
-section {
-  margin-bottom: 30px;
-}
+    section {
+      margin-bottom: 30px;
+    }
 
-h2 {
-  font-size: 1.5em;
-  margin-bottom: 10px;
-}
+    h2 {
+      font-size: 1.5em;
+      margin-bottom: 10px;
+    }
 
-table {
-  width: 100%;
-  border-collapse: collapse;
-  margin-bottom: 20px;
-  background-color: #f0f0f0;
-}
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 20px;
+      background-color: #f0f0f0;
+    }
 
-table th, table td {
-  border: 1px solid #ccc;
-  padding: 8px;
-  text-align: center;
-}
+    table th, table td {
+      border: 1px solid #ccc;
+      padding: 8px;
+      text-align: center;
+    }
 
-table th {
-  background-color: #333;
-  color: white;
-  cursor: pointer;
-}
+    table th {
+      background-color: #333;
+      color: white;
+      cursor: pointer;
+    }
 
-table th:hover {
-  background-color: #555;
-}
+    table th:hover {
+      background-color: #555;
+    }
 
-.button-container {
-  margin-bottom: 10px;
-}
+    .button-container {
+      margin-bottom: 10px;
+    }
 
-.button-container button {
-  margin-right: 10px;
-  cursor: pointer;
-  padding: 5px 10px;
-  background-color: #007bff;
-  color: white;
-  border: none;
-  border-radius: 3px;
-}
+    .button-container button {
+      margin-right: 10px;
+      cursor: pointer;
+      padding: 5px 10px;
+      background-color: #007bff;
+      color: white;
+      border: none;
+      border-radius: 3px;
+    }
 
-.button-container button:hover {
-  background-color: #0056b3;
-}
+    .button-container button:hover {
+      background-color: #0056b3;
+    }
 
-#world-map-container {
-  margin-top: 30px;
-}
+    #world-map-container {
+      margin-top: 30px;
+    }
 
-#world-map {
-  width: 100%;
-  height: 400px;
-}
+    #world-map {
+      width: 100%;
+      height: 400px;
+    }
   </style>
 </head>
 <body>
@@ -133,7 +138,6 @@ table th:hover {
       <h2>地區數據</h2>
       <div class="button-container">
         <button id="sort-button">由大到小排列</button>
-        
       </div>
       <table id="traffic-table">
         <thead>
@@ -211,7 +215,7 @@ table th:hover {
             // 检查是否应该进行排序
             if (isNaN(x.innerHTML) && isNaN(y.innerHTML)) {
               // 如果是字符串类型的数据
-              if (x.innerHTML.toLowerCase() > y.innerHTML.toLowerCase()) {
+              if (x.innerHTML.toLowerCase() < y.innerHTML.toLowerCase()) {
                 // 如果应该，标记进行排序，并退出循环
                 shouldSwitch = true;
                 break;
@@ -236,10 +240,6 @@ table th:hover {
       // 添加事件监听器以进行排序
       document.getElementById("sort-button").addEventListener("click", function() {
         sortTable(1); // 默认按第二列（点击次数）由大到小排序
-      });
-
-      document.getElementById("filter-button").addEventListener("click", function() {
-        sortTable(1); // 默认按第二列（点击次数）由小到大排序
       });
 
       // 全球地图数据和配置
