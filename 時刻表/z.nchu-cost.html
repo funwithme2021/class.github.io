@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>頂威公司廣告投放數據</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+  <style>
+    /* 样式省略 */
+    #map {
+      height: 500px; /* 地图高度 */
+      width: 100%; /* 地图宽度 */
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>頂威公司廣告投放數據</h1>
+    <nav>
+      <ul>
+        <li><a href="z.nchu-home.html">首頁數據</a></li>
+        <li><a href="z.nchu-traffic.html">地區數據</a></li>
+        <li><a href="z.nchu-cost.html">成本數據</a></li>
+      </ul>
+    </nav>
+  </header>
+  
+  <main>
+    <!-- 其他内容 -->
+    
+    <section id="map-section">
+      <h2>地圖標註國家</h2>
+      <div id="map"></div>
+    </section>
+  </main>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      // 初始化地图
+      var map = L.map('map').setView([20, 0], 2); // 设置地图初始视图 [纬度，经度] 和 缩放级别
+
+      // 添加地图图层
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+      }).addTo(map);
+
+      // 标注国家
+      var countries = [
+        { name: 'USA', lat: 37.0902, lon: -95.7129 },
+        { name: 'China', lat: 35.8617, lon: 104.1954 },
+        { name: 'India', lat: 20.5937, lon: 78.9629 },
+        { name: 'Germany', lat: 51.1657, lon: 10.4515 },
+        { name: 'Brazil', lat: -14.2350, lon: -51.9253 }
+      ];
+
+      countries.forEach(function(country) {
+        L.marker([country.lat, country.lon]).addTo(map)
+          .bindPopup(country.name);
+      });
+    });
+  </script>
+</body>
+</html>
