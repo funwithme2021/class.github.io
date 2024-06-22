@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Google Analytics 數據展示</title>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-PXQ1QGRPLJ"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-PXQ1QGRPLJ'); // 替換為你的測量 ID
+  </script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      background-color: #f4f4f4;
+      padding: 20px;
+    }
+
+    h1 {
+      color: #333;
+    }
+
+    #data-display {
+      margin-top: 20px;
+      padding: 20px;
+      background: #fff;
+      border-radius: 5px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    }
+  </style>
+</head>
+<body>
+  <h1>Google Analytics 數據展示</h1>
+  <div id="data-display">
+    載入數據中...
+  </div>
+
+  <script src="https://apis.google.com/js/api.js"></script>
+  <script>
+    // 加載 Google API 客戶端庫
+    gapi.load('client:auth2', initClient);
+
+    function initClient() {
+      gapi.client.init({
+        clientId: '403112700656-8ek5nc8p4fh6scdmrs835mueskfkp21a.apps.googleusercontent.com', // 替換為你的客戶端 ID
+        apiKey: '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', // 替換為你的 API 密鑰
+        discoveryDocs: ["https://analyticsreporting.googleapis.com/$discovery/rest?version=v4"],
+        scope: 'https://www.googleapis.com/auth/analytics.readonly'
+      }).then(function () {
+        // 處理初始化成功
+        gapi.auth2.getAuthInstance().signIn().then(function() {
+          console.log('用戶已登錄');
+          queryReports();
+        });
+      }, function(error) {
+        console.error('Google API 初始化失敗', error);
+      });
+    }
+
+    function queryReports() {
+      gapi.client.analyticsreporting.reports.batchGet({
+        "reportRequests": [
+          {
+            "viewId": '8210677938', // 替換為你的資料串流 ID
+            "dateRanges": [
+              {
+                "startDate": "7daysAgo",
+                "endDate": "today"
+              }
+            ],
+            "metrics": [
+              {
+                "expression": "ga:pageviews"
+              }
+            ]
+          }
+        ]
+      }).then(function(response) {
+        displayResults(response);
+      }, function(error) {
+        console.error('無法查詢報告', error);
+      });
+    }
+
+    function displayResults(response) {
+      const dataDisplay = document.getElementById('data-display');
+      const pageviews = response.result.reports[0].data.totals[0].values[0];
+      dataDisplay.innerText = `過去 7 天的瀏覽量：${pageviews}`;
+    }
+  </script>
+</body>
+</html>
