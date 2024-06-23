@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>頂威公司廣告投放數據 - 成本數據</title>
+  <title>頂威公司廣告投放-成本數據</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.7.0/chart.min.css">
   <style>
     body {
@@ -16,34 +16,43 @@
     header {
       background-color: #333;
       color: white;
-      padding: 10px 20px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
+      padding: 10px 12px;
+      text-align: center;
     }
 
     header h1 {
       margin: 0;
+      margin-bottom: 0px;
+    }
+
+    nav {
+      display: flex;
+      justify-content: center;
     }
 
     nav ul {
       list-style-type: none;
       padding: 0;
       margin: 0;
+      display: flex;
+      justify-content: center;
     }
 
     nav ul li {
-      display: inline;
-      margin-right: 10px;
+      margin-right: 20px;
     }
 
     nav ul li a {
       color: white;
       text-decoration: none;
+      padding: 5px 10px;
+      background-color: #444;
+      border-radius: 4px;
+      transition: background-color 0.3s;
     }
 
     nav ul li a:hover {
-      text-decoration: underline;
+      background-color: #555;
     }
 
     main {
@@ -115,7 +124,7 @@
 </head>
 <body>
   <header>
-    <h1>頂威公司廣告投放數據-成本數據</h1>
+    <h2>頂威公司廣告投放-成本數據</h2>
     <nav>
       <ul>
         <li><a href="z.nchu-home.html">官網數據</a></li>
@@ -127,7 +136,7 @@
 
   <main>
     <section id="cost-section">
-      <h2>點擊折線圖上方資料項目可隱藏或顯現資料</h2>
+      <h3>*點擊折線圖上方資料項目可隱藏或顯現資料</h3>
       <canvas id="cost-chart" width="800" height="400"></canvas>
       <canvas id="accumulated-chart" width="800" height="400"></canvas>
       <table id="cost-table">
@@ -172,14 +181,14 @@
         { date: '2024年6月20日', interactions: 199, cost: 263.97, remaining: 815.00 },
         { date: '2024年6月21日', interactions: 144, cost: 202.38, remaining: 615.00 },
         { date: '2024年6月22日', interactions: 167, cost: 212.13, remaining: 404.00 },
-        { date: '2024年6月23日', interactions: 4, cost: 5.00, remaining: 400.00 },
-        { date: '2024年6月24日', interactions: 0, cost: 0, remaining: 400.00 },
-        { date: '2024年6月25日', interactions: 0, cost: 0, remaining: 400.00 },
-        { date: '2024年6月26日', interactions: 0, cost: 0, remaining: 400.00 },
-        { date: '2024年6月27日', interactions: 0, cost: 0, remaining: 400.00 },
-        { date: '2024年6月28日', interactions: 0, cost: 0, remaining: 400.00 },
-        { date: '2024年6月29日', interactions: 0, cost: 0, remaining: 400.00 },
-        { date: '2024年6月30日', interactions: 0, cost: 0, remaining: 400.00 }
+        { date: '2024年6月23日', interactions: 88, cost: 104.86, remaining: 303.00 },
+        { date: '2024年6月24日', interactions: 0, cost: 0, remaining: 303.00 },
+        { date: '2024年6月25日', interactions: 0, cost: 0, remaining: 303.00 },
+        { date: '2024年6月26日', interactions: 0, cost: 0, remaining: 303.00 },
+        { date: '2024年6月27日', interactions: 0, cost: 0, remaining: 303.00 },
+        { date: '2024年6月28日', interactions: 0, cost: 0, remaining: 303.00 },
+        { date: '2024年6月29日', interactions: 0, cost: 0, remaining: 303.00 },
+        { date: '2024年6月30日', interactions: 0, cost: 0, remaining: 303.00 }
       ];
 
       // 初始化表格

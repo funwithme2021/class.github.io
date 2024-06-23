@@ -17,36 +17,44 @@
     header {
       background-color: #333;
       color: white;
-      padding: 10px 20px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
+      padding: 10px 12px;
+      text-align: center;
     }
 
     header h1 {
       margin: 0;
+      margin-bottom: 0px;
+    }
+
+    nav {
+      display: flex;
+      justify-content: center;
     }
 
     nav ul {
       list-style-type: none;
       padding: 0;
       margin: 0;
+      display: flex;
+      justify-content: center;
     }
 
     nav ul li {
-      display: inline;
-      margin-right: 10px;
+      margin-right: 20px;
     }
 
     nav ul li a {
       color: white;
       text-decoration: none;
+      padding: 5px 10px;
+      background-color: #444;
+      border-radius: 4px;
+      transition: background-color 0.3s;
     }
 
     nav ul li a:hover {
-      text-decoration: underline;
+      background-color: #555;
     }
-
     main {
       width: 100%; /* 主内容区域占据整个可用空间 */
       padding: 20px;
@@ -110,7 +118,7 @@
 </head>
 <body>
   <header>
-    <h1>頂威公司廣告投放數據-關鍵字數據</h1>
+    <h2>頂威公司廣告投放-關鍵字數據</h2>
     <nav>
       <ul>
         <li><a href="z.nchu-home.html">官網數據</a></li>
@@ -158,16 +166,16 @@
     document.addEventListener('DOMContentLoaded', function() {
       // 数据
       const keywordData = [
-        { keyword: 'Locking pliers',       conversions: 0,   conversionCost: 0,       clicks: 0,    impressions: 0,       CTR: '0%',     CPC: 0,     cost: 0 },
-        { keyword: 'Hand tools suppliers', conversions: 0,   conversionCost: 0,       clicks: 0,    impressions: 0,       CTR: '0%',     CPC: 0,     cost: 0 },
-        { keyword: 'Bonding Plier',        conversions: 0,   conversionCost: 0,       clicks: 0,    impressions: 0,       CTR: '0%',     CPC: 0,     cost: 0 },
-        { keyword: 'Industrial Tools',     conversions: 241, conversionCost: 7.34,    clicks: 1000, impressions: 12458,   CTR: '8.03%',  CPC: 1.77,  cost: 1768.53 },
-        { keyword: 'Automotive tool',      conversions: 0,   conversionCost: 0,       clicks: 0,    impressions: 24,      CTR: '0%',     CPC: 0,     cost: 0 },
-        { keyword: 'Tool manufacturer',    conversions: 29,  conversionCost: 7.29,    clicks: 153,  impressions: 802,     CTR: '19.08%', CPC: 1.38,  cost: 211.37 },
-        { keyword: 'Tool Suppliers',       conversions: 127, conversionCost: 3.89,    clicks: 313,  impressions: 1217,    CTR: '25.72%', CPC: 1.58,  cost: 494.6 },
-        { keyword: 'Car repair tools',     conversions: 0,   conversionCost: 0,       clicks: 1,    impressions: 24,      CTR: '4.17%',  CPC: 0.45,  cost: 0.45 },
-        { keyword: 'Vise grip',            conversions: 0,   conversionCost: 0,       clicks: 0,    impressions: 0,       CTR: '0%',     CPC: 0,     cost: 0 },
-        { keyword: '總計',                  conversions: 397, conversionCost: 6.23,   clicks: 1467,  impressions: 14525,  CTR: '10.1%',   CPC: 1.69,  cost:2474.9 }
+        { keyword: 'Locking pliers',       conversions: 0,   conversionCost: 0,       clicks: 0,    impressions: 0,       CTR: '0%',     CPC: 0,     cost: 0.00 },
+        { keyword: 'Hand tools suppliers', conversions: 0,   conversionCost: 0,       clicks: 0,    impressions: 0,       CTR: '0%',     CPC: 0,     cost: 0.00 },
+        { keyword: 'Bonding Plier',        conversions: 0,   conversionCost: 0,       clicks: 0,    impressions: 0,       CTR: '0%',     CPC: 0,     cost: 0.00 },
+        { keyword: 'Industrial Tools',     conversions: 256, conversionCost: 7.18,    clicks: 1059, impressions: 13218,   CTR: '8.01%',  CPC: 1.74,  cost: 1839.06 },
+        { keyword: 'Automotive tool',      conversions: 0,   conversionCost: 0,       clicks: 0,    impressions: 24,      CTR: '0%',     CPC: 0,     cost: 0.00 },
+        { keyword: 'Tool manufacturer',    conversions: 43,  conversionCost: 5.44,    clicks: 173,  impressions: 892,     CTR: '19.39%', CPC: 1.35,  cost: 234.00 },
+        { keyword: 'Tool Suppliers',       conversions: 129, conversionCost: 3.87,    clicks: 316,  impressions: 1252,    CTR: '25.24%', CPC: 1.58,  cost: 499.41 },
+        { keyword: 'Car repair tools',     conversions: 0,   conversionCost: 0,       clicks: 2,    impressions: 27,      CTR: '7.41%',  CPC: 0.61,  cost: 1.21 },
+        { keyword: 'Vise grip',            conversions: 0,   conversionCost: 0,       clicks: 0,    impressions: 0,       CTR: '0%',     CPC: 0,     cost: 0.00 },
+        { keyword: '總計',                  conversions: 428, conversionCost: 6.01,   clicks: 1550,  impressions: 15413,  CTR: '10.06%',   CPC: 1.66,  cost:2573.68 }
       ];
 
       const dailyClicksData = [
@@ -193,7 +201,7 @@
         { date: '2024-06-20', clicks: 199 },
         { date: '2024-06-21', clicks: 144 },
         { date: '2024-06-22', clicks: 167 },
-        { date: '2024-06-23', clicks: -0 },
+        { date: '2024-06-23', clicks: 88 },
         { date: '2024-06-24', clicks: -0 },
         { date: '2024-06-25', clicks: -0 },
         { date: '2024-06-26', clicks: -0 },

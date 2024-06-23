@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>頂威公司廣告投放數據 - 地區數據</title>
+  <title>頂威公司廣告投放數據</title>
   <link rel="stylesheet" href="styles.css">
   <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
   <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
@@ -24,34 +24,43 @@
     header {
       background-color: #333;
       color: white;
-      padding: 10px 20px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
+      padding: 10px 12px;
+      text-align: center;
     }
 
     header h1 {
       margin: 0;
+      margin-bottom: 0px;
+    }
+
+    nav {
+      display: flex;
+      justify-content: center;
     }
 
     nav ul {
       list-style-type: none;
       padding: 0;
       margin: 0;
+      display: flex;
+      justify-content: center;
     }
 
     nav ul li {
-      display: inline;
-      margin-right: 10px;
+      margin-right: 20px;
     }
 
     nav ul li a {
       color: white;
       text-decoration: none;
+      padding: 5px 10px;
+      background-color: #444;
+      border-radius: 4px;
+      transition: background-color 0.3s;
     }
 
     nav ul li a:hover {
-      text-decoration: underline;
+      background-color: #555;
     }
 
     main {
@@ -128,7 +137,7 @@
 </head>
 <body>
   <header>
-    <h1>頂威公司廣告投放數據-地區數據</h1>
+    <h2>頂威公司廣告投放-地區數據</h2>
     <nav>
       <ul>
         <li><a href="z.nchu-home.html">官網數據</a></li>
@@ -175,12 +184,12 @@
   <script>
     document.addEventListener('DOMContentLoaded', function() {
       const trafficData = [
-        { region: '印度',   clicks: 1462, impressions: 14497, CTR: '10.08%', CPC: 1.67, cost: 2447.83, conversionRate: '27.15%', conversions: 397, conversionCost: 6.17 },
+        { region: '印度',   clicks: 1545, impressions: 15384, CTR: '10.04%', CPC: 1.65, cost: 2546.56, conversionRate: '27.70%', conversions: 428, conversionCost: 5.95 },
         { region: '越南',   clicks: 1,    impressions: 3,     CTR: '33.33%', CPC: 10.92,cost: 10.92,   conversionRate: '0%',     conversions: 0,   conversionCost: 0 },
-        { region: '美國',   clicks: 2,    impressions: 19,    CTR: '10.53%', CPC: 4.39, cost: 8.77,    conversionRate: '0%',     conversions: 0,   conversionCost: 0 },
-        { region: '菲律賓', clicks: 2,    impressions: 3,     CTR: '66.67%', CPC: 3.72, cost: 7.43,    conversionRate: '0%',     conversions: 0,   conversionCost: 0 },
+        { region: '美國',   clicks: 2,    impressions: 19,    CTR: '10.53%', CPC: 4.38, cost: 8.77,    conversionRate: '0%',     conversions: 0,   conversionCost: 0 },
+        { region: '菲律賓', clicks: 2,    impressions: 3,     CTR: '66.67%', CPC: 3.71, cost: 7.43,    conversionRate: '0%',     conversions: 0,   conversionCost: 0 },
         { region: '德國',   clicks: 0,    impressions: 2,     CTR: '0%',     CPC: 0,    cost: 0,       conversionRate: '0%',     conversions: 0,   conversionCost: 0 },
-        { region: '總計',   clicks: 1467, impressions: 14524, CTR: '10.1%',  CPC: 1.69, cost: 2474.95, conversionRate: '27.06%', conversions: 397, conversionCost: 6.23 }
+        { region: '總計',   clicks: 1550, impressions: 15413, CTR: '10.06%',  CPC: 1.66, cost: 2473.68, conversionRate: '27.61%', conversions: 428, conversionCost: 6.01 }
       ];
 
       const tableBody = document.getElementById('traffic-data');
@@ -261,7 +270,7 @@
 
       // 标注国家
       var countries = [
-        { name: '印度', lat: 20.5937, lon: 78.9629,    clicks: 1462, impressions: 14497, ctr: '10.08%' },
+        { name: '印度', lat: 20.5937, lon: 78.9629,    clicks: 1545, impressions: 15384, ctr: '10.04%' },
         { name: '越南', lat: 14.0583, lon: 108.2772,   clicks: 1,    impressions: 3,     ctr: '33.33%' },
         { name: '美國', lat: 37.0902, lon: -95.7129,   clicks: 2,    impressions: 19,    ctr: '10.53%' },
         { name: '菲律賓', lat: 12.8797, lon: 121.7740, clicks: 2,    impressions: 3,     ctr: '66.67%' },
