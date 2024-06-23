@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>頂威公司官網數據 - 首頁數據</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.7.0/chart.min.css">
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #ffffff;
+      margin: 0;
+      padding: 0;
+    }
+
+    header {
+      background-color: #333;
+      color: white;
+      padding: 10px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    header h1 {
+      margin: 0;
+    }
+
+    nav ul {
+      list-style-type: none;
+      padding: 0;
+      margin: 0;
+    }
+
+    nav ul li {
+      display: inline;
+      margin-right: 10px;
+    }
+
+    nav ul li a {
+      color: white;
+      text-decoration: none;
+    }
+
+    nav ul li a:hover {
+      text-decoration: underline;
+    }
+
+    main {
+      width: 100%;
+      padding: 20px;
+      background-color: white;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      box-sizing: border-box;
+    }
+
+    section {
+      margin-bottom: 30px;
+    }
+
+    h2 {
+      font-size: 1.5em;
+      margin-bottom: 10px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 20px;
+      background-color: #f0f0f0;
+    }
+
+    table th, table td {
+      border: 1px solid #ccc;
+      padding: 8px;
+      text-align: center;
+    }
+
+    table th {
+      background-color: #333;
+      color: white;
+      cursor: pointer;
+    }
+
+    table th:hover {
+      background-color: #555;
+    }
+
+    .button-container {
+      margin-bottom: 10px;
+    }
+
+    .button-container button {
+      margin-right: 10px;
+      cursor: pointer;
+      padding: 5px 10px;
+      background-color: #007bff;
+      color: white;
+      border: none;
+      border-radius: 3px;
+    }
+
+    .button-container button:hover {
+      background-color: #0056b3;
+    }
+
+    .options-container {
+      margin-bottom: 20px;
+    }
+
+    canvas {
+      max-width: 100%;
+      margin-bottom: 20px;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>頂威公司官網數據-官網數據</h1>
+    <nav>
+      <ul>
+        <li><a href="z.nchu-traffic.html">地區數據</a></li>
+        <li><a href="z.nchu-search.html">關鍵字數據</a></li>
+        <li><a href="z.nchu-cost.html">成本數據</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <main>
+    <section id="home-section">
+        <h2>點擊折現圖上方資料項目可隱藏或顯現資料</h2>
+      
+      <div>
+        <canvas id="daily-chart" width="800" height="400"></canvas>
+        <canvas id="accumulated-chart" width="800" height="400"></canvas>
+      </div>
+      <table id="home-table">
+        <thead>
+          <tr>
+            <th>日期</th>
+            <th>企業網瀏覽量</th>
+            <th>型錄瀏覽量</th>
+            <th>訪客數</th>
+            <th>追蹤數</th>
+          </tr>
+        </thead>
+        <tbody>
+          <!-- 表格内容将由 JavaScript 动态生成 -->
+        </tbody>
+      </table>
+    </section>
+  </main>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.7.0/chart.min.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      const homeData = [
+        { date: '2024年06月01日', enterpriseViews: 5, catalogViews: 1, visitors: 3, followers: 0 },
+        { date: '2024年06月02日', enterpriseViews: 55, catalogViews: 5, visitors: 27, followers: 0 },
+        { date: '2024年06月03日', enterpriseViews: 56, catalogViews: 4, visitors: 45, followers: 0 },
+        { date: '2024年06月04日', enterpriseViews: 46, catalogViews: 2, visitors: 30, followers: 0 },
+        { date: '2024年06月05日', enterpriseViews: 6, catalogViews: 1, visitors: 22, followers: 0 },
+        { date: '2024年06月06日', enterpriseViews: 33, catalogViews: 1, visitors: 18, followers: 0 },
+        { date: '2024年06月07日', enterpriseViews: 77, catalogViews: 5, visitors: 15, followers: 0 },
+        { date: '2024年06月08日', enterpriseViews: 20, catalogViews: 0, visitors: 3, followers: 0 },
+        { date: '2024年06月09日', enterpriseViews: 4, catalogViews: 0, visitors: 3, followers: 0 },
+        { date: '2024年06月10日', enterpriseViews: 1, catalogViews: 0, visitors: 1, followers: 0 },
+        { date: '2024年06月11日', enterpriseViews: 6, catalogViews: 0, visitors: 2, followers: 0 },
+        { date: '2024年06月12日', enterpriseViews: 3, catalogViews: 0, visitors: 2, followers: 1 },
+        { date: '2024年06月13日', enterpriseViews: 85, catalogViews: 9, visitors: 49, followers: 1 },
+        { date: '2024年06月14日', enterpriseViews: 159, catalogViews: 16, visitors: 73, followers: 4 },
+        { date: '2024年06月15日', enterpriseViews: 424, catalogViews: 42, visitors: 159, followers: 4 },
+        { date: '2024年06月16日', enterpriseViews: 358, catalogViews: 39, visitors: 168, followers: 1 },
+        { date: '2024年06月17日', enterpriseViews: 421, catalogViews: 66, visitors: 171, followers: 0 },
+        { date: '2024年06月18日', enterpriseViews: 486, catalogViews: 55, visitors: 181, followers: 0 },
+        { date: '2024年06月19日', enterpriseViews: 506, catalogViews: 69, visitors: 165, followers: 0 },
+        { date: '2024年06月20日', enterpriseViews: -0, catalogViews: -0, visitors: -0, followers: 0 },
+        { date: '2024年06月21日', enterpriseViews: -0, catalogViews: -0, visitors: -0, followers: 1 },
+        { date: '2024年06月22日', enterpriseViews: -0, catalogViews: -0, visitors: -0, followers: -0 },
+        { date: '2024年06月23日', enterpriseViews: -0, catalogViews: -0, visitors: -0, followers: -0 },
+        { date: '2024年06月24日', enterpriseViews: -0, catalogViews: -0, visitors: -0, followers: -0 },
+        { date: '2024年06月25日', enterpriseViews: -0, catalogViews: -0, visitors: -0, followers: -0 },
+        { date: '2024年06月26日', enterpriseViews: -0, catalogViews: -0, visitors: -0, followers: -0 },
+        { date: '2024年06月27日', enterpriseViews: -0, catalogViews: -0, visitors: -0, followers: -0 },
+        { date: '2024年06月28日', enterpriseViews: -0, catalogViews: -0, visitors: -0, followers: -0 },
+        { date: '2024年06月29日', enterpriseViews: -0, catalogViews: -0, visitors: -0, followers: -0 },
+        { date: '2024年06月30日', enterpriseViews: -0, catalogViews: -0, visitors: -0, followers: -0 }
+      ];
+
+      // 准备每日数据的折线图
+      function createDailyChart(data) {
+        const ctx = document.getElementById('daily-chart').getContext('2d');
+        const dailyChart = new Chart(ctx, {
+          type: 'line',
+          data: {
+            labels: data.map(entry => entry.date),
+            datasets: [
+              {
+                label: '企業網瀏覽量',
+                data: data.map(entry => entry.enterpriseViews),
+                borderColor: 'rgb(54, 162, 235)',
+                tension: 0.1,
+                fill: false
+              },
+              {
+                label: '型錄瀏覽量',
+                data: data.map(entry => entry.catalogViews),
+                borderColor: 'rgb(255, 99, 132)',
+                tension: 0.1,
+                fill: false
+              },
+              {
+                label: '訪客數',
+                data: data.map(entry => entry.visitors),
+                borderColor: 'rgb(75, 192, 192)',
+                tension: 0.1,
+                fill: false
+              },
+              {
+                label: '追蹤數',
+                data: data.map(entry => entry.followers),
+                borderColor: 'rgb(153, 102, 255)',
+                tension: 0.1,
+                fill: false
+              }
+            ]
+          },
+          options: {
+            plugins: {
+              tooltip: {
+                mode: 'index',
+                intersect: false
+              }
+            },
+            scales: {
+              x: {
+                title: {
+                  display: true,
+                  text: '日期'
+                }
+              },
+              y: {
+                title: {
+                  display: true,
+                  text: '數量'
+                }
+              }
+            }
+          }
+        });
+      }
+
+      // 准备累積数据的折线图
+      function createAccumulatedChart(data) {
+        // 累積數據計算
+        let accumulatedData = [];
+        let accumulatedEnterpriseViews = 0;
+        let accumulatedCatalogViews = 0;
+        let accumulatedVisitors = 0;
+        let accumulatedFollowers = 0;
+
+        for (let i = 0; i < data.length; i++) {
+          accumulatedEnterpriseViews += data[i].enterpriseViews;
+          accumulatedCatalogViews += data[i].catalogViews;
+          accumulatedVisitors += data[i].visitors;
+          accumulatedFollowers += data[i].followers;
+
+          accumulatedData.push({
+            date: data[i].date,
+            accumulatedEnterpriseViews: accumulatedEnterpriseViews,
+            accumulatedCatalogViews: accumulatedCatalogViews,
+            accumulatedVisitors: accumulatedVisitors,
+            accumulatedFollowers: accumulatedFollowers
+          });
+        }
+
+        const ctx = document.getElementById('accumulated-chart').getContext('2d');
+        const accumulatedChart = new Chart(ctx, {
+          type: 'line',
+          data: {
+            labels: accumulatedData.map(entry => entry.date),
+            datasets: [
+              {
+                label: '企業網瀏覽量（累積）',
+                data: accumulatedData.map(entry => entry.accumulatedEnterpriseViews),
+                borderColor: 'rgb(54, 162, 235)',
+                tension: 0.1,
+                fill: false
+              },
+              {
+                label: '型錄瀏覽量（累積）',
+                data: accumulatedData.map(entry => entry.accumulatedCatalogViews),
+                borderColor: 'rgb(255, 99, 132)',
+                tension: 0.1,
+                fill: false
+              },
+              {
+                label: '訪客數（累積）',
+                data: accumulatedData.map(entry => entry.accumulatedVisitors),
+                borderColor: 'rgb(75, 192, 192)',
+                tension: 0.1,
+                fill: false
+              },
+              {
+                label: '追蹤數（累積）',
+                data: accumulatedData.map(entry => entry.accumulatedFollowers),
+                borderColor: 'rgb(153, 102, 255)',
+                tension: 0.1,
+                fill: false
+              }
+            ]
+          },
+          options: {
+            plugins: {
+              tooltip: {
+                mode: 'index',
+                intersect: false
+              }
+            },
+            scales: {
+              x: {
+                title: {
+                  display: true,
+                  text: '日期'
+                }
+              },
+              y: {
+                title: {
+                  display: true,
+                  text: '累積數量'
+                }
+              }
+            }
+          }
+        });
+      }
+
+      // 生成表格
+      function createTable(data) {
+        const tableBody = document.querySelector('#home-table tbody');
+        tableBody.innerHTML = '';
+
+        data.forEach(entry => {
+          const row = document.createElement('tr');
+          row.innerHTML = `
+            <td>${entry.date}</td>
+            <td>${entry.enterpriseViews}</td>
+            <td>${entry.catalogViews}</td>
+            <td>${entry.visitors}</td>
+            <td>${entry.followers}</td>
+          `;
+          tableBody.appendChild(row);
+        });
+      }
+
+      // 更新圖表和表格類型
+      function updateCharts() {
+        const dataType = document.getElementById('data-type').value;
+        if (dataType === 'daily') {
+          createDailyChart(homeData);
+        } else if (dataType === 'accumulated') {
+          createAccumulatedChart(homeData);
+        }
+        createTable(homeData);
+      }
+
+      // 頁面加載時顯示每日數據圖表和累積數據圖表
+      createDailyChart(homeData);
+      createAccumulatedChart(homeData);
+      createTable(homeData);
+    });
+  </script>
+</body>
+</html>
