@@ -4,9 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>颱風預測路徑繪圖系統</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
     <style>
         #map {
-            height: 600px;
+            height: 800px;
             width: 100%;
         }
         .form-container {
@@ -18,10 +19,13 @@
         .form-container label {
             margin-right: 10px;
         }
-        .time-label {
-            background-color: white;
-            border: 1px solid black;
-            padding: 2px;
+        .points-list {
+            margin-top: 10px;
+            border: 1px solid #ccc;
+            padding: 10px;
+        }
+        .point-item {
+            margin-bottom: 5px;
         }
     </style>
 </head>
@@ -31,276 +35,296 @@
         <h2>輸入路徑數據</h2>
         <form id="typhoon-form">
             <div>
+                <h3>過去位置</h3>
                 <label>經度：</label>
-                <input type="number" step="0.000001" id="longitude" required>
-            </div>
-            <div>
+                <input type="number" step="0.000001" id="past-longitude">
                 <label>緯度：</label>
-                <input type="number" step="0.000001" id="latitude" required>
-            </div>
-            <div>
-                <label>強度：</label>
-                <select id="intensity" required>
-                    <option value="TD">熱帶性低氣壓</option>
-                    <option value="TS">輕度颱風</option>
-                    <option value="ST">中度颱風</option>
-                    <option value="TY">強烈颱風</option>
-                </select>
-            </div>
-            <div>
-                <label>誤差範圍 (公里)：</label>
-                <input type="number" id="error-radius" required>
-            </div>
-            <div>
-                <label>時間：</label>
-                <input type="datetime-local" id="timestamp">
-            </div>
-            <div>
-                <button type="button" onclick="addCurrentPoint()">設定現在位置</button>
+                <input type="number" step="0.000001" id="past-latitude">
                 <button type="button" onclick="addPastPoint()">添加過去位置</button>
-                <button type="button" onclick="addFuturePoint()">添加未來位置</button>
+                <div id="past-points" class="points-list"></div>
+            </div>
+            
+            <div>
+                <h3>預測位置</h3>
+                <div id="future-points">
+                    <!-- Future points input fields will be generated dynamically -->
+                </div>
+                <button type="button" onclick="generateFutureInputs()">生成預測位置輸入框</button>
             </div>
         </form>
     </div>
 
-    <script src="https://maps.googleapis.com/maps/api/js?key=YOUR_API_KEY"></script>
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
     <script>
-        var map;
+        // Initialize the map
+        var map = L.map('map').setView([23.5, 121], 6);
+
+        // Add OpenStreetMap tile layer
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+            maxZoom: 18,
+            attribution: 'Map tiles by CartoDB, CC BY 3.0',
+        }).addTo(map);
+
         var pastPath = [];
         var futurePath = [];
         var currentMarker = null;
-        var currentCircle = null;
+        var futureMarkers = [];
+        var errorPolygons = [];
 
-        function initMap() {
-            map = new google.maps.Map(document.getElementById('map'), {
-                center: {lat: 23.5, lng: 121},
-                zoom: 6,
-                styles: [
-                    {
-                        elementType: 'geometry',
-                        stylers: [{color: '#102432'}]
-                    },
-                    {
-                        elementType: 'labels.text.stroke',
-                        stylers: [{color: '#242f3e'}]
-                    },
-                    {
-                        elementType: 'labels.text.fill',
-                        stylers: [{color: '#746855'}]
-                    },
-                    {
-                        featureType: 'administrative.locality',
-                        elementType: 'labels.text.fill',
-                        stylers: [{color: '#d59563'}]
-                    },
-                    {
-                        featureType: 'poi',
-                        elementType: 'labels.text.fill',
-                        stylers: [{color: '#d59563'}]
-                    },
-                    {
-                        featureType: 'poi.park',
-                        elementType: 'geometry',
-                        stylers: [{color: '#263c3f'}]
-                    },
-                    {
-                        featureType: 'poi.park',
-                        elementType: 'labels.text.fill',
-                        stylers: [{color: '#6b9a76'}]
-                    },
-                    {
-                        featureType: 'road',
-                        elementType: 'geometry',
-                        stylers: [{color: '#38414e'}]
-                    },
-                    {
-                        featureType: 'road',
-                        elementType: 'geometry.stroke',
-                        stylers: [{color: '#212a37'}]
-                    },
-                    {
-                        featureType: 'road',
-                        elementType: 'labels.text.fill',
-                        stylers: [{color: '#9ca5b3'}]
-                    },
-                    {
-                        featureType: 'road.highway',
-                        elementType: 'geometry',
-                        stylers: [{color: '#746855'}]
-                    },
-                    {
-                        featureType: 'road.highway',
-                        elementType: 'geometry.stroke',
-                        stylers: [{color: '#1f2835'}]
-                    },
-                    {
-                        featureType: 'road.highway',
-                        elementType: 'labels.text.fill',
-                        stylers: [{color: '#f3d19c'}]
-                    },
-                    {
-                        featureType: 'transit',
-                        elementType: 'geometry',
-                        stylers: [{color: '#2f3948'}]
-                    },
-                    {
-                        featureType: 'transit.station',
-                        elementType: 'labels.text.fill',
-                        stylers: [{color: '#d59563'}]
-                    },
-                    {
-                        featureType: 'water',
-                        elementType: 'geometry',
-                        stylers: [{color: '#17263c'}]
-                    },
-                    {
-                        featureType: 'water',
-                        elementType: 'labels.text.fill',
-                        stylers: [{color: '#515c6d'}]
-                    },
-                    {
-                        featureType: 'water',
-                        elementType: 'labels.text.stroke',
-                        stylers: [{color: '#17263c'}]
-                    }
-                ]
-            });
-        }
-
-        function addCurrentPoint() {
-            var lat = parseFloat(document.getElementById('latitude').value);
-            var lng = parseFloat(document.getElementById('longitude').value);
-            var intensity = document.getElementById('intensity').value;
-            var errorRadius = parseFloat(document.getElementById('error-radius').value);
-
-            if (currentMarker) {
-                currentMarker.setMap(null);
-            }
-            if (currentCircle) {
-                currentCircle.setMap(null);
-            }
-
-            var iconUrl = getIconUrl(intensity);
-            currentMarker = new google.maps.Marker({
-                position: {lat: lat, lng: lng},
-                map: map,
-                icon: iconUrl
-            });
-
-            currentCircle = new google.maps.Circle({
-                strokeColor: '#FF0000',
-                strokeOpacity: 0.8,
-                strokeWeight: 2,
-                fillColor: '#FF0000',
-                fillOpacity: 0.35,
-                map: map,
-                center: {lat: lat, lng: lng},
-                radius: errorRadius * 1000
-            });
-        }
-
+        // Add past point
         function addPastPoint() {
-            var lat = parseFloat(document.getElementById('latitude').value);
-            var lng = parseFloat(document.getElementById('longitude').value);
-            var intensity = document.getElementById('intensity').value;
-            var errorRadius = parseFloat(document.getElementById('error-radius').value);
+            var lat = parseFloat(document.getElementById('past-latitude').value);
+            var lng = parseFloat(document.getElementById('past-longitude').value);
 
-            var point = {lat: lat, lng: lng};
+            var point = [lat, lng];
             pastPath.push(point);
 
-            if (pastPath.length > 1) {
-                var path = new google.maps.Polyline({
-                    path: pastPath,
-                    geodesic: true,
-                    strokeColor: '#0000FF',
-                    strokeOpacity: 1.0,
-                    strokeWeight: 2
-                });
-                path.setMap(map);
-            }
-
-            var iconUrl = getIconUrl(intensity);
-            new google.maps.Marker({
-                position: point,
-                map: map,
-                icon: iconUrl
-            });
-
-            new google.maps.Circle({
-                strokeColor: '#0000FF',
-                strokeOpacity: 0.8,
-                strokeWeight: 2,
-                fillColor: '#0000FF',
-                fillOpacity: 0.35,
-                map: map,
-                center: point,
-                radius: errorRadius * 1000
-            });
+            addPastPointToList(lat, lng);
+            redrawPaths();
         }
 
-        function addFuturePoint() {
-            var lat = parseFloat(document.getElementById('latitude').value);
-            var lng = parseFloat(document.getElementById('longitude').value);
-            var intensity = document.getElementById('intensity').value;
-            var errorRadius = parseFloat(document.getElementById('error-radius').value);
-            var timestamp = document.getElementById('timestamp').value;
+        function addPastPointToList(lat, lng) {
+            var pastPointsDiv = document.getElementById('past-points');
+            var pointItem = document.createElement('div');
+            pointItem.className = 'point-item';
+            pointItem.innerHTML = `經度: ${lng}, 緯度: ${lat} <button onclick="removePastPoint(${pastPath.length - 1}, this)">刪除</button>`;
+            pastPointsDiv.appendChild(pointItem);
+        }
 
-            var point = {lat: lat, lng: lng};
-            futurePath.push(point);
+        function removePastPoint(index, btn) {
+            pastPath.splice(index, 1);
+            var pointItem = btn.parentNode;
+            pointItem.parentNode.removeChild(pointItem);
+            redrawPaths();
+        }
 
+        // Set or update current point
+        function setOrUpdateCurrentPoint() {
+            var lat = parseFloat(document.getElementById('current-latitude').value);
+            var lng = parseFloat(document.getElementById('current-longitude').value);
+            var intensity = document.getElementById('current-intensity').value;
+            var radius7 = parseFloat(document.getElementById('current-radius-7').value) || 0;
+            var radius10 = parseFloat(document.getElementById('current-radius-10').value) || 0;
+
+            // Remove previous circle and marker
             if (currentMarker) {
-                var path = new google.maps.Polyline({
-                    path: [currentMarker.getPosition(), point],
-                    geodesic: true,
-                    strokeColor: '#FF0000',
-                    strokeOpacity: 1.0,
-                    strokeWeight: 2,
-                    icons: [{
-                        icon: {path: google.maps.SymbolPath.FORWARD_CLOSED_ARROW},
-                        offset: '100%'
-                    }]
-                });
-                path.setMap(map);
+                map.removeLayer(currentMarker);
+                currentMarker = null;
             }
 
-            var iconUrl = getIconUrl(intensity);
-            var futureMarker = new google.maps.Marker({
-                position: point,
-                map: map,
-                icon: iconUrl
+            // Add radius 7 circle
+            if (radius7 > 0) {
+                currentMarker = L.circle([lat, lng], {
+                    color: 'yellow',
+                    fillColor: 'none',
+                    fillOpacity: 0.5,
+                    radius: radius7 * 1000,
+                    dashArray: '5, 5',
+                }).addTo(map);
+            }
+
+            // Add radius 10 circle
+            if (radius10 > 0) {
+                currentMarker = L.circle([lat, lng], {
+                    color: 'red',
+                    fillColor: 'none',
+                    fillOpacity: 0.5,
+                    radius: radius10 * 1000,
+                    dashArray: '5, 5',
+                }).addTo(map);
+            }
+
+            redrawPaths();
+        }
+
+        // Add future point
+        function addFuturePoint(index) {
+            var lat = parseFloat(document.getElementById(`future-latitude-${index}`).value);
+            var lng = parseFloat(document.getElementById(`future-longitude-${index}`).value);
+            var intensity = document.getElementById(`future-intensity-${index}`).value || 'TD';
+            var radius7 = parseFloat(document.getElementById(`future-radius-7-${index}`).value) || 0;
+            var radius10 = parseFloat(document.getElementById(`future-radius-10-${index}`).value) || 0;
+            var errorRadius = parseFloat(document.getElementById(`future-error-radius-${index}`).value) || 0;
+            var showIcon = document.getElementById(`future-show-icon-${index}`).checked;
+
+            var point = { coords: [lat, lng], radius7: radius7, radius10: radius10, errorRadius: errorRadius, showIcon: showIcon, intensity: intensity };
+            futurePath[index] = point;
+
+            if (showIcon) {
+                var marker = addMarker(lat, lng, intensity);
+                if (futureMarkers[index] && futureMarkers[index].marker) {
+                    map.removeLayer(futureMarkers[index].marker);
+                }
+                futureMarkers[index] = { marker: marker };
+            } else {
+                delete futureMarkers[index];
+            }
+
+            addCircle(lat, lng, radius7, 'yellow', 'dashed', radius7 > 0);
+            addCircle(lat, lng, radius10, 'red', 'dashed', radius10 > 0);
+            addCircle(lat, lng, errorRadius, 'blue', 'dashed', errorRadius > 0); // Display error radius circle
+
+            redrawPaths();
+        }
+
+        // Update future point
+        function updateFuturePoint(index) {
+            addFuturePoint(index);
+        }
+
+        // Add marker
+        function addMarker(lat, lng, intensity) {
+            var icon = L.icon({
+                iconUrl: getIconUrl(intensity),
+                iconSize: [32, 32], // Adjust icon size
+            });
+            return L.marker([lat, lng], { icon: icon }).addTo(map);
+        }
+
+        // Add circle
+        function addCircle(lat, lng, radius, color, dashArray, visible) {
+            if (radius > 0 && visible) {
+                L.circle([lat, lng], {
+                    color: color,
+                    fillColor: 'none',
+                    fillOpacity: 0.5,
+                    radius: radius * 1000,
+                    dashArray: dashArray,
+                }).addTo(map);
+            }
+        }
+
+        // Get icon URL
+        function getIconUrl(intensity) {
+            switch (intensity) {
+                case 'TD':
+                    return 'td.png';
+                case 'TS':
+                    return 'ts.png';
+                case 'ST':
+                    return 'st.png';
+                case 'TY':
+                    return 'ty.png';
+                default:
+                    return 'images/default.png';
+            }
+        }
+
+        // Generate future inputs dynamically
+        function generateFutureInputs() {
+            var index = futurePath.length;
+            var futurePointsDiv = document.getElementById('future-points');
+
+            var pointDiv = document.createElement('div');
+            pointDiv.className = 'point-item';
+
+            pointDiv.innerHTML = `
+                <h4>預測位置 ${index + 1}</h4>
+                <label>經度：</label>
+                <input type="number" step="0.000001" id="future-longitude-${index}">
+                <label>緯度：</label>
+                <input type="number" step="0.000001" id="future-latitude-${index}">
+                <label>強度：</label>
+                <select id="future-intensity-${index}">
+                    <option value="TD">熱帶低氣壓</option>
+                    <option value="TS">熱帶風暴</option>
+                    <option value="ST">強烈熱帶風暴</option>
+                    <option value="TY">颱風</option>
+                </select>
+                <label>7級風半徑：</label>
+                <input type="number" step="0.01" id="future-radius-7-${index}">
+                <label>10級風半徑：</label>
+                <input type="number" step="0.01" id="future-radius-10-${index}">
+                <label>誤差半徑：</label>
+                <input type="number" step="0.01" id="future-error-radius-${index}">
+                <label>顯示圖示：</label>
+                <input type="checkbox" id="future-show-icon-${index}" checked>
+                <button type="button" onclick="addFuturePoint(${index})">添加預測位置</button>
+            `;
+            futurePointsDiv.appendChild(pointDiv);
+        }
+
+        // Redraw all paths and markers
+        function redrawPaths() {
+            // Clear previous paths and markers
+            map.eachLayer(function (layer) {
+                if (layer instanceof L.Polyline || layer instanceof L.Circle || layer instanceof L.Marker) {
+                    map.removeLayer(layer);
+                }
             });
 
-            new google.maps.Circle({
-                strokeColor: '#FF0000',
-                strokeOpacity: 0.8,
-                strokeWeight: 2,
-                fillOpacity: 0,
-map: map,
-center: point,
-radius: errorRadius * 1000
-});
-var infowindow = new google.maps.InfoWindow({
-            content: '<div class="time-label">時間：' + timestamp + '</div>'
-        });
-        infowindow.open(map, futureMarker);
-    }
+            L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+                maxZoom: 18,
+                attribution: 'Map tiles by CartoDB, CC BY 3.0',
+            }).addTo(map);
 
-    function getIconUrl(intensity) {
-        switch (intensity) {
-            case 'TD':
-                return 'td.png';
-            case 'TS':
-                return 'ts.png';
-            case 'ST':
-                return 'st.png';
-            case 'TY':
-                return 'ty.png';
-            default:
-                return 'images/default.png';
+            // Draw past path
+            if (pastPath.length > 1) {
+                L.polyline(pastPath, {
+                    color: 'black',
+                    dashArray: '5, 5',
+                    lineCap: 'round',
+                }).addTo(map);
+            }
+
+            // Draw current location and future paths
+            var combinedPath = pastPath.concat(futurePath.map(p => p.coords));
+
+            for (var i = 1; i < combinedPath.length; i++) {
+                var startPoint = combinedPath[i - 1];
+                var endPoint = combinedPath[i];
+                var distance = calculateDistance(startPoint[0], startPoint[1], endPoint[0], endPoint[1]);
+                
+                if (distance >= 10000) {
+                    var numCircles = Math.floor(distance / 10000);
+                    var interval = 10000;
+
+                    for (var j = 1; j <= numCircles; j++) {
+                        var fraction = j / (numCircles + 1);
+                        var intermediatePoint = L.GeometryUtil.interpolateOnLine(map, startPoint, endPoint, fraction);
+                        addCircle(intermediatePoint.latLng.lat, intermediatePoint.latLng.lng, futurePath[i - 1].errorRadius, 'blue', 'dashed', true);
+                    }
+                }
+            }
+
+            // Add past and future markers
+            if (pastPath.length > 0) {
+                addMarker(pastPath[pastPath.length - 1][0], pastPath[pastPath.length - 1][1], 'Past');
+            }
+            futurePath.forEach(function (point, index) {
+                addCircle(point.coords[0], point.coords[1], point.radius7, 'yellow', 'dashed', point.radius7 > 0);
+                addCircle(point.coords[0], point.coords[1], point.radius10, 'red', 'dashed', point.radius10 > 0);
+                addCircle(point.coords[0], point.coords[1], point.errorRadius, 'blue', 'dashed', point.errorRadius > 0); // Display error radius circle
+
+                if (point.showIcon) {
+                    var marker = addMarker(point.coords[0], point.coords[1], point.intensity);
+                    futureMarkers[index] = { marker: marker };
+                }
+            });
         }
-    }
 
-    google.maps.event.addDomListener(window, 'load', initMap);
-</script>
+        // Calculate distance between two points in meters
+        function calculateDistance(lat1, lon1, lat2, lon2) {
+            var R = 6371e3; // metres
+            var φ1 = lat1 * Math.PI / 180; // φ, λ in radians
+            var φ2 = lat2 * Math.PI / 180;
+            var Δφ = (lat2 - lat1) * Math.PI / 180;
+            var Δλ = (lon2 - lon1) * Math.PI / 180;
+
+            var a = Math.sin(Δφ / 2) * Math.sin(Δφ / 2) +
+                    Math.cos(φ1) * Math.cos(φ2) *
+                    Math.sin(Δλ / 2) * Math.sin(Δλ / 2);
+            var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+
+            var distance = R * c; // in metres
+            return distance;
+        }
+
+        // Initialize map
+        redrawPaths();
+    </script>
 </body>
 </html>
+
+
+

@@ -1,575 +1,317 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-Hant">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>列車時刻表查詢</title>
+    <title>颱風預測路徑繪圖系統</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
     <style>
-        body {
-            font-family: Arial, sans-serif;
+        #map {
+            height: 800px;
+            width: 100%;
+        }
+        .form-container {
             margin: 20px;
         }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 20px;
+        .form-container div {
+            margin-bottom: 10px;
         }
-
-        table, th, td {
-            border: 1px solid #ddd;
+        .form-container label {
+            margin-right: 10px;
         }
-
-        th, td {
+        .points-list {
+            margin-top: 10px;
+            border: 1px solid #ccc;
             padding: 10px;
-            text-align: left;
         }
-
-        th {
-            background-color: #f2f2f2;
-        }
-
-        select, input, button {
-            margin: 10px;
-            padding: 8px;
-        }
-
-        #trainDetailsModal {
-            display: none;
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background-color: #fff;
-            padding: 20px;
-            border: 1px solid #ddd;
-            z-index: 1000;
-        }
-        body {
-            font-family: Arial, sans-serif;
-            margin: 20px;
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 20px;
-        }
-
-        table, th, td {
-            border: 1px solid #ddd;
-        }
-
-        th, td {
-            padding: 10px;
-            text-align: left;
-        }
-
-        th {
-            background-color: #f2f2f2;
-        }
-
-        select, input, button {
-            margin: 10px;
-            padding: 8px;
-        }
-
-        #trainDetailsModal {
-            display: none;
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background-color: #fff;
-            padding: 20px;
-            border: 1px solid #ddd;
-            z-index: 1000;
+        .point-item {
+            margin-bottom: 5px;
         }
     </style>
 </head>
 <body>
+    <div id="map"></div>
+    <div class="form-container">
+        <h2>輸入路徑數據</h2>
+        <form id="typhoon-form">
+            <div>
+                <h3>過去位置</h3>
+                <label>經度：</label>
+                <input type="number" step="0.000001" id="past-longitude">
+                <label>緯度：</label>
+                <input type="number" step="0.000001" id="past-latitude">
+                <button type="button" onclick="addPastPoint()">添加過去位置</button>
+                <div id="past-points" class="points-list"></div>
+            </div>
+            
+            <div>
+                <h3>預測位置</h3>
+                <div id="future-points">
+                    <!-- Future points input fields will be generated dynamically -->
+                </div>
+                <button type="button" onclick="generateFutureInputs()">生成預測位置輸入框</button>
+            </div>
+        </form>
+    </div>
 
-<h2>列車時刻表查詢</h2>
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <script>
+        // Initialize the map
+        var map = L.map('map').setView([23.5, 121], 6);
 
-<h3>按出發站和抵達站查詢</h3>
-<label for="startStation">出發站：</label>
-<select id="startStation">
-    <!-- 選項將由JavaScript生成 -->
-</select>
+        // Add OpenStreetMap tile layer
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+            maxZoom: 18,
+            attribution: 'Map tiles by CartoDB, CC BY 3.0',
+        }).addTo(map);
 
-<label for="endStation">抵達站：</label>
-<select id="endStation">
-    <!-- 選項將由JavaScript生成 -->
-</select>
+        var pastPath = [];
+        var futurePath = [];
+        var currentMarker = null;
+        var currentRadiusCircle7 = null;
+        var currentRadiusCircle10 = null;
+        var futureMarkers = [];
 
-<button onclick="filterTrainScheduleByStation()">查詢時刻表</button>
+        // Add past point
+        function addPastPoint() {
+            var lat = parseFloat(document.getElementById('past-latitude').value);
+            var lng = parseFloat(document.getElementById('past-longitude').value);
 
-<table id="scheduleTableByStation">
-    <thead>
-    <tr>
-        <th>車次</th>
-        <th>車種</th>
-        <th>第一個停靠站</th>
-        <th>最後一個停靠站</th>
-        <th>出發站時間</th>
-        <th>抵達站時間</th>
-    </tr>
-    </thead>
-    <tbody>
-    <!-- Table content will be inserted here -->
-    </tbody>
-</table>
+            var point = [lat, lng];
+            pastPath.push(point);
 
-<h3>按車次查詢</h3>
-<label for="trainNumber">車次：</label>
-<input type="text" id="trainNumber" placeholder="請輸入車次">
-
-<button onclick="filterTrainScheduleByNumber()">查詢時刻表</button>
-
-<table id="scheduleTableByNumber">
-    <thead>
-    <tr>
-        <th>車次</th>
-        <th>車種</th>
-    </tr>
-    </thead>
-    <tbody>
-    <!-- Table content will be inserted here -->
-    </tbody>
-</table>
-
-<div id="trainDetailsModal">
-    <h3 id="modalTitle"></h3>
-    <table id="modalTable">
-        <thead>
-        <tr>
-            <th>車站</th>
-            <th>時間</th>
-        </tr>
-        </thead>
-        <tbody>
-        <!-- Modal content will be inserted here -->
-        </tbody>
-    </table>
-    <button onclick="closeTrainDetailsModal()">關閉</button>
-</div>
-
-<script>
-    var trainSchedule = {
-        '111': {
-            '車種': '普悠瑪',
-            '車站時間': [
-                ['南港', '07:42'],
-                ['松山', '07:48'],
-                ['臺北', '08:00'],
-                ['板橋', '08:08'],
-                ['桃園', '08:25'],
-                ['臺中', '09:40'],
-                ['嘉義', '10:36'],
-                ['臺南', '11:12'],
-                ['高雄', '11:42'],
-                ['屏東', '11:57'],
-                ['潮州', '12:12'],
-                ['枋寮', '12:33']
-            ]
-        },
-        '143': {
-            '車種': '新自強',
-            '車站時間': [
-                ['花蓮', '17:32'],
-                ['松山', '17:49'],
-                ['臺北', '18:00'],
-                ['板橋', '18:09'],
-                ['臺中', '19:48'],
-                ['彰化', '20:02'],
-                ['嘉義', '20:49'],
-                ['臺南', '21:27'],
-                ['高雄', '22:00'],
-                ['鳳山', '22:07'],
-                ['屏東', '22:20'],
-                ['潮州', '22:35']
-            ]
-        },
-        '101': {
-    '車種': '自強號',
-    '車站時間': [
-        ['瑞芳', '05:45'],['七堵', '06:00'],['汐止', '06:10'],['松山', '06:20'],['臺北', '06:30'],
-        ['萬華', '06:36'],['板橋', '06:42'],
-        ['桃園', '07:02'],['中壢', '07:12'],['新竹', '07:43'],
-        ['竹南', '07:56'],['苗栗', '07:08'],['豐原', '07:35'],
-        ['臺中', '07:47'],['彰化', '08:04'],
-        ['員林', '08:15'],['斗六', '08:46'],        
-        ['嘉義', '09:11'],['新營', '09:27'],['臺南', '09:54'],
-        ['新左營', '10:24'],['高雄', '10:36'],['鳳山', '10:44'],['屏東', '10:59'],['潮州', '11:12']
-    ]
-},
-'103': {
-  '車種': '自強號',
-  '車站時間': [
-      ['臺中', '05:47'],['新烏日', '05:55'],['彰化', '06:04'],
-      ['員林', '06:15'],['田中', '06:24'],['斗六', '06:46'],['斗南', '06:54'],        
-      ['嘉義', '07:02'],['新營', '07:18'],['善化', '07:33'],['永康', '07:43'],['臺南', '07:53'],
-      ['新左營', '08:20'],['高雄', '08:32'],['鳳山', '08:44'],['屏東', '08:55'],['潮州', '09:10'],['枋寮', '09:25']
-  ]
-},
-'105': {
-  '車種': '自強號',
-  '車站時間': [
-      ['基隆', '06:45'],['八堵', '06:53'],['七堵', '07:00'],['汐止', '07:10'],['松山', '07:20'],['臺北', '07:30'],
-      ['萬華', '07:36'],['板橋', '07:42'],['樹林', '07:52'],
-      ['桃園', '08:07'],['中壢', '08:18'],['湖口', '08:30'],['竹北', '08:45'],['新竹', '08:51'],
-      ['竹南', '09:06'],['苗栗', '09:18'],['后里', '09:36'],['豐原', '09:45'],
-      ['臺中', '09:58'],['彰化', '10:14'],
-      ['員林', '10:25'],['田中', '10:34'],['斗六', '10:56'],['斗南', '11:04'],        
-      ['嘉義', '11:11'],['新營', '11:27'],['善化', '11:47'],['臺南', '12:00'],
-      ['新左營', '12:27'],['高雄', '12:38'],['鳳山', '12:50'],['屏東', '13:00'],['潮州', '13:15'],['枋寮', '13:30']
-  ]
-},
-'107': {
-  '車種': '自強號',
-  '車站時間': [
-      ['七堵', '08:00'],['汐止', '08:10'],['松山', '08:20'],['臺北', '08:30'],
-      ['萬華', '08:36'],['板橋', '08:42'],
-      ['桃園', '09:02'],['中壢', '09:12'],['新竹', '09:43'],
-      ['竹南', '09:56'],['苗栗', '10:08'],['豐原', '10:35'],
-      ['臺中', '10:47'],['彰化', '11:04'],
-      ['員林', '11:15'],['斗六', '11:46'],        
-      ['嘉義', '12:11'],['新營', '12:27'],['臺南', '12:54'],
-      ['新左營', '13:24'],['高雄', '13:36'],['鳳山', '13:44'],['屏東', '13:59'],['潮州', '14:12']
-  ]
-},
-'109': {
-  '車種': '自強號',
-  '車站時間': [
-      ['七堵', '09:00'],['汐止', '09:10'],['松山', '09:20'],['臺北', '09:30'],
-      ['萬華', '09:36'],['板橋', '09:42'],
-      ['桃園', '10:02'],['中壢', '10:12'],['新竹', '10:43'],
-      ['竹南', '10:56'],['苗栗', '11:08'],['豐原', '11:35'],
-      ['臺中', '11:47'],['彰化', '12:04'],
-      ['員林', '12:15'],['斗六', '12:46'],['斗南', '12:04'],        
-      ['嘉義', '13:11'],['新營', '13:27'],['臺南', '13:54'],
-      ['新左營', '14:24'],['高雄', '14:36'],['鳳山', '14:44'],['屏東', '14:59'],['潮州', '15:12']
-  ]
-},
-'111': {
-  '車種': '自強號',
-  '車站時間': [
-    ['七堵', '10:00'],['汐止', '10:10'],['松山', '10:20'],['臺北', '10:30'],
-    ['萬華', '10:36'],['板橋', '10:42'],
-    ['桃園', '11:02'],['中壢', '11:12'],['新竹', '11:43'],
-    ['竹南', '11:56'],['苗栗', '12:08'],['豐原', '12:35'],
-    ['臺中', '12:47'],['彰化', '13:04'],
-    ['員林', '13:15'],['斗六', '13:46'],        
-    ['嘉義', '14:11'],['新營', '14:27'],['臺南', '14:54'],
-    ['新左營', '15:24'],['高雄', '15:36'],['鳳山', '15:44'],['屏東', '15:59'],['潮州', '16:12']
-  ]
-},
-'113': {
-  '車種': '自強號',
-  '車站時間': [
-    ['七堵', '11:00'],['汐止', '11:10'],['松山', '11:20'],['臺北', '11:30'],
-    ['萬華', '11:36'],['板橋', '11:42'],
-    ['桃園', '12:02'],['中壢', '12:12'],['新竹', '12:43'],
-    ['竹南', '12:56'],['苗栗', '13:08'],['豐原', '13:35'],
-    ['臺中', '13:47'],['彰化', '14:04'],
-    ['員林', '14:15'],['斗六', '14:46'],        
-    ['嘉義', '15:11'],['新營', '15:27'],['臺南', '15:54'],
-    ['新左營', '16:24'],['高雄', '16:36'],['鳳山', '16:44'],['屏東', '16:59'],['潮州', '17:12'],['枋寮', '13:27']
-  ]
-},
-'115': {
-  '車種': '自強號',
-  '車站時間': [
-      ['七堵', '12:30'],['汐止', '12:40'],['松山', '12:50'],['臺北', '13:00'],
-      ['萬華', '13:06'],['板橋', '13:12'],['樹林', '13:22'],
-      ['桃園', '13:32'],['中壢', '13:42'],['新竹', '14:13'],
-      ['竹南', '14:26'],['苗栗', '14:38'],['豐原', '15:05'],
-      ['臺中', '15:17'],['彰化', '15:34'],
-      ['員林', '15:45'],['斗六', '16:16'],['斗南', '16:34'],        
-      ['嘉義', '16:41'],['新營', '16:57'],['臺南', '17:24'],
-      ['新左營', '17:54'],['高雄', '18:06'],['鳳山', '18:14'],['屏東', '18:29'],['潮州', '18:42']
-  ]
-},
-'117': {
-  '車種': '自強號',
-  '車站時間': [
-    ['基隆', '13:15'],['八堵', '13:23'],['七堵', '13:30'],['汐止', '13:40'],['松山', '13:50'],['臺北', '14:00'],
-    ['萬華', '14:06'],['板橋', '14:12'],
-    ['桃園', '14:32'],['中壢', '14:42'],['新竹', '15:13'],
-    ['竹南', '15:26'],['苗栗', '15:38'],['豐原', '16:05'],
-    ['臺中', '16:17'],['彰化', '16:34'],
-    ['員林', '16:45'],['斗六', '17:16'],        
-    ['嘉義', '17:41'],['新營', '17:57'],['臺南', '18:24'],
-    ['新左營', '18:54'],['高雄', '19:06'],['鳳山', '19:14'],['屏東', '19:29'],['潮州', '19:42']
-  ]
-},
-'119': {
-  '車種': '自強號',
-  '車站時間': [
-      ['七堵', '15:00'],['汐止', '15:10'],['松山', '15:20'],['臺北', '15:30'],
-      ['萬華', '15:36'],['板橋', '15:42'],
-      ['桃園', '16:07'],['中壢', '16:18'],['湖口', '16:30'],['竹北', '16:45'],['新竹', '16:51'],
-      ['竹南', '17:06'],['苗栗', '17:18'],['后里', '17:36'],['豐原', '17:45'],
-      ['臺中', '17:58'],['彰化', '18:14'],
-      ['員林', '18:25'],['田中', '18:34'],['斗六', '18:56'],['斗南', '19:04'],        
-      ['嘉義', '19:21'],['新營', '19:37'],['善化', '19:57'],['臺南', '20:10'],
-      ['新左營', '20:37'],['高雄', '20:48'],['鳳山', '21:00'],['屏東', '21:10'],['潮州', '21:25']
-  ]
-},
-'121': {
-  '車種': '自強號',
-  '車站時間': [
-    ['七堵', '16:00'],['汐止', '16:10'],['松山', '16:20'],['臺北', '16:30'],
-    ['萬華', '16:36'],['板橋', '16:42'],
-    ['桃園', '17:02'],['中壢', '17:12'],['新竹', '17:43'],
-    ['竹南', '17:56'],['苗栗', '18:08'],['豐原', '18:35'],
-    ['臺中', '18:47'],['彰化', '19:04'],
-    ['員林', '19:15'],['斗六', '19:46'],        
-    ['嘉義', '20:11'],['新營', '20:27'],['臺南', '20:57'],
-    ['新左營', '21:24'],['高雄', '21:36'],['鳳山', '21:54'],['屏東', '22:09'],['潮州', '22:24']
-  ]
-},
-'123': {
-  '車種': '自強號',
-  '車站時間': [
-    ['基隆', '16:45'],['八堵', '16:53'],['七堵', '17:00'],['汐止', '17:10'],['松山', '17:20'],['臺北', '17:30'],
-    ['萬華', '17:36'],['板橋', '17:42'],
-    ['桃園', '18:02'],['中壢', '18:12'],['新竹', '18:43'],
-    ['竹南', '18:56'],['苗栗', '19:08'],['豐原', '19:35'],
-    ['臺中', '19:47'],['彰化', '20:04'],
-    ['員林', '20:15'],['斗六', '20:46'],        
-    ['嘉義', '21:11'],['新營', '21:27'],['臺南', '21:57'],
-    ['新左營', '22:24'],['高雄', '22:36'],['鳳山', '22:54'],['屏東', '23:09'],['潮州', '23:24']
-  ]
-},
-'125': {
-  '車種': '自強號',
-  '車站時間': [
-    ['瑞芳', '17:45'],['七堵', '18:00'],['汐止', '18:10'],['松山', '18:20'],['臺北', '18:30'],
-    ['萬華', '18:36'],['板橋', '18:42'],
-    ['桃園', '19:02'],['中壢', '19:12'],['新竹', '19:43'],
-    ['竹南', '19:56'],['苗栗', '20:08'],['豐原', '20:35'],
-    ['臺中', '20:47'],['彰化', '21:04'],
-    ['員林', '21:15'],['斗六', '21:46'],        
-    ['嘉義', '22:11'],['新營', '22:27'],['臺南', '22:57'],
-    ['新左營', '23:24'],['高雄', '23:36'],['鳳山', '23:54'],['屏東', '00:09'],['潮州', '00:24']
-  ]
-},
-'127': {
-  '車種': '自強號',
-  '車站時間': [
-    ['瑞芳', '19:00'],['七堵', '19:15'],['松山', '19:35'],['臺北', '19:45'],
-    ['萬華', '19:51'],['板橋', '19:57'],
-    ['桃園', '20:17'],['中壢', '20:27'],['新竹', '20:58'],
-    ['竹南', '21:11'],['苗栗', '21:23'],['豐原', '21:50'],
-    ['臺中', '22:02'],['彰化', '22:19'],
-    ['員林', '22:30'],['斗六', '23:01'],       
-    ['嘉義', '23:26'],['新營', '23:42'],['臺南', '23:12'],
-    ['新左營', '23:39'],['高雄', '23:51'],['鳳山', '00:09'],['屏東', '00:24']
-  ]
-},
-'129': {
-  '車種': '自強號',
-  '車站時間': [
-    ['七堵', '20:30'],['汐止', '20:40']['松山', '20:50'],['臺北', '21:00'],
-    ['萬華', '21:06'],['板橋', '21:12'],
-    ['桃園', '21:32'],['中壢', '21:42'],['新竹', '22:13'],
-    ['竹南', '22:26'],['苗栗', '22:38'],['豐原', '23:05'],
-    ['臺中', '23:17'],['彰化', '23:34'],
-    ['員林', '23:45'],['斗六', '00:16'],['斗南', '00:25'],        
-    ['嘉義', '00:41']
-  ]
-},
-'131': {
-  '車種': '自強號',
-  '車站時間': [
-      ['七堵', '21:00'],['汐止', '21:10'],['松山', '21:20'],['臺北', '21:30'],
-      ['萬華', '21:36'],['板橋', '21:42'],['樹林', '21:52'],
-      ['桃園', '22:07'],['中壢', '22:18'],['湖口', '22:30'],['竹北', '22:45'],['新竹', '22:51'],
-      ['竹南', '23:06'],['苗栗', '23:18'],['后里', '23:36'],['豐原', '23:45'],
-      ['臺中', '23:58'],['彰化', '00:14'],
-  ]
-},
-
-        // Add more train schedules as needed
-    };
-
-    var stations = [
-    '花蓮','七堵', '汐止', '南港', '松山', '臺北', '萬華', '板橋', '樹林', '桃園',
-        '中壢', '新竹', '竹南', '苗栗', '豐原', '台中', '彰化', '員林', '斗六', '斗南',
-        '嘉義', '新營', '台南', '新左營', '高雄', '鳳山', '九曲堂', '屏東', '潮州', '枋寮'
-    ];
-
-    // 動態生成車站下拉選單
-    function generateStationOptions() {
-        var startStationSelect = document.getElementById('startStation');
-        var endStationSelect = document.getElementById('endStation');
-
-        for (var i = 0; i < stations.length; i++) {
-            var option = document.createElement('option');
-            option.value = stations[i];
-            option.text = stations[i];
-            startStationSelect.add(option);
-
-            var optionClone = option.cloneNode(true);
-            endStationSelect.add(optionClone);
+            addPastPointToList(lat, lng);
+            redrawPaths();
         }
-    }
 
-    // 初始化生成車站下拉選單
-    generateStationOptions();
+        function addPastPointToList(lat, lng) {
+            var pastPointsDiv = document.getElementById('past-points');
+            var pointItem = document.createElement('div');
+            pointItem.className = 'point-item';
+            pointItem.innerHTML = `經度: ${lng}, 緯度: ${lat} <button onclick="removePastPoint(${pastPath.length - 1}, this)">刪除</button>`;
+            pastPointsDiv.appendChild(pointItem);
+        }
 
-    function filterTrainScheduleByStation() {
-    var startStation = document.getElementById('startStation').value;
-    var endStation = document.getElementById('endStation').value;
+        function removePastPoint(index, btn) {
+            pastPath.splice(index, 1);
+            var pointItem = btn.parentNode;
+            pointItem.parentNode.removeChild(pointItem);
+            redrawPaths();
+        }
 
-    var scheduleTable = document.getElementById('scheduleTableByStation').getElementsByTagName('tbody')[0];
-    scheduleTable.innerHTML = ''; // Clear previous content
+        // Set or update current point
+        function setOrUpdateCurrentPoint() {
+            var lat = parseFloat(document.getElementById('current-latitude').value);
+            var lng = parseFloat(document.getElementById('current-longitude').value);
+            var intensity = document.getElementById('current-intensity').value;
+            var radius7 = parseFloat(document.getElementById('current-radius-7').value) || 0;
+            var radius10 = parseFloat(document.getElementById('current-radius-10').value) || 0;
 
-    var matchingTrains = [];
+            // Remove previous circle and marker
+            if (currentMarker) {
+                map.removeLayer(currentMarker);
+                currentMarker = null;
+            }
+            if (currentRadiusCircle7) {
+                map.removeLayer(currentRadiusCircle7);
+                currentRadiusCircle7 = null;
+            }
+            if (currentRadiusCircle10) {
+                map.removeLayer(currentRadiusCircle10);
+                currentRadiusCircle10 = null;
+            }
 
-    for (var trainNumberKey in trainSchedule) {
-        var stationTimes = trainSchedule[trainNumberKey]['車站時間'];
-        var startIndex = stationTimes.findIndex(station => station[0] === startStation);
-        var endIndex = stationTimes.findIndex(station => station[0] === endStation);
+            // Add radius 7 circle
+            if (radius7 > 0) {
+                currentRadiusCircle7 = L.circle([lat, lng], {
+                    color: 'yellow',
+                    fillColor: 'none',
+                    fillOpacity: 0.5,
+                    radius: radius7 * 1000,
+                    dashArray: '5, 5',
+                }).addTo(map);
+            }
 
-        if (startIndex !== -1 && endIndex !== -1 && startIndex < endIndex) {
-            matchingTrains.push({
-                trainNumber: trainNumberKey,
-                trainType: getTrainTypeWithColor(trainSchedule[trainNumberKey]['車種']),
-                startStation: stationTimes[startIndex][0],
-                endStation: stationTimes[endIndex][0],
-                startTime: stationTimes[startIndex][1],
-                endTime: stationTimes[endIndex][1]
+            // Add radius 10 circle
+            if (radius10 > 0) {
+                currentRadiusCircle10 = L.circle([lat, lng], {
+                    color: 'red',
+                    fillColor: 'none',
+                    fillOpacity: 0.5,
+                    radius: radius10 * 1000,
+                    dashArray: '5, 5',
+                }).addTo(map);
+            }
+
+            // Add current marker
+            currentMarker = addMarker(lat, lng, intensity);
+
+            // Redraw the map
+            redrawPaths();
+        }
+
+        // Add future point
+        function addFuturePoint(index) {
+            var lat = parseFloat(document.getElementById(`future-latitude-${index}`).value);
+            var lng = parseFloat(document.getElementById(`future-longitude-${index}`).value);
+            var intensity = document.getElementById(`future-intensity-${index}`).value || 'TD';
+            var radius7 = parseFloat(document.getElementById(`future-radius-7-${index}`).value) || 0;
+            var radius10 = parseFloat(document.getElementById(`future-radius-10-${index}`).value) || 0;
+            var errorRadius = parseFloat(document.getElementById(`future-error-radius-${index}`).value) || 0;
+            var showIcon = document.getElementById(`future-show-icon-${index}`).checked;
+
+            var point = { coords: [lat, lng], radius7: radius7, radius10: radius10, errorRadius: errorRadius, showIcon: showIcon, intensity: intensity };
+            futurePath[index] = point;
+
+            if (showIcon) {
+                var marker = addMarker(lat, lng, intensity);
+                if (futureMarkers[index] && futureMarkers[index].marker) {
+                    map.removeLayer(futureMarkers[index].marker);
+                }
+                futureMarkers[index] = { marker: marker, circle7: null, circle10: null };
+            } else {
+                delete futureMarkers[index];
+            }
+
+            addCircle(lat, lng, radius7, 'yellow', 'dashed', radius7 > 0);
+            addCircle(lat, lng, radius10, 'red', 'dashed', radius10 > 0);
+            addCircle(lat, lng, errorRadius, 'blue', 'dashed', errorRadius > 0); // Display error radius circle
+
+            redrawPaths();
+        }
+
+        // Update future point
+        function updateFuturePoint(index) {
+            addFuturePoint(index);
+        }
+
+        // Add marker
+        function addMarker(lat, lng, intensity) {
+            var icon = L.icon({
+                iconUrl: getIconUrl(intensity),
+                iconSize: [32, 32], // Adjust icon size
             });
+            return L.marker([lat, lng], { icon: icon }).addTo(map);
         }
-    }
 
-    // Sort the matchingTrains array by start time
-    matchingTrains.sort(function (a, b) {
-        return a.startTime.localeCompare(b.startTime);
-    });
+        // Add circle
+        function addCircle(lat, lng, radius, color, dashArray, visible) {
+            if (radius > 0 && visible) {
+                var circle = L.circle([lat, lng], {
+                    color: color,
+                    fillColor: 'none',
+                    fillOpacity: 0.5,
+                    radius: radius * 1000,
+                    dashArray: dashArray,
+                }).addTo(map);
+                return circle;
+            }
+            return null;
+        }
 
-    // Populate the schedule table with the sorted data
-    for (var i = 0; i < matchingTrains.length; i++) {
-        var row = scheduleTable.insertRow();
-        var cell1 = row.insertCell(0);
-        var cell2 = row.insertCell(1);
-        var cell3 = row.insertCell(2);
-        var cell4 = row.insertCell(3);
-        var cell5 = row.insertCell(4);
-        var cell6 = row.insertCell(5);
-
-        cell1.innerHTML = matchingTrains[i].trainNumber;
-        cell2.innerHTML = matchingTrains[i].trainType;
-        cell3.innerHTML = matchingTrains[i].startStation;
-        cell4.innerHTML = matchingTrains[i].endStation;
-        cell5.innerHTML = matchingTrains[i].startTime;
-        cell6.innerHTML = matchingTrains[i].endTime;
-
-        row.setAttribute('onclick', 'showTrainDetails(\'' + matchingTrains[i].trainNumber + '\')');
-    }
-}
-
-
-
-    function filterTrainScheduleByNumber() {
-        var trainNumber = document.getElementById('trainNumber').value;
-
-        var scheduleTable = document.getElementById('scheduleTableByNumber').getElementsByTagName('tbody')[0];
-        scheduleTable.innerHTML = ''; // Clear previous content
-
-        if (trainSchedule[trainNumber]) {
-            var stationTimes = trainSchedule[trainNumber]['車站時間'];
-
-            var row = scheduleTable.insertRow();
-            var cell1 = row.insertCell(0);
-            var cell2 = row.insertCell(1);
-
-            cell1.innerHTML = trainNumber;
-            cell2.innerHTML = trainSchedule[trainNumber]['車種'];
-
-            row.setAttribute('onclick', 'showTrainDetails(\'' + trainNumber + '\')');
-
-            // Show detailed information in the modal
-            var modalTitle = document.getElementById('modalTitle');
-            var modalTable = document.getElementById('modalTable');
-            var modalBody = modalTable.getElementsByTagName('tbody')[0];
-            modalBody.innerHTML = ''; // Clear previous content
-
-            modalTitle.innerHTML = '列車詳細資訊 - 車次 ' + trainNumber;
-
-            for (var i = 0; i < stationTimes.length; i++) {
-                var rowModal = modalBody.insertRow();
-                var cell1Modal = rowModal.insertCell(0);
-                var cell2Modal = rowModal.insertCell(1);
-
-                cell1Modal.innerHTML = stationTimes[i][0];
-                cell2Modal.innerHTML = stationTimes[i][1];
+        // Get icon URL
+        function getIconUrl(intensity) {
+            switch (intensity) {
+                case 'TD':
+                    return 'td.png';
+                case 'TS':
+                    return 'ts.png';
+                case 'ST':
+                    return 'st.png';
+                case 'TY':
+                    return 'ty.png';
+                default:
+                    return 'images/default.png';
             }
         }
-    }
 
-    function showTrainDetails(trainNumber) {
-        var modalTitle = document.getElementById('modalTitle');
-        var modalTable = document.getElementById('modalTable');
-        var modalBody = modalTable.getElementsByTagName('tbody')[0];
-        modalBody.innerHTML = ''; // Clear previous content
+        // Generate future inputs dynamically
+        function generateFutureInputs() {
+            var index = futurePath.length;
+            var futurePointsDiv = document.getElementById('future-points');
 
-        modalTitle.innerHTML = '列車詳細資訊 - 車次 ' + trainNumber;
+            var pointDiv = document.createElement('div');
+            pointDiv.className = 'point-item';
 
-        var stationTimes = trainSchedule[trainNumber]['車站時間'];
-        for (var i = 0; i < stationTimes.length; i++) {
-            var row = modalBody.insertRow();
-            var cell1 = row.insertCell(0);
-            var cell2 = row.insertCell(1);
-
-            cell1.innerHTML = stationTimes[i][0];
-            cell2.innerHTML = stationTimes[i][1];
+            pointDiv.innerHTML = `
+                <h4>預測位置 ${index + 1}</h4>
+                <label>經度：</label>
+                <input type="number" step="0.000001" id="future-longitude-${index}">
+                <label>緯度：</label>
+                <input type="number" step="0.000001" id="future-latitude-${index}">
+                <label>強度：</label>
+                <select id="future-intensity-${index}">
+                    <option value="TD">熱帶低氣壓</option>
+                    <option value="TS">熱帶風暴</option>
+                    <option value="ST">強烈熱帶風暴</option>
+                    <option value="TY">颱風</option>
+                </select>
+                <label>半徑(7級風)：</label>
+                <input type="number" step="0.01" id="future-radius-7-${index}">
+                <label>半徑(10級風)：</label>
+                <input type="number" step="0.01" id="future-radius-10-${index}">
+                <label>誤差半徑：</label>
+                <input type="number" step="0.01" id="future-error-radius-${index}">
+                <label>顯示圖示：</label>
+                <input type="checkbox" id="future-show-icon-${index}" checked>
+                <button type="button" onclick="addFuturePoint(${index})">添加預測位置</button>
+            `;
+            futurePointsDiv.appendChild(pointDiv);
         }
 
-        document.getElementById('trainDetailsModal').style.display = 'block';
-    }
+        // Redraw all paths and markers
+        function redrawPaths() {
+            map.eachLayer(function (layer) {
+                if (layer instanceof L.Polyline || layer instanceof L.Circle || layer instanceof L.Marker) {
+                    map.removeLayer(layer);
+                }
+            });
 
-    function closeTrainDetailsModal() {
-        document.getElementById('trainDetailsModal').style.display = 'none';
-    }
+            L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+                maxZoom: 18,
+                attribution: 'Map tiles by CartoDB, CC BY 3.0',
+            }).addTo(map);
 
-    function getTrainTypeWithColor(trainType) {
-  var color = '';
+            // Draw past path
+            if (pastPath.length > 1) {
+                L.polyline(pastPath, {
+                    color: 'black',
+                    dashArray: '5, 5',
+                    lineCap: 'round',
+                }).addTo(map);
+            }
 
-  switch (trainType) {
-      case '新自強':
-          color = 'purple';
-          break;
-      case '普悠瑪':
-          color = '#FF1493'; // Deep Pink
-          break;
-      case '自強號':
-          color = 'red';
-          break;
-      case '莒光號':
-          color = 'orange';
-          break;
-      case '區間快':
-          color = 'green';
-          break;
-      case '復興號':
-          color = 'lightblue';
-          break;
-      case '區間車':
-          color = 'black';
-          break;
-      case '加班車':
-          color = 'brown';
-          break;
-      default:
-          color = 'black';
-  }
+            // Draw current location and future paths
+            var combinedPath = pastPath.concat(currentMarker ? [currentMarker.getLatLng()] : []).concat(futurePath.map(p => p.coords));
 
-  return '<span style="color: ' + color + ';">' + trainType + '</span>';
-}
-</script>
+            for (var i = 1; i < combinedPath.length; i++) {
+                var isDashed = (i > pastPath.length);
+                L.polyline([combinedPath[i - 1], combinedPath[i]], {
+                    color: 'black',
+                    dashArray: isDashed ? '5, 5' : null,
+                    lineCap: 'round',
+                }).addTo(map);
+            }
 
+            // Add current marker
+            if (currentMarker) {
+                map.addLayer(currentMarker);
+            }
+
+            // Add future markers and circles
+            futurePath.forEach(function (point, index) {
+                var isDashed = (index >= 1); // Dashed line from future point 2 onwards
+
+                addCircle(point.coords[0], point.coords[1], point.radius7, 'yellow', isDashed ? '5, 5' : null, point.radius7 > 0);
+                addCircle(point.coords[0], point.coords[1], point.radius10, 'red', isDashed ? '5, 5' : null, point.radius10 > 0);
+                addCircle(point.coords[0], point.coords[1], point.errorRadius, 'blue', 'dashed', point.errorRadius > 0); // Display error radius circle
+
+                if (point.showIcon) {
+                    var marker = addMarker(point.coords[0], point.coords[1], point.intensity);
+                    futureMarkers[index] = { marker: marker };
+                }
+            });
+        }
+    </script>
 </body>
 </html>
