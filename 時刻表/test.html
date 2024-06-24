@@ -7,7 +7,7 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
     <style>
         #map {
-            height: 800px;
+            height: 1000px;
             width: 100%;
             position: relative;
         }
@@ -24,6 +24,11 @@
             max-width: 300px; /* Set maximum width for the form container */
             max-height: 400px; /* Set maximum height for the form container */
             overflow-y: auto; /* Enable vertical scroll for overflow */
+            transition: max-height 0.3s ease; /* Smooth transition for height change */
+        }
+        .form-container.collapsed {
+            max-height: 0;
+            overflow: hidden;
         }
         .form-container div {
             margin-bottom: 10px;
@@ -58,21 +63,21 @@
         <h2>輸入路徑數據</h2>
         <form id="typhoon-form">
             <div>
-                <h3>過去位置</h3>
-                <label>經度：</label>
-                <input type="number" step="0.000001" id="past-longitude"><br>
-                <label>緯度：</label>
-                <input type="number" step="0.000001" id="past-latitude"><br>
-                <button type="button" onclick="addPastPoint()">添加過去位置</button>
+                <h3>一、過去位置</h3>
+                <label>1.經度：</label>
+                <input type="number" step="0.01" id="past-longitude"><br>
+                <label>2.緯度：</label>
+                <input type="number" step="0.01" id="past-latitude"><br>
+                <button type="button" onclick="addPastPoint()">新增過去位置</button>
                 <div id="past-points" class="points-list"></div>
             </div>
             
             <div>
-                <h3>預測位置</h3>
+                <h3>二、預測位置</h3>
                 <div id="future-points">
                     <!-- Future points input fields will be generated dynamically -->
                 </div>
-                <button type="button" onclick="generateFutureInputs()">生成預測位置輸入框</button><br>
+                <button type="button" onclick="generateFutureInputs()">新增預測位置</button><br>
                 <button type="button" onclick="toggleDrawPolygonMode()">繪製誤差範圍</button>
                 <button type="button" onclick="deleteLastDrawnPolygonVertex()">刪除最後一個點</button>
                 <button type="button" onclick="finishDrawnPolygon()">完成繪製</button>
@@ -81,6 +86,7 @@
             <button type="button" class="export-button" onclick="exportMapAsImage()">匯出地圖圖片</button>
         </form>
     </div>
+    <button id="toggleFormButton" onclick="toggleForm()">隱藏</button>
 
     <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/0.4.1/html2canvas.min.js"></script>
@@ -240,26 +246,26 @@
 
             pointDiv.innerHTML = `
                 <h4>預測位置 ${index + 1}</h4>
-                <label>經度：</label>
+                <label>1.經度：</label>
                 <input type="number" step="0.01" id="future-longitude-${index}"><br>
-                <label>緯度：</label>
+                <label>2.緯度：</label>
                 <input type="number" step="0.01" id="future-latitude-${index}"><br>
-                <label>強度：</label>
+                <label>3.強度：</label>
                 <select id="future-intensity-${index}">
                     <option value="TD">熱帶低氣壓</option>
-                    <option value="TS">熱帶風暴</option>
-                    <option value="ST">強烈熱帶風暴</option>
-                    <option value="TY">颱風</option>
+                    <option value="TS">輕度颱風</option>
+                    <option value="ST">中度颱風</option>
+                    <option value="TY">強烈颱風</option>
                 </select><br>
-                <label>半徑(7級風)：</label>
+                <label>4.七級風半徑：</label>
                 <input type="number" step="0.01" id="future-radius-7-${index}"><br>
-                <label>半徑(10級風)：</label>
+                <label>5.十級風半徑：</label>
                 <input type="number" step="0.01" id="future-radius-10-${index}"><br>
-                <label>誤差半徑：</label><br>
+                <label>6.誤差半徑：</label><br>
                 <input type="number" step="0.01" id="future-error-radius-${index}"><br>
-                <label>顯示圖示：</label>
+                <label>7.顯示圖示：</label>
                 <input type="checkbox" id="future-show-icon-${index}" checked>
-                <button type="button" onclick="addFuturePoint(${index})">添加預測位置</button>
+                <button type="button" onclick="addFuturePoint(${index})">更新</button>
             `;
             futurePointsDiv.appendChild(pointDiv);
         }
@@ -422,6 +428,18 @@
                 link.href = imgData;
                 link.click();
             });
+        }
+
+        // Toggle form visibility
+        function toggleForm() {
+            var formContainer = document.querySelector('.form-container');
+            var toggleButton = document.getElementById('toggleFormButton');
+            formContainer.classList.toggle('collapsed');
+            if (formContainer.classList.contains('collapsed')) {
+                toggleButton.textContent = '展開';
+            } else {
+                toggleButton.textContent = '隱藏';
+            }
         }
     </script>
 </body>
