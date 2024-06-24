@@ -5,17 +5,28 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>颱風預測路徑繪圖系統</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
-    <link rel="stylesheet" href="https://unpkg.com/leaflet-draw/dist/leaflet.draw.css" />
     <style>
         #map {
             height: 800px;
             width: 100%;
+            position: relative;
         }
         .form-container {
             margin: 20px;
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            z-index: 1000; /* Ensure form is on top */
+            background-color: white;
+            padding: 10px;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
         }
         .form-container div {
             margin-bottom: 10px;
+        }
+        .form-container label {
+            margin-right: 10px;
         }
         .points-list {
             margin-top: 10px;
@@ -24,6 +35,9 @@
         }
         .point-item {
             margin-bottom: 5px;
+        }
+        .crosshair-cursor {
+            cursor: crosshair;
         }
     </style>
 </head>
@@ -48,20 +62,22 @@
                     <!-- Future points input fields will be generated dynamically -->
                 </div>
                 <button type="button" onclick="generateFutureInputs()">生成預測位置輸入框</button>
+                <button type="button" onclick="toggleDrawPolygonMode()">繪製誤差範圍</button>
+                <button type="button" onclick="deleteLastDrawnPolygonVertex()">刪除最後一個點</button>
+                <button type="button" onclick="finishDrawnPolygon()">完成繪製</button>
             </div>
         </form>
     </div>
 
-    <button onclick="toggleDrawPolygonMode()">進入繪製颱風範圍模式</button>
-
     <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
-    <script src="https://unpkg.com/leaflet-draw/dist/leaflet.draw.js"></script>
     <script>
+        // Initialize the map
         var map = L.map('map').setView([23.5, 121], 6);
 
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            maxZoom: 19,
-            attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        // Add OpenStreetMap tile layer
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+            maxZoom: 18,
+            attribution: 'Map tiles by CartoDB, CC BY 3.0',
         }).addTo(map);
 
         var pastPath = [];
@@ -70,58 +86,9 @@
         var currentRadiusCircle7 = null;
         var currentRadiusCircle10 = null;
         var futureMarkers = [];
-
-        var drawnPolygon = null;
-        var editablePolygon = null;
-        var drawPolygonMode = false;
-
-        function toggleDrawPolygonMode() {
-            drawPolygonMode = !drawPolygonMode;
-            if (drawPolygonMode) {
-                map.getContainer().style.cursor = 'crosshair';
-                initEditablePolygon();
-                alert('點擊地圖以繪製颱風範圍，完成後再點擊此按鈕退出繪製模式。');
-            } else {
-                map.getContainer().style.cursor = 'auto';
-                map.off('click', handleMapClick);
-                map.off('mousemove', handleMouseMove);
-                if (drawnPolygon) {
-                    map.addLayer(drawnPolygon);
-                    drawnPolygon = null;
-                }
-                if (editablePolygon) {
-                    map.removeLayer(editablePolygon);
-                    editablePolygon = null;
-                }
-            }
-        }
-
-        function initEditablePolygon() {
-            drawnPolygon = L.polygon([], {
-                color: 'blue',
-                fillColor: 'lightblue',
-                fillOpacity: 0.5,
-                smoothFactor: 1.0,
-            }).addTo(map);
-
-            editablePolygon = L.editable(drawnPolygon).addTo(map);
-            editablePolygon.enable();
-
-            map.on('click', handleMapClick);
-            map.on('mousemove', handleMouseMove);
-        }
-
-        function handleMapClick(e) {
-            if (drawnPolygon) {
-                drawnPolygon.addLatLng(e.latlng);
-            }
-        }
-
-        function handleMouseMove(e) {
-            if (editablePolygon) {
-                editablePolygon.editor.drawing.moveTooltip(e.latlng);
-            }
-        }
+        var drawnPolygon = null; // Store the drawn polygon
+        var drawnPolygonVertices = []; // Store vertices of the drawn polygon
+        var drawPolygonMode = false; // Track whether in draw mode
 
         // Add past point
         function addPastPoint() {
@@ -219,138 +186,29 @@
                 if (futureMarkers[index] && futureMarkers[index].marker) {
                     map.removeLayer(futureMarkers[index].marker);
                 }
-                futureMarkers[index] = { marker: marker, circle7: null, circle10: null };
-            } else {
-                delete futureMarkers[index];
-            }
-
-            addCircle(lat, lng, radius7, 'yellow', 'dashed', radius7 > 0);
-            addCircle(lat, lng, radius10, 'red', 'dashed', radius10 > 0);
-            addCircle(lat, lng, errorRadius, 'blue', 'dashed', errorRadius > 0); // Display error radius circle
-
-            redrawPaths();
-        }
-
-        // Update future point
-        function updateFuturePoint(index) {
-            var lat = parseFloat(document.getElementById(`future-latitude-${index}`).value);
-            var lng = parseFloat(document.getElementById(`future-longitude-${index}`).value);
-            var intensity = document.getElementById(`future-intensity-${index}`).value || 'TD';
-            var radius7 = parseFloat(document.getElementById(`future-radius-7-${index}`).value) || 0;
-            var radius10 = parseFloat(document.getElementById(`future-radius-10-${index}`).value) || 0;
-            var errorRadius = parseFloat(document.getElementById(`future-error-radius-${index}`).value) || 0;
-            var showIcon = document.getElementById(`future-show-icon-${index}`).checked;
-
-            var point = { coords: [lat, lng], radius7: radius7, radius10: radius10, errorRadius: errorRadius, showIcon: showIcon, intensity: intensity };
-            futurePath[index] = point;
-
-            if (showIcon) {
-                var marker = addMarker(lat, lng, intensity);
-                if (futureMarkers[index] && futureMarkers[index].marker) {
-                    map.removeLayer(futureMarkers[index].marker);
-                }
-                futureMarkers[index] = { marker: marker, circle7: null, circle10: null };
+                futureMarkers[index] = { marker: marker };
             } else {
                 if (futureMarkers[index] && futureMarkers[index].marker) {
                     map.removeLayer(futureMarkers[index].marker);
+                    delete futureMarkers[index];
                 }
-                delete futureMarkers[index];
             }
-
-            // Remove previous circles and add new ones
-            removeCircle(lat, lng, radius7);
-            removeCircle(lat, lng, radius10);
-            removeCircle(lat, lng, errorRadius);
-
-            addCircle(lat, lng, radius7, 'yellow', 'dashed', radius7 > 0);
-            addCircle(lat, lng, radius10, 'red', 'dashed', radius10 > 0);
-            addCircle(lat, lng, errorRadius, 'blue', 'dashed', errorRadius > 0); // Display error radius circle
 
             redrawPaths();
         }
 
-        // Remove future point
-        function removeFuturePoint(index) {
-            delete futurePath[index];
-
-            if (futureMarkers[index] && futureMarkers[index].marker) {
-                map.removeLayer(futureMarkers[index].marker);
-            }
-            delete futureMarkers[index];
-
-            redrawPaths();
-        }
-
-        // Generate inputs for future points
-        function generateFutureInputs() {
-            var futurePointsDiv = document.getElementById('future-points');
-            var index = futurePath.length;
-
-            var div = document.createElement('div');
-            div.id = `future-point-${index}`;
-            div.className = 'point-item';
-
-            div.innerHTML = `
-                <label>緯度：</label>
-                <input type="number" step="0.000001" id="future-latitude-${index}" required>
-                <label>經度：</label>
-                <input type="number" step="0.000001" id="future-longitude-${index}" required>
-                <label>強度：</label>
-                <select id="future-intensity-${index}">
-                    <option value="TD">熱帶低壓</option>
-                    <option value="TS">熱帶風暴</option>
-                    <option value="TY">颱風</option>
-                    <option value="STY">強颱</option>
-                    <option value="SUPER">超強颱</option>
-                </select>
-                <label>半徑7：</label>
-                <input type="number" step="0.1" id="future-radius-7-${index}">
-                <label>半徑10：</label>
-                <input type="number" step="0.1" id="future-radius-10-${index}">
-                <label>誤差半徑：</label>
-                <input type="number" step="0.1" id="future-error-radius-${index}">
-                <label>顯示圖示：</label>
-                <input type="checkbox" id="future-show-icon-${index}" checked>
-                <button type="button" onclick="addFuturePoint(${index})">添加</button>
-                <button type="button" onclick="updateFuturePoint(${index})">更新</button>
-                <button type="button" onclick="removeFuturePoint(${index})">刪除</button>
-            `;
-
-            futurePointsDiv.appendChild(div);
-        }
-
-        // Helper functions to add/remove markers and circles
+        // Add marker
         function addMarker(lat, lng, intensity) {
-            var markerColor = 'black';
-            switch (intensity) {
-                case 'TS':
-                    markerColor = 'blue';
-                    break;
-                case 'TY':
-                    markerColor = 'orange';
-                    break;
-                case 'STY':
-                    markerColor = 'red';
-                    break;
-                case 'SUPER':
-                    markerColor = 'purple';
-                    break;
-                default:
-                    markerColor = 'black';
-                    break;
-            }
-
-            var markerIcon = L.divIcon({
-                className: 'custom-div-icon',
-                html: `<div style="background-color:${markerColor};" class="marker-pin"></div><span class="marker-label">${intensity}</span>`
+            var icon = L.icon({
+                iconUrl: getIconUrl(intensity),
+                iconSize: [32, 32], // Adjust icon size
             });
-
-            var marker = L.marker([lat, lng], { icon: markerIcon }).addTo(map);
-            return marker;
+            return L.marker([lat, lng], { icon: icon }).addTo(map);
         }
 
-        function addCircle(lat, lng, radius, color, dashArray, show) {
-            if (show && radius > 0) {
+        // Add circle
+        function addCircle(lat, lng, radius, color, dashArray, visible) {
+            if (radius > 0 && visible) {
                 var circle = L.circle([lat, lng], {
                     color: color,
                     fillColor: 'none',
@@ -363,41 +221,187 @@
             return null;
         }
 
-        function removeCircle(lat, lng, radius) {
-            if (radius > 0) {
-                map.eachLayer(function (layer) {
-                    if (layer instanceof L.Circle) {
-                        var layerLatLng = layer.getLatLng();
-                        if (layerLatLng.lat === lat && layerLatLng.lng === lng && layer.getRadius() === radius * 1000) {
-                            map.removeLayer(layer);
-                        }
-                    }
-                });
+        // Get icon URL
+        function getIconUrl(intensity) {
+            switch (intensity) {
+                case 'TD':
+                    return 'td.png';
+                case 'TS':
+                    return 'ts.png';
+                case 'ST':
+                    return 'st.png';
+                case 'TY':
+                    return 'ty.png';
+                default:
+                    return 'images/default.png';
             }
         }
 
-        // Redraw past and future paths
+        // Generate future inputs dynamically
+        function generateFutureInputs() {
+            var index = futurePath.length;
+            var futurePointsDiv = document.getElementById('future-points');
+
+            var pointDiv = document.createElement('div');
+            pointDiv.className = 'point-item';
+
+            pointDiv.innerHTML = `
+                <h4>預測位置 ${index + 1}</h4>
+                <label>經度：</label>
+                <input type="number" step="0.000001" id="future-longitude-${index}">
+                <label>緯度：</label>
+                <input type="number" step="0.000001" id="future-latitude-${index}">
+                <label>強度：</label>
+                <select id="future-intensity-${index}">
+                    <option value="TD">熱帶低氣壓</option>
+                    <option value="TS">熱帶風暴</option>
+                    <option value="ST">強烈熱帶風暴</option>
+                    <option value="TY">颱風</option>
+                </select>
+                <label>半徑(7級風)：</label>
+                <input type="number" step="0.01" id="future-radius-7-${index}">
+                <label>半徑(10級風)：</label>
+                <input type="number" step="0.01" id="future-radius-10-${index}">
+                <label>誤差半徑：</label>
+                <input type="number" step="0.01" id="future-error-radius-${index}">
+                <label>顯示圖示：</label>
+                <input type="checkbox" id="future-show-icon-${index}" checked>
+                <button type="button" onclick="addFuturePoint(${index})">添加預測位置</button>
+            `;
+            futurePointsDiv.appendChild(pointDiv);
+        }
+
+        // Toggle draw polygon mode
+        function toggleDrawPolygonMode() {
+            drawPolygonMode = !drawPolygonMode;
+            if (drawPolygonMode) {
+                // Switch to draw mode
+                if (drawnPolygon) {
+                    map.removeLayer(drawnPolygon);
+                }
+                drawnPolygon = null;
+                map.getContainer().classList.add('crosshair-cursor'); // Add crosshair cursor style
+                alert('點擊地圖以繪製多邊形，完成後再點擊此按鈕退出繪製模式。');
+            } else {
+                // Exit draw mode
+                map.getContainer().classList.remove('crosshair-cursor'); // Remove crosshair cursor style
+                if (drawnPolygon) {
+                    finishDrawnPolygon();
+                }
+            }
+        }
+
+        // Handle map click to add or modify polygon vertices
+        map.on('click', function (e) {
+            if (drawPolygonMode) {
+                if (!drawnPolygon) {
+                    drawnPolygonVertices = []; // Clear previous vertices
+                    drawnPolygon = L.polygon([], {
+                        color: 'blue',
+                        fillColor: 'lightblue',
+                        fillOpacity: 0.5,
+                        lineCap: 'round', // Rounded edges
+                        renderer: L.canvas(), // Use canvas renderer for smooth edges
+                    }).addTo(map);
+                }
+
+                drawnPolygonVertices.push(e.latlng);
+                updateDrawnPolygonVertices();
+            }
+        });
+
+        // Update drawn polygon vertices
+        function updateDrawnPolygonVertices() {
+            if (drawnPolygon) {
+                drawnPolygon.setLatLngs(drawnPolygonVertices);
+            }
+        }
+
+        // Delete last drawn polygon vertex
+        function deleteLastDrawnPolygonVertex() {
+            if (drawnPolygonVertices.length > 0) {
+                drawnPolygonVertices.pop();
+                updateDrawnPolygonVertices();
+            }
+        }
+
+        // Finish drawing polygon
+        function finishDrawnPolygon() {
+            if (drawnPolygon && drawnPolygonVertices.length >= 3) { // Minimum 3 vertices required for a polygon
+                map.removeLayer(drawnPolygon);
+                drawnPolygon = L.polygon(drawnPolygonVertices, {
+                    color: 'blue',
+                    fillColor: 'lightblue',
+                    fillOpacity: 0.5,
+                    lineCap: 'round', // Rounded edges
+                    renderer: L.canvas(), // Use canvas renderer for smooth edges
+                }).addTo(map);
+
+                drawnPolygonVertices = []; // Clear vertices after finishing
+            } else {
+                alert('請至少添加三個點以繪製多邊形。');
+            }
+        }
+
+        // Redraw all paths and markers
         function redrawPaths() {
-            // Remove previous paths
             map.eachLayer(function (layer) {
-                if (layer instanceof L.Polyline) {
+                if (layer instanceof L.Polyline || layer instanceof L.Circle || layer instanceof L.Marker || layer instanceof L.Polygon) {
                     map.removeLayer(layer);
                 }
             });
 
+            L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+                maxZoom: 18,
+                attribution: 'Map tiles by CartoDB, CC BY 3.0',
+            }).addTo(map);
+
             // Draw past path
-            if (pastPath.length > 0) {
-                var pastPolyline = L.polyline(pastPath, { color: 'gray' }).addTo(map);
-                map.fitBounds(pastPolyline.getBounds());
+            if (pastPath.length > 1) {
+                L.polyline(pastPath, {
+                    color: 'black',
+                    dashArray: '5, 5',
+                    lineCap: 'round',
+                }).addTo(map);
             }
 
-            // Draw future path
-            var futureCoords = futurePath.map(point => point.coords);
-            if (futureCoords.length > 1) {
-                var futurePolyline = L.polyline(futureCoords, { color: 'blue' }).addTo(map);
-                map.fitBounds(futurePolyline.getBounds());
+            // Draw current location and future paths
+            var combinedPath = pastPath.concat(currentMarker ? [currentMarker.getLatLng()] : []).concat(futurePath.map(p => p.coords));
+
+            for (var i = 1; i < combinedPath.length; i++) {
+                var isDashed = (i > pastPath.length);
+                L.polyline([combinedPath[i - 1], combinedPath[i]], {
+                    color: 'black',
+                    dashArray: isDashed ? '5, 5' : null,
+                    lineCap: 'round',
+                }).addTo(map);
+            }
+
+            // Add current marker
+            if (currentMarker) {
+                map.addLayer(currentMarker);
+            }
+
+            // Add future markers and circles
+            futurePath.forEach(function (point, index) {
+                var isDashed = (index >= 1); // Dashed line from future point 2 onwards
+
+                addCircle(point.coords[0], point.coords[1], point.radius7, 'yellow', isDashed ? '5, 5' : null, point.radius7 > 0);
+                addCircle(point.coords[0], point.coords[1], point.radius10, 'red', isDashed ? '5, 5' : null, point.radius10 > 0);
+                addCircle(point.coords[0], point.coords[1], point.errorRadius, 'blue', 'dashed', point.errorRadius > 0); // Display error radius circle
+
+                if (point.showIcon) {
+                    var marker = addMarker(point.coords[0], point.coords[1], point.intensity);
+                    futureMarkers[index] = { marker: marker };
+                }
+            });
+
+            // Add drawn polygon if exists
+            if (drawnPolygon) {
+                map.addLayer(drawnPolygon);
             }
         }
     </script>
 </body>
 </html>
+
