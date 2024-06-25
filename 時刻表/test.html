@@ -67,9 +67,9 @@
             <div>
                 <h3>一、過去位置</h3>
                 <label>1.經度：</label>
-                <input type="number" step="0.01" id="past-longitude"><br>
+                <input type="number" step="0.01" id="past-longitude">
                 <label>2.緯度：</label>
-                <input type="number" step="0.01" id="past-latitude"><br>
+                <input type="number" step="0.01" id="past-latitude">
                 <button type="button" onclick="addPastPoint()">新增過去位置</button>
                 <div id="past-points" class="points-list"></div>
             </div>
@@ -257,22 +257,22 @@
             pointDiv.innerHTML = `
                 <h4>預測位置 ${index + 1}</h4>
                 <label>1.經度：</label>
-                <input type="number" step="0.01" id="future-longitude-${index}"><br>
+                <input type="number" step="0.01" id="future-longitude-${index}">
                 <label>2.緯度：</label>
-                <input type="number" step="0.01" id="future-latitude-${index}"><br>
+                <input type="number" step="0.01" id="future-latitude-${index}">
                 <label>3.強度：</label>
                 <select id="future-intensity-${index}">
                     <option value="TD">熱帶低氣壓</option>
                     <option value="TS">輕度颱風</option>
                     <option value="ST">中度颱風</option>
                     <option value="TY">強烈颱風</option>
-                </select><br>
+                </select>
                 <label>4.七級風半徑：</label>
-                <input type="number" step="0.01" id="future-radius-7-${index}"><br>
+                <input type="number" step="0.01" id="future-radius-7-${index}">
                 <label>5.十級風半徑：</label>
-                <input type="number" step="0.01" id="future-radius-10-${index}"><br>
-                <label>6.誤差半徑：</label><br>
-                <input type="number" step="0.01" id="future-error-radius-${index}"><br>
+                <input type="number" step="0.01" id="future-radius-10-${index}">
+                <label>6.誤差半徑：</label>
+                <input type="number" step="0.01" id="future-error-radius-${index}">
                 <label>7.顯示圖示：</label>
                 <input type="checkbox" id="future-show-icon-${index}" checked>
                 <button type="button" onclick="addFuturePoint(${index})">更新</button>
