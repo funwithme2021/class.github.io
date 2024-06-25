@@ -26,7 +26,7 @@
             overflow-y: auto; /* Enable vertical scroll for overflow */
             transition: max-height 0.3s ease; /* Smooth transition for height change */
         }
-        .form-container.collapsed {
+        .container.collapsed {
             max-height: 0;
             overflow: hidden;
         }
@@ -59,8 +59,8 @@
 </head>
 <body>
     <div id="map"></div>
-    <div class="form-container">
-        <button onclick="toggleForm()" id="toggleFormButton">隱藏</button>
+    <div class="container">
+        <button onclick="toggleForm()" id="toggleFormButton">隱藏/展開</button>
         <h2>輸入路徑數據</h2>
         <hr>
         <form id="typhoon-form">
@@ -96,7 +96,7 @@
             
         </form>
     </div>
-    <button id="toggleFormButton" onclick="toggleForm()">隱藏</button>
+    <button id="toggleFormButton" onclick="toggleForm()">隱藏/展開</button>
 
     <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/0.4.1/html2canvas.min.js"></script>
@@ -498,10 +498,10 @@ function redrawPaths() {
 
         // Toggle form visibility
         function toggleForm() {
-            var formContainer = document.querySelector('.form-container');
+            var formContainer = document.querySelector('.container');
             var toggleButton = document.getElementById('toggleFormButton');
             formContainer.classList.toggle('collapsed');
-            if (formContainer.classList.contains('collapsed')) {
+            if (Container.classList.contains('collapsed')) {
                 toggleButton.textContent = '展開';
             } else {
                 toggleButton.textContent = '隱藏';
