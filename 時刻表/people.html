@@ -329,6 +329,7 @@ tr:hover {
             <th>總列車數</th>
             <th>新自強</th>
             <th>普悠瑪</th>
+            <th>自強號(新)</th>
             <th>自強號</th>
             <th>莒光號</th>
             <th>復興號</th>
@@ -359,6 +360,7 @@ tr:hover {
         var stationMaxCapacities = {
             '新自強': 638,
             '普悠瑪': 406,
+            '自強號(新)': 866,
             '自強號': 866,
             '莒光號': 1000,
             '復興號': 1000,
@@ -397,6 +399,7 @@ tr:hover {
                         stationTrainCounts[station] = {
                             '新自強': 0,
                             '普悠瑪': 0,
+                            '自強號(新)': 0,
                             '自強號': 0,
                             '莒光號': 0,
                             '復興號': 0,
@@ -447,6 +450,7 @@ tr:hover {
             var cell10 = row.insertCell(9);
             var cell11 = row.insertCell(10);
             var cell12 = row.insertCell(11);
+            var cell13 = row.insertCell(12);
             
 
             cell1.innerHTML = i + 1;  // 排名
@@ -455,12 +459,13 @@ tr:hover {
             cell4.innerHTML = stationTotalTrains[station];
             cell5.innerHTML = stationTrainCounts[station]['新自強'];
             cell6.innerHTML = stationTrainCounts[station]['普悠瑪'];
-            cell7.innerHTML = stationTrainCounts[station]['自強號'];
-            cell8.innerHTML = stationTrainCounts[station]['莒光號'];
-            cell9.innerHTML = stationTrainCounts[station]['復興號'];
-            cell10.innerHTML = stationTrainCounts[station]['區間快'];
-            cell11.innerHTML = stationTrainCounts[station]['區間車'];
-            cell12.innerHTML = stationTrainCounts[station]['加班車'];
+            cell7.innerHTML = stationTrainCounts[station]['自強號(新)'];
+            cell8.innerHTML = stationTrainCounts[station]['自強號'];
+            cell9.innerHTML = stationTrainCounts[station]['莒光號'];
+            cell10.innerHTML = stationTrainCounts[station]['復興號'];
+            cell11.innerHTML = stationTrainCounts[station]['區間快'];
+            cell12.innerHTML = stationTrainCounts[station]['區間車'];
+            cell13.innerHTML = stationTrainCounts[station]['加班車'];
         }
 
 

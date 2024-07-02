@@ -3161,8 +3161,11 @@ var trainSchedule = {
       case '區間車':
         color = 'black';
         break;
-      case '加班車':
+      case '自強號(新)':
         color = 'brown';
+        break;
+      case '加班車':
+        color = 'teal';
         break;
       default:
         color = 'black';
