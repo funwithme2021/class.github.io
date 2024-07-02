@@ -499,33 +499,36 @@ tr:hover {
             var color = '';
     
             switch (trainType) {
-                case '新自強':
-                    color = '#8600FF';
-                    break;
-                case '普悠瑪':
-                    color = '#FF1493'; // 深粉色
-                    break;
-                case '自強號':
-                    color = 'red';
-                    break;
-                case '莒光號':
-                    color = 'orange';
-                    break;
-                case '區間快':
-                    color = 'green';
-                    break;
-                case '復興號':
-                    color = '#0080FF';
-                    break;
-                case '區間車':
-                    color = 'black';
-                    break;
-                case '加班車':
-                    color = 'brown';
-                    break;
-                default:
-                    color = 'black';
-            }
+      case '新自強':
+        color = '#8600FF';
+        break;
+      case '普悠瑪':
+        color = '#FF1493'; // Deep Pink
+        break;
+      case '自強號':
+        color = 'red';
+        break;
+      case '莒光號':
+        color = 'orange';
+        break;
+      case '區間快':
+        color = 'green';
+        break;
+      case '復興號':
+        color = '#0080FF';
+        break;
+      case '區間車':
+        color = 'black';
+        break;
+      case '自強號(新)':
+        color = 'brown';
+        break;
+      case '加班車':
+        color = 'teal';
+        break;
+      default:
+        color = 'black';
+    }
     
             return '<span style="color: ' + color + ';">' + trainType + '</span>';
         }
