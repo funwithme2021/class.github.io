@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>列車運用率</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+
+        #filter-container {
+            margin-bottom: 20px;
+        }
+
+        #filter-container label {
+            margin-right: 10px;
+        }
+
+        #filter-container select {
+            padding: 5px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+
+        table, th, td {
+            border: 1px solid #ddd;
+        }
+
+        th, td {
+            padding: 10px;
+            text-align: center;
+        }
+
+        th {
+            background-color: #007bff;
+            color: #fff;
+        }
+
+        tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+
+        .card {
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .card h2 {
+            margin: 0 0 10px;
+            font-size: 24px;
+            color: #007bff;
+        }
+
+        .card p {
+            margin: 0;
+            font-size: 18px;
+            color: #555;
+        }
+
+        /* Modal styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgb(0,0,0);
+            background-color: rgba(0,0,0,0.4);
+            padding-top: 60px;
+        }
+
+        .modal-content {
+            background-color: #fefefe;
+            margin: 5% auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 80%;
+            max-width: 800px;
+            overflow: auto;
+        }
+
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+        }
+
+        .close:hover,
+        .close:focus {
+            color: black;
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+        /* Table in modal */
+        .modal-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        .modal-table, .modal-th, .modal-td {
+            border: 1px solid #ddd;
+        }
+
+        .modal-th, .modal-td {
+            padding: 10px;
+            text-align: left;
+        }
+
+        .modal-th {
+            background-color: #007bff;
+            color: #fff;
+        }
+        .header {
+      background-color: #333;
+      color: #fff;
+      padding: 10px 0;
+      text-align: center;
+    }
+
+    .header h1 {
+      margin: 0;
+      font-size: 28px;
+    }
+
+    .header nav {
+      margin-top: 10px;
+    }
+
+    .header nav a {
+      color: #fff;
+      text-decoration: none;
+      font-size: 16px;
+      margin: 0 15px;
+    }
+
+    .header nav a:hover {
+      text-decoration: underline;
+    }
+    </style>
+</head>
+<body>
+    <div class="header"></div>
+    <h1>台鐵列車時刻表查詢</h1>
+    <nav>
+<a href="index-speed.html"><strong><font size="3">高鐵時刻表</font></strong></a>
+<a href="index-thsr.html"><strong><font size="3">高鐵時刻表(專用)</font></strong></a>
+<a href="index.html"><strong><font size="3">時刻表</font></strong></a>
+<a href="index-tra.easy.html"><strong><font size="3">簡式時刻表</font></strong></a>
+<a href="index-tra.type.html"><strong><font size="3">依車種時刻表</font></strong></a>
+<a href="train-info.html"><strong><font size="3">車站資訊板</font></strong></a>
+<a href="train-info4.html"><strong><font size="3">多站車站資訊板</font></strong></a>
+<a href="people.html"><strong><font size="3">運量查詢</font></strong></a>
+</nav></div>
+    <div class="container">
+        <h1>列車運用率</h1>
+        <div id="filter-container">
+            <label for="trainTypeFilter">顯示車種：</label>
+            <select id="trainTypeFilter" multiple>
+                <!-- Options will be added dynamically -->
+            </select>
+            <label for="sortOrder">排序：</label>
+            <select id="sortOrder">
+                <option value="asc">由小到大</option>
+                <option value="desc">由大到小</option>
+                <option value="trainNumber">依車次排序</option>
+            </select>
+        </div>
+        <table id="train-utilization">
+            <thead>
+                <tr>
+                    <th>車次</th>
+                    <th>車種 (行駛區間)</th>
+                    <th>運用率</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Rows will be added dynamically -->
+            </tbody>
+        </table>
+    </div>
+    <!-- Modal for train details -->
+    <div id="trainDetailsModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2>列車詳細資訊</h2>
+            <table class="modal-table">
+                <thead>
+                    <tr>
+                        <th class="modal-th">車站</th>
+                        <th class="modal-th">時間</th>
+                    </tr>
+                </thead>
+                <tbody id="modalTableBody">
+                    <!-- Rows will be added dynamically -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <script src="train-schedule.js"></script>
+    <script>
+        var stationMaxCapacities = {
+            '新自強': 638,
+            '普悠瑪': 406,
+            '自強號(新)': 906,
+            '自強號': 866,
+            '莒光號': 1000,
+            '復興號': 1000,
+            '區間快': 1700,
+            '區間車': 1700,
+            '加班車': 638
+        };
+
+        function calculateUtilizationRate(train) {
+    var maxCapacityPerTrain = stationMaxCapacities[train['車種']] || 100; // 獲取每種車種的最大容量
+    var totalLoad = 0;
+
+    for (var i = 0; i < 5; i++) { // 計算三次測量的平均值
+        var dailyLoad = 0;
+        for (var j = 0; j < train['車站時間'].length; j++) { // 遍歷每個停靠站
+            var load = Math.floor(Math.random() * maxCapacityPerTrain) + 1; // 隨機生成每個站的載客量
+            dailyLoad += load;
+        }
+        totalLoad += dailyLoad;
+    }
+
+    // 運用率計算：總載客量 / (最大容量 * 停靠站數 * 測量次數)
+    var utilizationRate = (totalLoad / (maxCapacityPerTrain * train['車站時間'].length * 4)) * 100;
+    return utilizationRate.toFixed(2) + '%';
+}
+
+        function getTrainTypeWithColor(trainType) {
+            var color = '';
+            switch (trainType) {
+                case '新自強':
+                    color = '#8600FF';
+                    break;
+                case '普悠瑪':
+                    color = '#FF1493'; // Deep Pink
+                    break;
+                case '自強號':
+                    color = 'red';
+                    break;
+                case '莒光號':
+                    color = 'orange';
+                    break;
+                case '區間快':
+                    color = 'green';
+                    break;
+                case '復興號':
+                    color = '#0080FF';
+                    break;
+                case '區間車':
+                    color = 'black';
+                    break;
+                case '自強號(新)':
+                    color = 'brown';
+                    break;
+                case '加班車':
+                    color = 'teal';
+                    break;
+                default:
+                    color = 'black';
+            }
+            return '<span style="color: ' + color + ';">' + trainType + '</span>';
+        }
+
+        function getTrainDetails(trainNumber) {
+            var train = trainSchedule[trainNumber];
+            var detailsHtml = '';
+            if (train) {
+                detailsHtml = train['車站時間'].map(function(station) {
+                    return '<tr><td>' + station[0] + '</td><td>' + station[1] + '</td></tr>';
+                }).join('');
+            }
+            return detailsHtml;
+        }
+
+        function getRoute(train) {
+            if (!train || train['車站時間'].length === 0) return '';
+            var firstStation = train['車站時間'][0][0];
+            var lastStation = train['車站時間'][train['車站時間'].length - 1][0];
+            return firstStation + ' ➝ ' + lastStation;
+        }
+
+        function updateTrainUtilization() {
+            var selectedTypes = Array.from(document.getElementById('trainTypeFilter').selectedOptions).map(option => option.value);
+            var sortOrder = document.getElementById('sortOrder').value;
+            var filteredTrainNumbers = Object.keys(trainSchedule).filter(trainNumber => {
+                var trainType = trainSchedule[trainNumber]['車種'];
+                return selectedTypes.length === 0 || selectedTypes.includes(trainType);
+            });
+
+            var utilizationData = filteredTrainNumbers.map(trainNumber => {
+                return {
+                    number: trainNumber,
+                    type: trainSchedule[trainNumber]['車種'],
+                    route: getRoute(trainSchedule[trainNumber]),
+                    utilizationRate: parseFloat(calculateUtilizationRate(trainSchedule[trainNumber])),
+                    details: getTrainDetails(trainNumber)
+                };
+            });
+
+            if (sortOrder === 'asc') {
+                utilizationData.sort((a, b) => a.utilizationRate - b.utilizationRate);
+            } else if (sortOrder === 'desc') {
+                utilizationData.sort((a, b) => b.utilizationRate - a.utilizationRate);
+            } else if (sortOrder === 'trainNumber') {
+                utilizationData.sort((a, b) => a.number.localeCompare(b.number));
+            }
+
+            var tableBody = document.getElementById('train-utilization').getElementsByTagName('tbody')[0];
+            tableBody.innerHTML = '';
+
+            utilizationData.forEach(function(train) {
+                var row = document.createElement('tr');
+                row.innerHTML = '<td>' + train.number + '</td><td>' + getTrainTypeWithColor(train.type) + ' (' + train.route + ')</td><td><a href="#" class="utilization-link" data-train-number="' + train.number + '">' + train.utilizationRate + '</a></td>';
+                tableBody.appendChild(row);
+            });
+        }
+
+        document.getElementById('trainTypeFilter').addEventListener('change', updateTrainUtilization);
+        document.getElementById('sortOrder').addEventListener('change', updateTrainUtilization);
+
+        document.getElementById('train-utilization').addEventListener('click', function(event) {
+            if (event.target.classList.contains('utilization-link')) {
+                event.preventDefault();
+                var trainNumber = event.target.getAttribute('data-train-number');
+                var modalTableBody = document.getElementById('modalTableBody');
+                modalTableBody.innerHTML = getTrainDetails(trainNumber);
+                var modal = document.getElementById('trainDetailsModal');
+                modal.style.display = 'block';
+            }
+        });
+
+        var span = document.getElementsByClassName('close')[0];
+        span.onclick = function() {
+            var modal = document.getElementById('trainDetailsModal');
+            modal.style.display = 'none';
+        };
+
+        window.onclick = function(event) {
+            if (event.target == document.getElementById('trainDetailsModal')) {
+                var modal = document.getElementById('trainDetailsModal');
+                modal.style.display = 'none';
+            }
+        };
+
+        // Initialize the train type filter
+        var trainTypes = new Set(Object.values(trainSchedule).map(train => train['車種']));
+        var trainTypeFilter = document.getElementById('trainTypeFilter');
+        trainTypes.forEach(type => {
+            var option = document.createElement('option');
+            option.value = type;
+            option.textContent = type;
+            trainTypeFilter.appendChild(option);
+        });
+
+        updateTrainUtilization();
+    </script>
+</body>
+</html>
+
