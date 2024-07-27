@@ -294,15 +294,15 @@
         };
 
         var popularityWeights = {
-            '普悠瑪': 1.6,
+            '普悠瑪': 1.42,
             '新自強': 2.4,
             '加班車': 2.4,
             '自強號(新)': 4.7,
-            '自強號': 3.2,
+            '自強號': 3.15,
             '莒光號': 3.0,
             '復興號': 3.35,
-            '區間快': 6.0,
-            '區間車': 6.55
+            '區間快': 5.85,
+            '區間車': 5.65
         };
 
         var timeWeights = {
@@ -328,11 +328,11 @@
             var hour = parseInt(time.split(':')[0], 10);
 
             // 短途通勤需求
-            if ((hour >= 6 && hour < 10) || (hour >= 15 && hour < 19)) {
+            if ((hour >= 6 && hour < 9.5) || (hour >= 12 && hour < 13)|| (hour >= 16 && hour < 20)|| (hour >= 21 && hour < 22)) {
                 return timeWeights['short_peak'];
             }
             // 長途旅遊需求
-            if ((hour >= 7.5 && hour < 10) || (hour >= 15 && hour < 19)) {
+            if ((hour >= 6.5 && hour < 10) || (hour >= 16 && hour < 20.5)|| (hour >= 0.5 && hour < 4.5)) {
                 return timeWeights['long_peak'];
             }
             // 非需求時間
