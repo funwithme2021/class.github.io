@@ -307,8 +307,8 @@
 
         var timeWeights = {
             'short_peak': 5.0,
-            'short_offpeak': 2.5,
-            'long_peak': 7.0,
+            'short_offpeak': 3.0,
+            'long_peak': 7.5,
             'long_offpeak': 3.0
         };
 
@@ -340,11 +340,11 @@
         }
 
         function calculateUtilizationRate(train) {
-    var maxCapacityPerTrain = stationMaxCapacities[train['車種']] || 100;
+    var maxCapacityPerTrain = stationMaxCapacities[train['車種']] || 110;
     var totalLoad = 0;
 
     if (['普悠瑪', '新自強', '自強號', '自強號(新)', '莒光號'].includes(train['車種'])) {
-        for (var i = 0; i < 5; i++) { // 平均5次測量
+        for (var i = 0; i < 3; i++) { // 平均5次測量
             var dailyLoad = 0;
             for (var j = 0; j < train['車站時間'].length; j++) {
                 var station = train['車站時間'][j][0];
@@ -352,13 +352,13 @@
                 var popularityWeight = popularityWeights[train['車種']] || 1;
 
                 // 引入隨機變化，範圍在 +/-10% 之間
-                var randomFactor = (Math.random() * 0.2) - 0.1; // -10% 到 +10%
+                var randomFactor = (Math.random() * 0.15) - 0.1; // -10% 到 +10%
                 dailyLoad += ((stationDensity[station] || 0) * timeWeight * popularityWeight) * (1 + randomFactor);
             }
             totalLoad += dailyLoad / train['車站時間'].length;
         }
     } else {
-        for (var i = 0; i < 5; i++) { // 平均5次測量
+        for (var i = 0; i < 3; i++) { // 平均5次測量
             var dailyLoad = 0;
             for (var j = 0; j < train['車站時間'].length; j++) {
                 var station = train['車站時間'][j][0];
@@ -366,7 +366,7 @@
                 var popularityWeight = popularityWeights[train['車種']] || 1;
 
                 // 引入隨機變化，範圍在 +/-10% 之間
-                var randomFactor = (Math.random() * 0.2) - 0.1; // -10% 到 +10%
+                var randomFactor = (Math.random() * 0.22) - 0.1; // -10% 到 +10%
                 dailyLoad += ((stationDensity[station] || 0) * timeWeight * popularityWeight) * (1 + randomFactor);
             }
             totalLoad += dailyLoad / train['車站時間'].length;
@@ -374,7 +374,7 @@
     }
 
     // 確保運用率在0-100%範圍內
-    var utilizationRate = Math.min(Math.max((totalLoad / 5 / maxCapacityPerTrain) * 50, 0), 100);
+    var utilizationRate = Math.min(Math.max((totalLoad / 3 / maxCapacityPerTrain) * 50, 0), 100);
     return utilizationRate.toFixed(2) + '%';
 }
 
