@@ -370,7 +370,7 @@ tr:hover {
                 <th style="white-space: nowrap;">轉乘站(時間)</th>
                 <th style="white-space: nowrap;">抵達站(時間)</th>
                 <th style="white-space: nowrap;">行駛時間</th>
-                <th>沿途停靠站</th>
+                
             </tr>
         </thead>
         <tbody>
@@ -604,7 +604,7 @@ tr:hover {
             var cell4 = row.insertCell(3); cell4.style.whiteSpace = 'nowrap';
             var cell5 = row.insertCell(4); cell5.style.whiteSpace = 'nowrap';
             var cell6 = row.insertCell(5);
-            var cell7 = row.insertCell(6);
+            
 
             cell1.innerHTML = matchingTrains[i].trainNumber;
             cell2.innerHTML = matchingTrains[i].trainType + ' (' + matchingTrains[i].firstStop + ' ➝ ' + matchingTrains[i].lastStop + ')';
@@ -621,7 +621,6 @@ tr:hover {
 
             cell5.innerHTML = matchingTrains[i].endStation + ' (' + matchingTrains[i].endTime + ')';
             cell6.innerHTML = matchingTrains[i].travelTime;
-            cell7.innerHTML = matchingTrains[i].transferStations.length === 0 ? generateTransferStations(getTransferStations(startIndex, endIndex, stationTimes)) : '';
         }
     }
 
