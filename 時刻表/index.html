@@ -462,211 +462,311 @@ tr:hover {
         </div>
     </div>
     <script src="train-schedule.js"></script>
-<script>
-    var selectedTrainTypesStartEnd = [];
-    var selectedTrainTypesStation = [];
-
-    function toggleTrainTypeFilter(context, trainType) {
-        var selectedTrainTypes;
-        if (context === 'start-end') {
-            selectedTrainTypes = selectedTrainTypesStartEnd;
-        } else if (context === 'station') {
-            selectedTrainTypes = selectedTrainTypesStation;
+    <script src="train-schedule.js"></script>
+    <script>
+        var selectedTrainTypesStartEnd = [];
+        var selectedTrainTypesStation = [];
+    
+        function toggleTrainTypeFilter(context, trainType) {
+            var selectedTrainTypes;
+            if (context === 'start-end') {
+                selectedTrainTypes = selectedTrainTypesStartEnd;
+            } else if (context === 'station') {
+                selectedTrainTypes = selectedTrainTypesStation;
+            }
+    
+            var index = selectedTrainTypes.indexOf(trainType);
+            if (index > -1) {
+                selectedTrainTypes.splice(index, 1); // 移除已選中的車種
+            } else {
+                selectedTrainTypes.push(trainType); // 添加新的選中車種
+            }
+    
+            if (context === 'start-end') {
+                filterTrainScheduleByStation();
+            } else if (context === 'station') {
+                filterTrainScheduleByStationName();
+            }
         }
-
-        var index = selectedTrainTypes.indexOf(trainType);
-        if (index > -1) {
-            selectedTrainTypes.splice(index, 1); // 移除已選中的車種
-        } else {
-            selectedTrainTypes.push(trainType); // 添加新的選中車種
+    
+        // 動態生成車站下拉選單
+        function generateStationOptions() {
+            var startStationSelect = document.getElementById('startStation');
+            var endStationSelect = document.getElementById('endStation');
+    
+            for (var i = 0; i < stations.length; i++) {
+                var option1 = document.createElement('option');
+                option1.value = stations[i];
+                option1.text = stations[i];
+                startStationSelect.add(option1);
+    
+                var option2 = option1.cloneNode(true);
+                endStationSelect.add(option2);
+            }
         }
+    
+        // 初始化生成車站下拉選單
+        generateStationOptions();
+    
+        // 計算兩個時間的時間差
+        function calculateTimeDifference(startTime, endTime) {
+            var start = new Date("1970-01-01 " + startTime);
+            var end = new Date("1970-01-01 " + endTime);
+            var diff = new Date(end - start);
+    
+            var hours = diff.getUTCHours();
+            var minutes = diff.getUTCMinutes();
+            return hours + "小時" + minutes + "分";
+        }
+        function filterTrainScheduleByStation() {
+    var startStation = document.getElementById('startStation').value;
+    var endStation = document.getElementById('endStation').value;
+    var acceptTransfers = document.getElementById('acceptTransfers').checked;
 
-        if (context === 'start-end') {
-            filterTrainScheduleByStation();
-        } else if (context === 'station') {
-            filterTrainScheduleByStationName();
+    var scheduleTable = document.getElementById('scheduleTableByStation').getElementsByTagName('tbody')[0];
+    scheduleTable.innerHTML = ''; // 清除先前的內容
+
+    var trainCombinations = {};
+
+    // 查找直達列車
+    for (var trainNumberKey in trainSchedule) {
+        var stationTimes = trainSchedule[trainNumberKey]['車站時間'];
+        var startIndex = stationTimes.findIndex(station => station[0] === startStation);
+        var endIndex = stationTimes.findIndex(station => station[0] === endStation);
+
+        if (startIndex !== -1 && endIndex !== -1 && startIndex < endIndex) {
+            var trainType = trainSchedule[trainNumberKey]['車種'];
+            if (selectedTrainTypesStartEnd.length === 0 || selectedTrainTypesStartEnd.includes(trainType)) {
+                var travelTime = calculateTimeDifference(stationTimes[startIndex][1], stationTimes[endIndex][1]);
+                addTrainCombination(trainCombinations, trainNumberKey, startStation, endStation, trainType, stationTimes[startIndex][1], stationTimes[endIndex][1], travelTime, []);
+            }
         }
     }
 
-    // 動態生成車站下拉選單
-    function generateStationOptions() {
-        var startStationSelect = document.getElementById('startStation');
-        var endStationSelect = document.getElementById('endStation');
-
-        for (var i = 0; i < stations.length; i++) {
-            var option1 = document.createElement('option');
-            option1.value = stations[i];
-            option1.text = stations[i];
-            startStationSelect.add(option1);
-
-            var option2 = option1.cloneNode(true);
-            endStationSelect.add(option2);
-        }
-    }
-
-    // 初始化生成車站下拉選單
-    generateStationOptions();
-
-    // 計算兩個時間的時間差
-    function calculateTimeDifference(startTime, endTime) {
-        var start = new Date("1970-01-01 " + startTime);
-        var end = new Date("1970-01-01 " + endTime);
-        var diff = new Date(end - start);
-
-        var hours = diff.getUTCHours();
-        var minutes = diff.getUTCMinutes();
-        return hours + "小時" + minutes + "分";
-    }
-
-    function filterTrainScheduleByStation() {
-        var startStation = document.getElementById('startStation').value;
-        var endStation = document.getElementById('endStation').value;
-        var acceptTransfers = document.getElementById('acceptTransfers').checked;
-
-        var scheduleTable = document.getElementById('scheduleTableByStation').getElementsByTagName('tbody')[0];
-        scheduleTable.innerHTML = ''; // 清除先前的內容
-
-        var matchingTrains = [];
-
-        // 查找直達列車
+    // 查找轉乘列車
+    if (acceptTransfers) {
         for (var trainNumberKey in trainSchedule) {
             var stationTimes = trainSchedule[trainNumberKey]['車站時間'];
             var startIndex = stationTimes.findIndex(station => station[0] === startStation);
-            var endIndex = stationTimes.findIndex(station => station[0] === endStation);
 
-            if (startIndex !== -1 && endIndex !== -1 && startIndex < endIndex) {
-                var trainType = trainSchedule[trainNumberKey]['車種'];
-                if (selectedTrainTypesStartEnd.length === 0 || selectedTrainTypesStartEnd.includes(trainType)) {
-                    matchingTrains.push({
-                        trainNumber: trainNumberKey,
-                        trainType: getTrainTypeWithColor(trainType),
-                        startStation: startStation,
-                        endStation: endStation,
-                        firstStop: stationTimes[0][0],
-                        lastStop: stationTimes.slice(-1)[0][0],
-                        startTime: stationTimes[startIndex][1],
-                        endTime: stationTimes[endIndex][1],
-                        travelTime: calculateTimeDifference(stationTimes[startIndex][1], stationTimes[endIndex][1]),
-                        transferStations: []
-                    });
-                }
-            }
-        }
+            if (startIndex !== -1) {
+                for (var i = startIndex + 1; i < stationTimes.length; i++) {
+                    var potentialTransferStation = stationTimes[i][0];
+                    var secondTrain = findBestConnectingTrain(potentialTransferStation, endStation, stationTimes[i][1]);
 
-        // 查找轉乘列車
-        if (acceptTransfers) {
-            for (var trainNumberKey in trainSchedule) {
-                var stationTimes = trainSchedule[trainNumberKey]['車站時間'];
-                var startIndex = stationTimes.findIndex(station => station[0] === startStation);
-
-                if (startIndex !== -1) {
-                    for (var i = startIndex + 1; i < stationTimes.length; i++) {
-                        var potentialTransferStation = stationTimes[i][0];
-                        var secondTrain = findConnectingTrain(potentialTransferStation, endStation, stationTimes[i][1]);
-
-                        if (secondTrain) {
-                            var totalTravelTime = calculateTimeDifference(stationTimes[startIndex][1], secondTrain.endTime);
-                            matchingTrains.push({
-                                trainNumber: trainNumberKey,
-                                trainType: getTrainTypeWithColor(trainSchedule[trainNumberKey]['車種']),
-                                startStation: startStation,
-                                endStation: endStation,
-                                firstStop: stationTimes[0][0],
-                                lastStop: trainSchedule[secondTrain.trainNumber]['車站時間'].slice(-1)[0][0],
-                                startTime: stationTimes[startIndex][1],
-                                endTime: secondTrain.endTime,
-                                travelTime: totalTravelTime,
-                                transferStations: [{
-                                    station: potentialTransferStation,
-                                    transferTrainNumber: secondTrain.trainNumber,
-                                    transferTrainType: getTrainTypeWithColor(secondTrain.trainType),
-                                    transferStartTime: secondTrain.startTime,
-                                    transferEndTime: secondTrain.endTime
-                                }]
-                            });
-                            break; // 只顯示最短時間的轉乘組合
+                    if (secondTrain) {
+                        var totalTravelTime = calculateTotalTravelTime(stationTimes[startIndex][1], stationTimes[i][1], secondTrain.startTime, secondTrain.endTime);
+                        if (isBetterCombination(trainCombinations[trainNumberKey], totalTravelTime)) {
+                            addTrainCombination(trainCombinations, trainNumberKey, startStation, endStation, trainSchedule[trainNumberKey]['車種'], stationTimes[startIndex][1], secondTrain.endTime, totalTravelTime, [{
+                                station: potentialTransferStation,
+                                transferTrainNumber: secondTrain.trainNumber,
+                                transferTrainType: secondTrain.trainType,
+                                transferStartTime: secondTrain.startTime,
+                                transferEndTime: secondTrain.endTime
+                            }]);
                         }
                     }
                 }
             }
         }
-
-        // 將結果按照出發時間排序
-        matchingTrains.sort(function (a, b) {
-            return a.startTime.localeCompare(b.startTime);
-        });
-
-        for (var i = 0; i < matchingTrains.length; i++) {
-            var row = scheduleTable.insertRow();
-            var cell1 = row.insertCell(0); cell1.style.whiteSpace = 'nowrap';
-            var cell2 = row.insertCell(1); cell2.style.whiteSpace = 'nowrap';
-            var cell3 = row.insertCell(2); cell3.style.whiteSpace = 'nowrap';
-            var cell4 = row.insertCell(3); cell4.style.whiteSpace = 'nowrap';
-            var cell5 = row.insertCell(4); cell5.style.whiteSpace = 'nowrap';
-            var cell6 = row.insertCell(5);
-            
-
-            cell1.innerHTML = matchingTrains[i].trainNumber;
-            cell2.innerHTML = matchingTrains[i].trainType + ' (' + matchingTrains[i].firstStop + ' ➝ ' + matchingTrains[i].lastStop + ')';
-            cell3.innerHTML = matchingTrains[i].startStation + ' (' + matchingTrains[i].startTime + ')';
-
-            if (matchingTrains[i].transferStations.length > 0) {
-                var transferInfo = matchingTrains[i].transferStations[0];
-                cell4.innerHTML = ' ➝ '+transferInfo.station + ' ( ' + transferInfo.transferTrainNumber + '' + transferInfo.transferTrainType + ' ) ' + ' (' + transferInfo.transferStartTime + ')'+' ➝ ';
-                row.setAttribute('onclick', `showTrainDetails('${matchingTrains[i].trainNumber}', '${transferInfo.transferTrainNumber}')`);
-            } else {
-                cell4.innerHTML = '-';
-                row.setAttribute('onclick', `showTrainDetails('${matchingTrains[i].trainNumber}')`);
-            }
-
-            cell5.innerHTML = matchingTrains[i].endStation + ' (' + matchingTrains[i].endTime + ')';
-            cell6.innerHTML = matchingTrains[i].travelTime;
-        }
     }
 
-    function findConnectingTrain(transferStation, endStation, transferStartTime) {
-        var bestTrain = null;
+    // 找出每個車次組合中行駛時間最短的
+    var bestCombinations = getBestCombinations(trainCombinations);
 
-        for (var trainNumberKey in trainSchedule) {
-            var stationTimes = trainSchedule[trainNumberKey]['車站時間'];
-            var startIndex = stationTimes.findIndex(station => station[0] === transferStation);
-            var endIndex = stationTimes.findIndex(station => station[0] === endStation);
+    // 按照出發站時間排序
+    bestCombinations.sort(function(a, b) {
+        return a.startTime.localeCompare(b.startTime);
+    });
 
-            if (startIndex !== -1 && endIndex !== -1 && startIndex < endIndex) {
-                var startTime = stationTimes[startIndex][1];
-                if (new Date("1970-01-01 " + startTime) > new Date("1970-01-01 " + transferStartTime)) {
-                    var travelTime = calculateTimeDifference(startTime, stationTimes[endIndex][1]);
-                    if (!bestTrain || travelTime < bestTrain.travelTime) {
-                        bestTrain = {
-                            trainNumber: trainNumberKey,
-                            trainType: trainSchedule[trainNumberKey]['車種'],
-                            startTime: startTime,
-                            endTime: stationTimes[endIndex][1],
-                            travelTime: travelTime
-                        };
-                    }
+    // 將最佳組合顯示出來
+    displayBestCombinations(bestCombinations, scheduleTable);
+}
+
+function findBestConnectingTrain(transferStation, endStation, transferStartTime) {
+    var bestTrain = null;
+
+    for (var trainNumberKey in trainSchedule) {
+        var stationTimes = trainSchedule[trainNumberKey]['車站時間'];
+        var startIndex = stationTimes.findIndex(station => station[0] === transferStation);
+        var endIndex = stationTimes.findIndex(station => station[0] === endStation);
+
+        if (startIndex !== -1 && endIndex !== -1 && startIndex < endIndex) {
+            var startTime = stationTimes[startIndex][1];
+
+            // 確保列車出發時間在轉乘時間之後
+            if (new Date("1970-01-01 " + startTime) > new Date("1970-01-01 " + transferStartTime)) {
+                var travelTime = calculateTimeDifference(startTime, stationTimes[endIndex][1]);
+
+                // 優先選擇總行駛時間最短的列車
+                if (!bestTrain || calculateTotalTravelTime(transferStartTime, startTime, stationTimes[endIndex][1]) < calculateTotalTravelTime(transferStartTime, bestTrain.startTime, bestTrain.endTime)) {
+                    bestTrain = {
+                        trainNumber: trainNumberKey,
+                        trainType: trainSchedule[trainNumberKey]['車種'],
+                        startTime: startTime,
+                        endTime: stationTimes[endIndex][1],
+                        travelTime: travelTime
+                    };
                 }
             }
         }
-
-        return bestTrain;
     }
 
-    function showTrainDetails(trainNumber, transferTrainNumber = null) {
-        var modal = document.getElementById("trainDetailsModal");
-        var modalTitle = document.getElementById("modalTitle");
-        var modalTableBody = document.getElementById("modalTable").getElementsByTagName('tbody')[0];
+    return bestTrain;
+}
 
-        modalTableBody.innerHTML = ''; 
+function calculateTotalTravelTime(startStationTime, transferStationArrivalTime, transferStationDepartureTime, endStationTime) {
+    // 計算總行駛時間 = 出發站到轉乘站的時間 + 轉乘等待時間 + 轉乘列車從轉乘站到抵達站的時間
+    var firstLegTime = calculateTimeDifference(startStationTime, transferStationArrivalTime);
+    var waitingTime = calculateTimeDifference(transferStationArrivalTime, transferStationDepartureTime);
+    var secondLegTime = calculateTimeDifference(transferStationDepartureTime, endStationTime);
 
-        var stationTimes = trainSchedule[trainNumber]['車站時間'];
+    return addTimes(firstLegTime, waitingTime, secondLegTime);
+}
 
-        var headerRow = modalTableBody.insertRow();
+function addTimes(time1, time2, time3) {
+    var totalMinutes = convertToMinutes(time1) + convertToMinutes(time2) + convertToMinutes(time3);
+    var hours = Math.floor(totalMinutes / 60);
+    var minutes = totalMinutes % 60;
+    return hours + "小時" + minutes + "分";
+}
+
+function convertToMinutes(timeString) {
+    var timeParts = timeString.split("小時");
+    var hours = parseInt(timeParts[0]);
+    var minutes = parseInt(timeParts[1].replace("分", ""));
+    return hours * 60 + minutes;
+}
+
+function isBetterCombination(existingCombinations, newTravelTime) {
+    if (!existingCombinations || existingCombinations.length === 0) {
+        return true;
+    }
+    return convertToMinutes(newTravelTime) < convertToMinutes(existingCombinations[0].travelTime);
+}
+
+// 添加車次組合到trainCombinations
+function addTrainCombination(trainCombinations, trainNumber, startStation, endStation, trainType, startTime, endTime, travelTime, transferStations) {
+    if (!trainCombinations[trainNumber]) {
+        trainCombinations[trainNumber] = [];
+    }
+    trainCombinations[trainNumber].push({
+        trainType: trainType,
+        startStation: startStation,
+        endStation: endStation,
+        startTime: startTime,
+        endTime: endTime,
+        travelTime: travelTime,
+        transferStations: transferStations
+    });
+}
+
+// 尋找每個車次的最佳組合
+function getBestCombinations(trainCombinations) {
+    var bestCombinations = [];
+    for (var trainNumber in trainCombinations) {
+        var bestCombination = trainCombinations[trainNumber].reduce((prev, current) => (convertToMinutes(prev.travelTime) < convertToMinutes(current.travelTime)) ? prev : current);
+        bestCombinations.push({
+            trainNumber: trainNumber,
+            trainType: bestCombination.trainType,
+            startStation: bestCombination.startStation,
+            endStation: bestCombination.endStation,
+            startTime: bestCombination.startTime,
+            endTime: bestCombination.endTime,
+            travelTime: bestCombination.travelTime,
+            transferStations: bestCombination.transferStations
+        });
+    }
+    return bestCombinations;
+}
+
+// 顯示最佳組合
+function displayBestCombinations(bestCombinations, scheduleTable) {
+    for (var i = 0; i < bestCombinations.length; i++) {
+        var row = scheduleTable.insertRow();
+        var cell1 = row.insertCell(0); cell1.style.whiteSpace = 'nowrap';
+        var cell2 = row.insertCell(1); cell2.style.whiteSpace = 'nowrap';
+        var cell3 = row.insertCell(2); cell3.style.whiteSpace = 'nowrap';
+        var cell4 = row.insertCell(3); cell4.style.whiteSpace = 'nowrap';
+        var cell5 = row.insertCell(4); cell5.style.whiteSpace = 'nowrap';
+        var cell6 = row.insertCell(5);
+
+        var combination = bestCombinations[i];
+        cell1.innerHTML = combination.trainNumber;
+
+        // 顯示車種及該列車的第一站與最後一站
+        var firstStop = trainSchedule[combination.trainNumber]['車站時間'][0][0];
+        var lastStop = trainSchedule[combination.trainNumber]['車站時間'].slice(-1)[0][0];
+        cell2.innerHTML = getTrainTypeWithColor(combination.trainType) + ' (' + firstStop + ' ➝ ' + lastStop + ')';
+        
+        cell3.innerHTML = combination.startStation + ' (' + combination.startTime + ')';
+
+        if (combination.transferStations.length > 0) {
+            var transferInfo = combination.transferStations[0];
+            cell4.innerHTML = transferInfo.station + ' (' + transferInfo.transferTrainNumber + '' + getTrainTypeWithColor(transferInfo.transferTrainType) + ' ) ' + ' (' + transferInfo.transferStartTime + ' )';
+            row.setAttribute('onclick', `showTrainDetails('${combination.trainNumber}', '${transferInfo.transferTrainNumber}')`);
+        } else {
+            cell4.innerHTML = '-';
+            row.setAttribute('onclick', `showTrainDetails('${combination.trainNumber}')`);
+        }
+
+        cell5.innerHTML = combination.endStation + ' (' + combination.endTime + ')';
+        cell6.innerHTML = combination.travelTime;
+    }
+}
+
+function calculateTimeDifference(startTime, endTime) {
+    var start = new Date("1970-01-01 " + startTime);
+    var end = new Date("1970-01-01 " + endTime);
+    var diff = new Date(end - start);
+    var hours = diff.getUTCHours();
+    var minutes = diff.getUTCMinutes();
+    return hours + "小時" + minutes + "分";
+}
+
+        function findConnectingTrain(transferStation, endStation, transferStartTime) {
+            var bestTrain = null;
+    
+            for (var trainNumberKey in trainSchedule) {
+                var stationTimes = trainSchedule[trainNumberKey]['車站時間'];
+                var startIndex = stationTimes.findIndex(station => station[0] === transferStation);
+                var endIndex = stationTimes.findIndex(station => station[0] === endStation);
+    
+                if (startIndex !== -1 && endIndex !== -1 && startIndex < endIndex) {
+                    var startTime = stationTimes[startIndex][1];
+                    if (new Date("1970-01-01 " + startTime) > new Date("1970-01-01 " + transferStartTime)) {
+                        var travelTime = calculateTimeDifference(startTime, stationTimes[endIndex][1]);
+                        if (!bestTrain || travelTime < bestTrain.travelTime) {
+                            bestTrain = {
+                                trainNumber: trainNumberKey,
+                                trainType: trainSchedule[trainNumberKey]['車種'],
+                                startTime: startTime,
+                                endTime: stationTimes[endIndex][1],
+                                travelTime: travelTime
+                            };
+                        }
+                    }
+                }
+            }
+    
+            return bestTrain;
+        }
+    
+        function showTrainDetails(trainNumber, transferTrainNumber = null) {
+            var modal = document.getElementById("trainDetailsModal");
+            var modalTitle = document.getElementById("modalTitle");
+            var modalTableBody = document.getElementById("modalTable").getElementsByTagName('tbody')[0];
+    
+            modalTableBody.innerHTML = ''; 
+    
+            var stationTimes = trainSchedule[trainNumber]['車站時間'];
+    
+            var headerRow = modalTableBody.insertRow();
         var headerCell1 = headerRow.insertCell(0);
         var headerCell2 = headerRow.insertCell(1);
-        headerCell1.colSpan = 0;
+        headerCell1.colSpan = 2;
         headerCell1.innerHTML = `車次 ${trainNumber} - ${trainSchedule[trainNumber]['車種']}`;
-        
+  
 
         for (var i = 0; i < stationTimes.length; i++) {
             var row = modalTableBody.insertRow();
@@ -684,8 +784,8 @@ tr:hover {
             var transferHeaderCell2 = transferHeaderRow.insertCell(1);
 
             transferHeaderCell1.colSpan = 2;
-            transferHeaderCell1.innerHTML = `---- 轉乘: 車次 ${transferTrainNumber} - ${trainSchedule[transferTrainNumber]['車種']}----`;
-            
+            transferHeaderCell1.innerHTML = `---- 轉乘 ➝ 車次 ${transferTrainNumber} - ${trainSchedule[transferTrainNumber]['車種']} `;
+        
 
             for (var j = 0; j < transferStationTimes.length; j++) {
                 var transferRow = modalTableBody.insertRow();
