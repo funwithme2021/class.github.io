@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>台中美甲店位置與月租金展示</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster/dist/MarkerCluster.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster/dist/MarkerCluster.Default.css" />
+    <style>
+        #map {
+            height: 90vh;
+            width: 100%;
+        }
+        body {
+            margin: 0;
+            padding: 0;
+        }
+        .legend {
+            background: white;
+            padding: 10px;
+            line-height: 18px;
+            color: #555;
+        }
+        .legend i {
+            width: 18px;
+            height: 18px;
+            float: left;
+            margin-right: 8px;
+            opacity: 0.7;
+        }
+    </style>
+</head>
+<body>
+    <div id="map"></div>
+    <button onclick="window.location.href='z.nchu1131.table.html'">查看區域和店鋪詳情</button>
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <script src="https://unpkg.com/leaflet.markercluster/dist/leaflet.markercluster.js"></script>
+    <script src="https://unpkg.com/leaflet.heat/dist/leaflet-heat.js"></script>
+    <script src="z.nchu1131.loca.js"></script> <!-- 引入地圖的圖層控制邏輯 -->
+    <script src="z.nchu1131.shop.js"></script> <!-- 引入店面資訊及租金數據 -->
+    <script>
+        var map = L.map('map').setView([24.1617, 120.6469], 13);
+        setupBaseLayersAndBoundaries(map);
+
+        // 透過外部文件中的locations變量來使用數據
+        // 計算租金範圍
+        var minRent = Math.min(...locations.map(location => location.rent));
+        var maxRent = Math.max(...locations.map(location => location.rent));
+
+        // 根據百分比計算顏色漸變
+        function getColorForRent(rent) {
+            var percent = (rent - minRent) / (maxRent - minRent);
+            if (percent < 0.2) return 'blue';
+            if (percent < 0.4) return 'green';
+            if (percent < 0.6) return 'yellow';
+            if (percent < 0.8) return 'orange';
+            if (percent < 0.9) return 'red';
+            return 'purple';
+        }
+
+        // 創建標記群集層，只顯示美甲店
+        var markers = L.markerClusterGroup({
+            iconCreateFunction: function(cluster) {
+                var count = cluster.getChildCount();
+                var size = count < 10 ? 'small' :
+                           count < 100 ? 'medium' : 'large';
+
+                return new L.DivIcon({
+                    html: '<div><span>' + count + '</span></div>',
+                    className: 'marker-cluster marker-cluster-' + size,
+                    iconSize: new L.Point(40, 40)
+                });
+            }
+        });
+
+        // 創建單個標記層
+        var individualMarkers = L.layerGroup();
+
+        // 添加店鋪標記（僅顯示美甲店）
+        locations.filter(function(location) {
+            return location.type === 'nail salon';
+        }).forEach(function(location) {
+            var circleMarker = L.circleMarker([location.lat, location.lng], {
+                radius: 5,
+                fillColor: getColorForRent(location.rent),
+                color: '#000',
+                weight: 1,
+                opacity: 1,
+                fillOpacity: 0.8
+            }).bindPopup('<b>' + location.name + '</b><br>月租金: ' + location.rent + ' 元');
+
+            markers.addLayer(circleMarker);
+            individualMarkers.addLayer(circleMarker);
+        });
+
+        // 使用輸入的租金數據來顯示區域的租金分布（包括美甲店和其他區域）
+        var heatPoints = locations.map(function(location) {
+            return [location.lat, location.lng, location.rent]; // 權重為租金數據
+        });
+
+        // 顯示租金數據的顏色圖層，範圍擴大且顏色較淡
+        var heat = L.heatLayer(heatPoints, {
+            radius: 20, // 擴大範圍
+            blur: 75,   // 增加模糊度讓顏色更柔和
+            opacity: 0.05, // 將透明度降低
+            gradient: {
+                0.2: 'rgba(0, 0, 255, 0.3)', 
+                0.4: 'rgba(0, 255, 0, 0.3)', 
+                0.6: 'rgba(255, 255, 0, 0.3)', 
+                0.8: 'rgba(255, 165, 0, 0.3)', 
+                0.9: 'rgba(255, 0, 0, 0.3)', 
+                1: 'rgba(128, 0, 128, 0.3)'
+            }
+        }).addTo(map);
+
+
+        // 預設顯示標記群集
+        var isClusterView = true;
+        map.addLayer(markers);
+
+        // 自訂的控制按鈕來切換顯示模式
+        var toggleControl = L.control({position: 'topright'});
+        toggleControl.onAdd = function(map) {
+            var div = L.DomUtil.create('div', 'leaflet-bar leaflet-control leaflet-control-custom');
+            div.innerHTML = '<button id="toggleButton">顯示精確店面位置</button>';
+            div.style.backgroundColor = 'white';
+            div.style.padding = '5px';
+            L.DomEvent.on(div, 'click', function () {
+                if (isClusterView) {
+                    map.removeLayer(markers);
+                    map.addLayer(individualMarkers);
+                    document.getElementById('toggleButton').innerText = '顯示店面分布';
+                    isClusterView = false;
+                } else {
+                    map.removeLayer(individualMarkers);
+                    map.addLayer(markers);
+                    document.getElementById('toggleButton').innerText = '顯示精確店面位置';
+                    isClusterView = true;
+                }
+            });
+            return div;
+        };
+        toggleControl.addTo(map);
+
+        // 添加圖例來說明租金顏色範圍
+        var legend = L.control({position: 'bottomright'});
+        legend.onAdd = function(map) {
+            var div = L.DomUtil.create('div', 'legend');
+            var grades = [minRent, (minRent + maxRent) * 0.2, (minRent + maxRent) * 0.4, (minRent + maxRent) * 0.6, (minRent + maxRent) * 0.8, maxRent];
+            var labels = [];
+
+            for (var i = 0; i < grades.length; i++) {
+                var rent = grades[i];
+                labels.push(
+                    '<i style="background:' + getColorForRent(rent) + '"></i> ' +
+                    Math.round(rent) + (grades[i + 1] ? '&ndash;' + Math.round(grades[i + 1]) : '+')
+                );
+            }
+            div.innerHTML = '<h4>月租金範圍</h4>' + labels.join('<br>');
+            return div;
+        };
+        legend.addTo(map);
+    </script>
+</body>
+</html>
+
+
+
+
+

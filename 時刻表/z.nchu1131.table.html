@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>店鋪租金與區域展示</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <style>
+        #map {
+            height: 50vh;
+            width: 100%;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        table, th, td {
+            border: 1px solid black;
+        }
+        th, td {
+            padding: 8px;
+            text-align: center;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+    </style>
+</head>
+<body>
+    <div id="map"></div>
+    <button onclick="window.location.href='z.nchu1131.html'">返回地圖頁面</button>
+    <table id="areaTable">
+        <thead>
+            <tr>
+                <th>區域</th>
+                <th>店鋪數量</th>
+                <th>平均租金</th>
+                <th>最高租金</th>
+                <th>最低租金</th>
+                <th>詳細資訊</th>
+            </tr>
+        </thead>
+        <tbody>
+        </tbody>
+    </table>
+
+    <h2>區域內店鋪詳細資訊</h2>
+    <table id="detailTable">
+        <thead>
+            <tr>
+                <th>店鋪名稱</th>
+                <th>租金</th>
+                <th>操作</th>
+            </tr>
+        </thead>
+        <tbody>
+        </tbody>
+    </table>
+    <button onclick="window.location.href='z.nchu1131.html'">返回地圖頁面</button>
+
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <script src="z.nchu1131.shop.js"></script> <!-- 引入店面資訊及租金數據 -->
+    <script>
+        var map = L.map('map').setView([24.1617, 120.6469], 13);
+
+        // 創建地圖圖層
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap'
+        }).addTo(map);
+
+        var markers = {};
+
+        // 將店鋪按區域分類
+        function classifyByArea(locations) {
+            var areaStats = {};
+            locations.forEach(function(location) {
+                var area = location.area;
+                if (!areaStats[area]) {
+                    areaStats[area] = { count: 0, totalRent: 0, maxRent: 0, minRent: Infinity, stores: [] };
+                }
+                areaStats[area].count++;
+                areaStats[area].totalRent += location.rent;
+                areaStats[area].maxRent = Math.max(areaStats[area].maxRent, location.rent);
+                areaStats[area].minRent = Math.min(areaStats[area].minRent, location.rent);
+                areaStats[area].stores.push(location);
+
+                // 為每個店鋪創建標記
+                var marker = L.marker([location.lat, location.lng]).bindPopup('<b>' + location.name + '</b><br>月租金: ' + location.rent + ' 元');
+                markers[location.name] = marker;
+                marker.addTo(map);
+            });
+            return areaStats;
+        }
+
+        // 更新表格顯示區域數據
+        function updateAreaTable(areaStats) {
+            var tableBody = document.querySelector("#areaTable tbody");
+            tableBody.innerHTML = ''; // 清空表格
+
+            Object.keys(areaStats).forEach(function(area) {
+                var avgRent = (areaStats[area].totalRent / areaStats[area].count).toFixed(2);
+                var row = `<tr>
+                    <td>${area}</td>
+                    <td>${areaStats[area].count}</td>
+                    <td>${avgRent}</td>
+                    <td>${areaStats[area].maxRent}</td>
+                    <td>${areaStats[area].minRent}</td>
+                    <td><button onclick="showDetail('${area}')">查看詳細</button></td>
+                </tr>`;
+                tableBody.innerHTML += row;
+            });
+        }
+
+        // 顯示選擇的區域店鋪詳細資訊
+        function showDetail(area) {
+            var detailTableBody = document.querySelector("#detailTable tbody");
+            detailTableBody.innerHTML = ''; // 清空表格
+            var areaStats = classifyByArea(locations)[area];
+
+            areaStats.stores.forEach(function(store) {
+                var row = `<tr>
+                    <td>${store.name}</td>
+                    <td>${store.rent}</td>
+                    <td><button onclick="focusOnStore('${store.name}')">查看位置</button></td>
+                </tr>`;
+                detailTableBody.innerHTML += row;
+            });
+        }
+
+        // 定位到選擇的店鋪位置
+        function focusOnStore(storeName) {
+            var marker = markers[storeName];
+            if (marker) {
+                map.setView(marker.getLatLng(), 18); // 放大到選定的店鋪
+                marker.openPopup(); // 打開標記的彈出窗口
+            }
+        }
+
+        // 計算區域數據並更新表格
+        var areaStats = classifyByArea(locations);
+        updateAreaTable(areaStats);
+    </script>
+</body>
+</html>
+
