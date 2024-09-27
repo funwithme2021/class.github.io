@@ -7,7 +7,7 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
     <style>
         #map {
-            height: 1000px;
+            height: 1060px;
             width: 100%;
             position: relative;
         }
@@ -93,12 +93,40 @@
                 <button type="button" onclick="deleteLastDrawnWarningVertex()">刪除最後一個點</button>
                 <button type="button" onclick="finishDrawnWarningArea()">完成繪製</button>
             </div>
+
+            <div>
+                <h3>選擇縣市</h3>
+                <label><input type="checkbox" value="基隆市" onchange="highlightCities()"> 基隆市</label><br>
+                <label><input type="checkbox" value="臺北市" onchange="highlightCities()"> 臺北市</label><br>
+                <label><input type="checkbox" value="新北市" onchange="highlightCities()"> 新北市</label><br>
+                <label><input type="checkbox" value="桃園市" onchange="highlightCities()"> 桃園市</label><br>
+                <label><input type="checkbox" value="新竹市" onchange="highlightCities()"> 新竹市</label><br>
+                <label><input type="checkbox" value="新竹縣" onchange="highlightCities()"> 新竹縣</label><br>
+                <label><input type="checkbox" value="苗栗縣" onchange="highlightCities()"> 苗栗縣</label><br>
+                <label><input type="checkbox" value="臺中市" onchange="highlightCities()"> 臺中市</label><br>
+                <label><input type="checkbox" value="彰化縣" onchange="highlightCities()"> 彰化縣</label><br>
+                <label><input type="checkbox" value="南投縣" onchange="highlightCities()"> 南投縣</label><br>
+                <label><input type="checkbox" value="雲林縣" onchange="highlightCities()"> 雲林縣</label><br>
+                <label><input type="checkbox" value="嘉義市" onchange="highlightCities()"> 嘉義市</label><br>
+                <label><input type="checkbox" value="嘉義縣" onchange="highlightCities()"> 嘉義縣</label><br>
+                <label><input type="checkbox" value="臺南市" onchange="highlightCities()"> 臺南市</label><br>
+                <label><input type="checkbox" value="高雄市" onchange="highlightCities()"> 高雄市</label><br>
+                <label><input type="checkbox" value="屏東縣" onchange="highlightCities()"> 屏東縣</label><br>
+                <label><input type="checkbox" value="宜蘭縣" onchange="highlightCities()"> 宜蘭縣</label><br>
+                <label><input type="checkbox" value="花蓮縣" onchange="highlightCities()"> 花蓮縣</label><br>
+                <label><input type="checkbox" value="臺東縣" onchange="highlightCities()"> 臺東縣</label><br>
+                <label><input type="checkbox" value="蓮將縣" onchange="highlightCities()"> 蓮將縣</label><br>
+                <label><input type="checkbox" value="金門縣" onchange="highlightCities()"> 金門縣</label><br>
+                <label><input type="checkbox" value="澎湖縣" onchange="highlightCities()"> 澎湖縣</label><br>
+                <!-- 可根據需要添加更多選項 -->
+            </div>
             
         </form>
     </div>
     <button id="toggleFormButton" onclick="toggleForm()">隱藏/展開</button>
 
     <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <script src="___________.geojson"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/0.4.1/html2canvas.min.js"></script>
     <script>
         // Initialize the map
@@ -109,6 +137,39 @@
             maxZoom: 18,
             attribution: 'Map tiles by CartoDB, CC BY 3.0',
         }).addTo(map);
+
+
+        
+
+       // 用來儲存所有繪製的城市邊界
+       var drawnCityPolygons = [];
+
+function highlightCities() {
+    // 移除之前的紅色框
+    drawnCityPolygons.forEach(function(polygon) {
+        map.removeLayer(polygon);
+    });
+    drawnCityPolygons = [];
+
+    var selectedCities = Array.from(document.querySelectorAll('input[type="checkbox"]:checked')).map(input => input.value);
+    selectedCities.forEach(function(city) {
+        geojsonData.features.forEach(function(feature) {
+            if (feature.properties.name === city) {
+                var cityPolygon = L.geoJSON(feature, {
+                    style: {
+                        color: 'transparent',
+                        fillColor: 'red', // 紅色填充
+                        fillOpacity: 0.1,
+                        lineCap: 'round', // 圓角邊緣
+                        renderer: L.canvas(), // 使用canvas渲染器
+                        zIndexOffset: -2000 // 確保多邊形位於其他標記下方
+                    }
+                }).addTo(map);
+                drawnCityPolygons.push(cityPolygon);
+            }
+        });
+    });
+}
 
         var pastPath = [];
         var futurePath = [];
