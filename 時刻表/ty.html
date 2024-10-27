@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>康芮颱風過去及預測路圖</title>
+    <title>颱風路徑圖</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
     <style>
         #map {
@@ -15,14 +15,57 @@
             border-radius: 5px;
             white-space: nowrap;
             text-align: center;
-            font-weight: bold;
+            font-weight: bold; /* 設定為粗體 */
             font-size: 17px;
             padding: 0px 20px;
+            transform: rotate(0deg); /* 確保文字橫向顯示 */
+        }
+        .legend {
+    position: fixed;
+    bottom: 100px; /* 固定在左下角 */
+    left: 100px;   /* 距離左邊 10px */
+    color: white;
+    padding: 570px 10px;
+    border-radius: 5px;
+    z-index: 1000;
+}
+
+         .info-panel {
+            position: fixed;
+            background-color: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 10px;
+            border-radius: 5px;
+            z-index: 1000;
+        }
+        .legend {
+            top: 10px;
+            left: 10px;
+            width: 180px;
+        }
+        .info-panel {
+            top: 10px;
+            right: 10px;
+            width: 300px;
         }
     </style>
 </head>
 <body>
     <div id="map"></div>
+    <div class="legend">
+        <img src="pic.png" alt="圖例" width="180px">
+    </div>
+    <div class="info-panel" id="info-panel">
+        <!-- 颱風資訊將在此顯示 -->
+        <p>時間: 2024年10月29日02時</p>
+        <h3>輕度颱風 康芮 (KONH-REY)</h3>
+        <p>中心氣壓: 985 百帕</p>
+        <p>近中心最大風速: 25 公尺/秒</p>
+        <p>瞬間最大陣風: 33 公尺/秒</p>
+        <p>七級暴風圈半徑: 200 公里</p>
+        <p>十級暴風圈半徑: - 公里</p>
+        <p>未來預測路徑: 西 7 公里/時</p>
+    </div>
     <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
     <script>
         // 初始化地圖
@@ -34,7 +77,10 @@
 
         // 過去路徑資料
         var pastPath = [
-            { coords: [11.7, 147.2], intensity: 'TS', time: '25日02時' },
+            { coords: [11.8, 149.2], intensity: 'TD', time: '24日08時' },   
+            { coords: [12.1, 148.7], intensity: 'TD', time: '24日14時' },    
+            { coords: [11.4, 148.0], intensity: 'TD', time: '24日20時' },
+            { coords: [11.7, 147.2], intensity: 'TD', time: '25日02時' },
             { coords: [14.0, 145.4], intensity: 'TS', time: '25日08時' },
             { coords: [14.8, 143.9], intensity: 'TS', time: '25日14時' },
             { coords: [15.1, 141.5], intensity: 'TS', time: '25日20時' },
@@ -43,13 +89,12 @@
             { coords: [16.7, 136.0], intensity: 'TS', time: '26日14時' },
             { coords: [16.4, 134.5], intensity: 'TS', time: '26日20時' },
             { coords: [16.5, 133.3], intensity: 'TS', time: '27日02時' },
-            { coords: [16.1, 132.4], intensity: 'TS', time: '27日08時' },
-            { coords: [16.3, 131.3], intensity: 'TS', time: '27日14時' }
+            { coords: [16.1, 132.4], intensity: 'TS', time: '27日08時' }
         ];
 
         var currentPosition = {
-            coords: [16.6, 130.3],
-            radius7: { northeast: 200, northwest: 200, southeast: 200, southwest: 200 },
+            coords: [16.3, 130.4],
+            radius7: { northeast: 220, northwest: 220, southeast: 190, southwest: 150 },
             radius10: { northeast: 0, northwest: 0, southeast: 0, southwest: 0 },
             showIcon: true,
             intensity: 'TS',
@@ -59,9 +104,9 @@
         var futurePath = [
             { coords: [17.0, 128.6], time: '28日20時', intensity: 'ST', radius7: 220, radius10: 80 },
             { coords: [18.5, 126.3], time: '29日20時', intensity: 'ST', radius7: 250, radius10: 80 },
-            { coords: [19.5, 125.1], time: '30日14時', intensity: 'ST', radius7: 280, radius10: 90 },
-            { coords: [22.5, 123.2], time: '31日14時', intensity: 'ST', radius7: 280, radius10: 90 },
-            { coords: [26.2, 122.3], time: '01日14時', intensity: 'ST', radius7: 280, radius10: 90 }
+            { coords: [20.2, 124.6], time: '30日20時', intensity: 'ST', radius7: 280, radius10: 90 },
+            { coords: [23.2, 122.6], time: '31日20時', intensity: 'ST', radius7: 280, radius10: 90 },
+            { coords: [26.2, 122.1], time: '01日20時', intensity: 'ST', radius7: 280, radius10: 90 }
         ];
 
         var currentMarker = null;
@@ -220,7 +265,6 @@
             }).addTo(map);
         }
 
-        // 初始化時重新繪製路徑
         redrawPaths();
     </script>
 </body>
