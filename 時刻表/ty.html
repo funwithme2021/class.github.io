@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>康芮颱風過去及預測路圖</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <style>
+        #map {
+            height: 800px;
+            width: 100%;
+            position: relative;
+        }
+        .custom-label {  
+            border-radius: 5px;
+            white-space: nowrap;
+            text-align: center;
+            font-weight: bold;
+            font-size: 17px;
+            padding: 0px 20px;
+        }
+    </style>
+</head>
+<body>
+    <div id="map"></div>
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <script>
+        // 初始化地圖
+        var map = L.map('map').setView([23.5, 121], 6);
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+            maxZoom: 18,
+            attribution: 'Map tiles by CartoDB, CC BY 3.0',
+        }).addTo(map);
+
+        // 過去路徑資料
+        var pastPath = [
+            { coords: [11.7, 147.2], intensity: 'TS', time: '25日02時' },
+            { coords: [14.0, 145.4], intensity: 'TS', time: '25日08時' },
+            { coords: [14.8, 143.9], intensity: 'TS', time: '25日14時' },
+            { coords: [15.1, 141.5], intensity: 'TS', time: '25日20時' },
+            { coords: [16.3, 139.9], intensity: 'TS', time: '26日02時' },
+            { coords: [16.6, 137.7], intensity: 'TS', time: '26日08時' },
+            { coords: [16.7, 136.0], intensity: 'TS', time: '26日14時' },
+            { coords: [16.4, 134.5], intensity: 'TS', time: '26日20時' },
+            { coords: [16.5, 133.3], intensity: 'TS', time: '27日02時' },
+            { coords: [16.1, 132.4], intensity: 'TS', time: '27日08時' }
+        ];
+
+        var currentPosition = {
+            coords: [16.3, 131.3],
+            radius7: { northeast: 150, northwest: 150, southeast: 150, southwest: 150 },
+            radius10: { northeast: 0, northwest: 0, southeast: 50, southwest: 0 },
+            showIcon: true,
+            intensity: 'TS',
+            time: '現在位置'
+        };
+
+        var futurePath = [
+            { coords: [17.0, 128.8], time: '28日14時', intensity: 'TS', radius7: 200, radius10: 40 },
+            { coords: [18.2, 126.8], time: '29日14時', intensity: 'ST', radius7: 220, radius10: 70 },
+            { coords: [19.5, 125.1], time: '30日14時', intensity: 'ST', radius7: 280, radius10: 90 },
+            { coords: [22.5, 123.2], time: '31日14時', intensity: 'ST', radius7: 280, radius10: 90 },
+            { coords: [26.2, 122.3], time: '01日14時', intensity: 'ST', radius7: 280, radius10: 90 }
+        ];
+
+        var currentMarker = null;
+        var labelMarkers = [];
+
+        // 繪製路徑和標籤
+        function redrawPaths() {
+            map.eachLayer(function (layer) {
+                if (layer instanceof L.Polyline || layer instanceof L.Marker || layer instanceof L.Circle || layer instanceof L.Polygon) {
+                    map.removeLayer(layer);
+                }
+            });
+
+            L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+                maxZoom: 18,
+                attribution: 'Map tiles by CartoDB, CC BY 3.0',
+            }).addTo(map);
+
+            // 繪製過去路徑，顯示每日第一個點的日期和強度圖示
+            var lastDate = '';
+            pastPath.forEach(function (point, index) {
+                if (index > 0) {
+                    L.polyline([pastPath[index - 1].coords, point.coords], {
+                        color: 'black',
+                        weight: 2
+                    }).addTo(map);
+                }
+
+                var currentDate = point.time.substring(0, 2);
+                if (currentDate !== lastDate) {
+                    lastDate = currentDate;
+                    var marker = L.marker([point.coords[0] + 0.2, point.coords[1]], {
+                        icon: L.divIcon({
+                            className: 'custom-label',
+                            html: `<div>${currentDate}</div>`
+                        })
+                    }).addTo(map);
+                    labelMarkers.push(marker);
+                }
+
+                addIntensityIcon(point.coords, point.intensity);
+            });
+
+            // 繪製現在位置的圖示和風圈
+            if (currentPosition.showIcon) {
+                addIntensityIcon(currentPosition.coords, currentPosition.intensity);
+                var currentLabel = L.marker([currentPosition.coords[0] + 0.2, currentPosition.coords[1]], {
+                    icon: L.divIcon({
+                        className: 'custom-label',
+                        html: `<div>${currentPosition.time}</div>`
+                    })
+                }).addTo(map);
+                labelMarkers.push(currentLabel);
+                drawAsymmetricWindCircle(currentPosition.coords, currentPosition.radius7, 'orange');
+                drawAsymmetricWindCircle(currentPosition.coords, currentPosition.radius10, 'red');
+            }
+
+            // 現在位置到過去位置的實線連接
+            L.polyline([currentPosition.coords, pastPath[pastPath.length - 1].coords], {
+                color: 'black',
+                weight: 2
+            }).addTo(map);
+
+            // 繪製未來路徑，顯示詳細時間和風圈
+            futurePath.forEach(function (point, index) {
+                if (index > 0 || currentPosition.coords) {
+                    L.polyline([index === 0 ? currentPosition.coords : futurePath[index - 1].coords, point.coords], {
+                        color: 'black',
+                        weight: 2,
+                        dashArray: '5, 5'
+                    }).addTo(map);
+                }
+
+                var marker = L.marker([point.coords[0] + 0.2, point.coords[1]], {
+                    icon: L.divIcon({
+                        className: 'custom-label',
+                        html: `<div>${point.time}</div>`
+                    })
+                }).addTo(map);
+
+                labelMarkers.push(marker);
+                addIntensityIcon(point.coords, point.intensity);
+                addDashedCircle(point.coords[0], point.coords[1], point.radius7, 'orange');
+                addDashedCircle(point.coords[0], point.coords[1], point.radius10, 'red');
+            });
+        }
+
+        // 添加強度圖示
+        function addIntensityIcon(coords, intensity) {
+            var iconUrl = getIntensityIcon(intensity);
+            var icon = L.icon({
+                iconUrl: iconUrl,
+                iconSize: [26, 26],
+                iconAnchor: [13, 13]
+            });
+
+            L.marker(coords, { icon: icon }).addTo(map);
+        }
+
+        // 根據強度選擇圖示
+        function getIntensityIcon(intensity) {
+            switch (intensity) {
+                case 'TD':
+                    return 'td1.png';
+                case 'TS':
+                    return 'ts1.png';
+                case 'ST':
+                    return 'st1.png';
+                case 'TY':
+                    return 'ty.png';
+                default:
+                    return 'images/default.png';
+            }
+        }
+
+        // 添加虛線圓圈表示風圈範圍
+        function addDashedCircle(lat, lng, radius, color) {
+            if (radius > 0) {
+                L.circle([lat, lng], {
+                    color: color,
+                    weight: 1,
+                    fillColor: 'none',
+                    fillOpacity: 0.3,
+                    radius: radius * 1000,
+                    dashArray: '5, 5'
+                }).addTo(map);
+            }
+        }
+
+        // 繪製不對稱的風圈
+        function drawAsymmetricWindCircle(center, windData, color) {
+            var points = [];
+            var quadrants = [
+                { radius: windData.northeast, startAngle: 0, endAngle: 90 },
+                { radius: windData.northwest, startAngle: 90, endAngle: 180 },
+                { radius: windData.southwest, startAngle: 180, endAngle: 270 },
+                { radius: windData.southeast, startAngle: 270, endAngle: 360 }
+            ];
+
+            quadrants.forEach(function(quadrant) {
+                var radius = quadrant.radius * 1000;
+                for (var angle = quadrant.startAngle; angle <= quadrant.endAngle; angle += 5) {
+                    var radian = (angle * Math.PI) / 180;
+                    var lat = center[0] + (radius / 111320) * Math.cos(radian);
+                    var lng = center[1] + (radius / (40075000 * Math.cos(center[0] * Math.PI / 180) / 360)) * Math.sin(radian);
+                    points.push([lat, lng]);
+                }
+            });
+
+            points.push(points[0]);
+            L.polygon(points, {
+                color: color,
+                weight: 1,
+                fillOpacity: 0.1,
+                fillColor: color
+            }).addTo(map);
+        }
+
+        // 初始化時重新繪製路徑
+        redrawPaths();
+    </script>
+</body>
+</html>
