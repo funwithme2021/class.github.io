@@ -15,22 +15,12 @@
             border-radius: 5px;
             white-space: nowrap;
             text-align: center;
-            font-weight: bold; /* 設定為粗體 */
+            font-weight: bold;
             font-size: 17px;
             padding: 0px 20px;
-            transform: rotate(0deg); /* 確保文字橫向顯示 */
+            transform: rotate(0deg);
         }
-        .legend {
-    position: fixed;
-    bottom: 100px; /* 固定在左下角 */
-    left: 100px;   /* 距離左邊 10px */
-    color: white;
-    padding: 570px 10px;
-    border-radius: 5px;
-    z-index: 1000;
-}
-
-         .info-panel {
+        .info-panel {
             position: fixed;
             background-color: rgba(0, 0, 0, 0.7);
             color: white;
@@ -39,24 +29,43 @@
             z-index: 1000;
         }
         .legend {
-            top: 10px;
+            bottom: 10px;
             left: 10px;
             width: 180px;
+            display: block;
+            position: fixed;
+            color: white;
+            padding: 10px;
+            border-radius: 5px;
+            z-index: 1000;
         }
         .info-panel {
             top: 10px;
             right: 10px;
             width: 300px;
+            display: block;
+        }
+        .toggle-buttons {
+            position: fixed;
+            top: 10px;
+            left: 10px;
+            z-index: 1100;
+        }
+        .toggle-buttons button {
+            margin-bottom: 5px;
         }
     </style>
 </head>
 <body>
     <div id="map"></div>
-    <div class="legend">
+    <div class="toggle-buttons">
+        <button onclick="toggleLegend()">關閉/開啟圖例</button>
+        <button onclick="toggleInfoPanel()">關閉/開啟說明</button>
+    </div>
+    <div class="legend" id="legend">
         <img src="pic.png" alt="圖例" width="180px">
     </div>
     <div class="info-panel" id="info-panel">
-        <!-- 颱風資訊將在此顯示 -->
         <p>時間: 2024年10月29日02時</p>
         <h3>輕度颱風 康芮 (KONH-REY)</h3>
         <p>中心氣壓: 985 百帕</p>
@@ -74,6 +83,26 @@
             maxZoom: 18,
             attribution: 'Map tiles by CartoDB, CC BY 3.0',
         }).addTo(map);
+
+        // 切換圖例顯示
+        function toggleLegend() {
+            var legend = document.getElementById('legend');
+            if (legend.style.display === 'none') {
+                legend.style.display = 'block';
+            } else {
+                legend.style.display = 'none';
+            }
+        }
+
+        // 切換說明面板顯示
+        function toggleInfoPanel() {
+            var infoPanel = document.getElementById('info-panel');
+            if (infoPanel.style.display === 'none') {
+                infoPanel.style.display = 'block';
+            } else {
+                infoPanel.style.display = 'none';
+            }
+        }
 
         // 過去路徑資料
         var pastPath = [
@@ -265,6 +294,7 @@
             }).addTo(map);
         }
 
+        // 初始化時重新繪製路徑
         redrawPaths();
     </script>
 </body>
