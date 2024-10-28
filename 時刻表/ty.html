@@ -71,9 +71,9 @@
         <p>中心氣壓: 980 百帕</p>
         <p>近中心最大風速: 28 公尺/秒</p>
         <p>瞬間最大陣風: 35 公尺/秒</p>
-        <p>七級暴風圈半徑: 200 公里</p>
+        <p>七級暴風圈半徑: 220 公里</p>
         <p>十級暴風圈半徑: - 公里</p>
-        <p>未來預測路徑: 西 30 公里/時</p>
+        <p>未來預測路徑: 西 22 公里/時</p>
     </div>
     <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
     <script>
@@ -127,7 +127,7 @@
 
         var currentPosition = {
             coords: [16.8, 128.5],//東北'東南'西北'西南
-            radius7: { northeast: 220, northwest: 220, southeast: 190, southwest: 150 },
+            radius7: { northeast: 200, northwest: 200, southeast: 240, southwest: 240 },
             radius10: { northeast: 0, northwest: 0, southeast: 0, southwest: 0 },
             showIcon: true,
             intensity: 'TS',
@@ -137,9 +137,9 @@
         var futurePath = [
             { coords: [17.5, 127.2], time: '29日08時', intensity: 'ST', radius7: 250, radius10: 80 },
             { coords: [19.0, 125.2], time: '30日08時', intensity: 'ST', radius7: 280, radius10: 90 },
-            { coords: [20.6, 123.8], time: '31日02時', intensity: 'ST', radius7: 280, radius10: 100 },
-            { coords: [23.8, 121.2], time: '01日02時', intensity: 'ST', radius7: 280, radius10: 100 },
-            { coords: [28.0, 122.3], time: '02日02時', intensity: 'ST', radius7: 250, radius10: 80 }
+            { coords: [21.0, 122.7], time: '31日08時', intensity: 'ST', radius7: 280, radius10: 90 },
+            { coords: [24.2, 120.1], time: '01日08時', intensity: 'ST', radius7: 220, radius10: 70 },
+            { coords: [27.7, 121.8], time: '02日08時', intensity: 'TS', radius7: 180, radius10: 0 }
         ];
 
         var currentMarker = null;
