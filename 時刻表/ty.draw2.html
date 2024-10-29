@@ -53,26 +53,26 @@
         }).addTo(map);
 
         var pastPath = [
-            [11.7, 147.2],[14.0, 145.4],[14.8, 143.9],[15.1, 141.5],[16.3, 139.9],[16.7, 136.0],
+        [11.8, 149.2],[12.1, 148.7],[11.4, 148.0],[11.7, 147.2],[14.0, 145.4],[14.8, 143.9],[15.1, 141.5],[16.3, 139.9],[16.7, 136.0],
             [16.4, 134.5],[16.5, 133.3],[16.1, 132.4],[16.3, 131.3],[16.6, 130.3],[16.6, 130.2],[16.8, 129.0],
-            [16.8, 128.7],[16.8, 128.5],
+            [16.8, 128.7],[16.8, 128.5],[17.3, 128.0],[17.5, 127.3],
         ];
 
         var currentPosition = {
-            coords: [16.8, 128.5], //東北'東南'西北'西南
-            radius7: { northeast: 220, northwest: 220, southeast: 220, southwest: 220 },
-            radius10: { northeast: 70, northwest: 70, southeast: 70, southwest: 70 },
+            coords: [17.5, 127.3], //東北'東南'西北'西南
+            radius7: { northeast: 250, northwest: 250, southeast: 250, southwest: 250 },
+            radius10: { northeast: 80, northwest: 80, southeast: 80, southwest: 80 },
             showIcon: true,
-            intensity: 'TS',
+            intensity: 'ST',
             time: '現在位置'
         };
 
         var futurePath = [
-            { coords: [18.3, 125.8], radius7: 0, radius10: 0, errorRadius: 90, showIcon: true, intensity: 'ST', time: '29日20時' },
-            { coords: [19.8, 123.8], radius7: 280, radius10: 90, errorRadius: 170, showIcon: true, intensity: 'ST', time: '30日20時' },
-            { coords: [23.1, 120.8], radius7: 280, radius10: 90, errorRadius: 260, showIcon: true, intensity: 'ST', time: '31日20時' },
-            { coords: [25.5, 120.0], radius7: 150, radius10: 0, errorRadius: 310, showIcon: true, intensity: 'TS', time: '01日20時' },
-            { coords: [29.2, 124.0], radius7: 0, radius10: 0, errorRadius: 420, showIcon: true, intensity: 'TD', time: '02日20時' },
+            { coords: [19.1, 124.6], radius7: 0, radius10: 0, errorRadius: 90, showIcon: true, intensity: 'ST', time: '30日08時' },
+            { coords: [21.6, 121.9], radius7: 300, radius10: 100, errorRadius: 170, showIcon: true, intensity: 'ST', time: '31日08時' },
+            { coords: [25.1, 119.7], radius7: 200, radius10: 0, errorRadius: 230, showIcon: true, intensity: 'TS', time: '01日08時' },
+            { coords: [30.9, 124.7], radius7: 0, radius10: 0, errorRadius: 310, showIcon: true, intensity: 'TD', time: '02日08時' },
+
         ];
 
         var drawnCityPolygons = [];
