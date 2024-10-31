@@ -66,14 +66,14 @@
         <img src="pic.png" alt="圖例" width="180px">
     </div>
     <div class="info-panel" id="info-panel">
-        <p>時間: 2024年10月30日17時</p>
+        <p>時間: 2024年10月31日08時</p>
         <h3>強烈颱風 康芮 (KONH-REY)</h3>
-        <p>中心氣壓: 915 百帕</p>
-        <p>近中心最大風速: 53 公尺/秒</p>
-        <p>瞬間最大陣風: 65 公尺/秒</p>
+        <p>中心氣壓: 925 百帕</p>
+        <p>近中心最大風速: 51 公尺/秒</p>
+        <p>瞬間最大陣風: 63 公尺/秒</p>
         <p>七級暴風圈半徑: 320 公里</p>
-        <p>十級暴風圈半徑: 120 公里</p>
-        <p>未來預測路徑: 西北 24 公里/時</p>
+        <p>十級暴風圈半徑: 150 公里</p>
+        <p>未來預測路徑: 西北 15 公里/時</p>
     </div>
     <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
     <script>
@@ -133,23 +133,27 @@
             { coords: [19.4, 124.5], intensity: 'TY', time: '30日11時' },
             { coords: [19.7, 124.2], intensity: 'TY', time: '30日14時' },
             { coords: [20.1, 123.8], intensity: 'TY', time: '30日17時' },
+            { coords: [20.0, 123.7], intensity: 'TY', time: '30日20時' },
+            { coords: [20.7, 123.1], intensity: 'TY', time: '30日23時' },
+            { coords: [21.0, 122.8], intensity: 'TY', time: '31日02時' },
+            { coords: [21.4, 122.6], intensity: 'TY', time: '31日05時' },
+            { coords: [21.8, 122.2], intensity: 'TY', time: '31日08時' },
         ];
 
         var currentPosition = {
-            coords: [20.1, 123.8],//東北'東南'西北'西南
-            radius7: { northeast: 330, northwest: 320, southeast: 330, southwest: 280 },
-            radius10: { northeast: 120, northwest: 120, southeast: 120, southwest: 120 },
+            coords: [21.8, 122.2],//東北'東南'西北'西南
+            radius7: { northeast: 330, northwest: 320, southeast: 330, southwest: 300 },
+            radius10: { northeast: 150, northwest: 150, southeast: 150, southwest: 150 },
             showIcon: true,
             intensity: 'TY',
             time: '現在位置'
         };
 
         var futurePath = [
-            { coords: [21.4, 122.4], time: '31日05時', intensity: 'TY', radius7: 320, radius10: 120 },
-            { coords: [23.4, 120.8], time: '31日17時', intensity: 'ST', radius7: 280, radius10: 90 },
-            { coords: [25.6, 120.0], time: '01日05時', intensity: 'ST', radius7: 180, radius10: 70 },
-            { coords: [27.7, 121.0], time: '01日17時', intensity: 'TS', radius7: 120, radius10: 0 },
-            { coords: [31.1, 127.1], time: '02日17時', intensity: 'TD', radius7: 0, radius10: 0 },
+            { coords: [23.9, 120.0], time: '31日20時', intensity: 'ST', radius7: 250, radius10: 120 },
+            { coords: [25.6, 120.0], time: '01日08時', intensity: 'ST', radius7: 180, radius10: 70 },
+            { coords: [27.7, 121.0], time: '01日20時', intensity: 'TS', radius7: 120, radius10: 0 },
+            { coords: [31.1, 127.1], time: '02日08時', intensity: 'TD', radius7: 0, radius10: 0 },
 
         ];
 
