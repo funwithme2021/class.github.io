@@ -66,14 +66,14 @@
         <img src="pic.png" alt="圖例" width="180px">
     </div>
     <div class="info-panel" id="info-panel">
-        <p>時間: 2024年10月31日21時</p>
-        <h3>中度颱風 康芮 (KONH-REY)</h3>
-        <p>中心氣壓: 950 百帕</p>
-        <p>近中心最大風速: 40 公尺/秒</p>
-        <p>瞬間最大陣風: 50 公尺/秒</p>
-        <p>七級暴風圈半徑: 280 公里</p>
-        <p>十級暴風圈半徑: 100 公里</p>
-        <p>未來預測路徑: 北 31 公里/時</p>
+        <p>時間: 2024年11月11日08時</p>
+        <h3>中度颱風 準天兔 (TD29)</h3>
+        <p>中心氣壓: 1004 百帕</p>
+        <p>近中心最大風速: 15 公尺/秒</p>
+        <p>瞬間最大陣風: 23 公尺/秒</p>
+        <p>七級暴風圈半徑: 0 公里</p>
+        <p>十級暴風圈半徑: 0 公里</p>
+        <p>未來預測路徑: 西北西 33 公里/時</p>
     </div>
     <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
     <script>
@@ -106,60 +106,28 @@
 
         // 過去路徑資料
         var pastPath = [
-            { coords: [11.8, 149.2], intensity: 'TD', time: '24日08時' },{ coords: [12.1, 148.7], intensity: 'TD', time: '24日14時' },    
-            { coords: [11.4, 148.0], intensity: 'TD', time: '24日20時' },{ coords: [11.7, 147.2], intensity: 'TD', time: '25日02時' },
-            { coords: [14.0, 145.4], intensity: 'TS', time: '25日08時' },{ coords: [14.8, 143.9], intensity: 'TS', time: '25日14時' },
-            { coords: [15.1, 141.5], intensity: 'TS', time: '25日20時' },{ coords: [16.3, 139.9], intensity: 'TS', time: '26日02時' },
-            { coords: [16.6, 137.7], intensity: 'TS', time: '26日08時' },
-            { coords: [16.7, 136.0], intensity: 'TS', time: '26日14時' },
-            { coords: [16.4, 134.5], intensity: 'TS', time: '26日20時' },
-            { coords: [16.5, 133.3], intensity: 'TS', time: '27日02時' },
-            { coords: [16.1, 132.4], intensity: 'TS', time: '27日08時' },
-            { coords: [16.3, 131.3], intensity: 'TS', time: '27日14時' },
-            { coords: [16.6, 130.3], intensity: 'TS', time: '27日20時' },
-            { coords: [16.6, 130.2], intensity: 'TS', time: '28日02時' },
-            { coords: [16.8, 129.0], intensity: 'TS', time: '28日08時' },
-            { coords: [16.8, 128.7], intensity: 'TS', time: '28日14時' },
-            { coords: [16.8, 128.5], intensity: 'TS', time: '28日20時' },
-            { coords: [17.3, 128.0], intensity: 'ST', time: '29日02時' },
-            { coords: [17.5, 127.3], intensity: 'ST', time: '29日08時' },
-            { coords: [17.8, 126.6], intensity: 'ST', time: '29日14時' },
-            { coords: [18.0, 126.4], intensity: 'ST', time: '29日17時' },
-            { coords: [18.4, 126.1], intensity: 'ST', time: '29日20時' },
-            { coords: [18.7, 125.5], intensity: 'ST', time: '29日23時' },
-            { coords: [18.7, 125.4], intensity: 'ST', time: '30日02時' },
-            { coords: [18.7, 125.4], intensity: 'ST', time: '30日05時' },
-            { coords: [19.1, 124.9], intensity: 'TY', time: '30日08時' },
-            { coords: [19.4, 124.5], intensity: 'TY', time: '30日11時' },
-            { coords: [19.7, 124.2], intensity: 'TY', time: '30日14時' },
-            { coords: [20.1, 123.8], intensity: 'TY', time: '30日17時' },
-            { coords: [20.1, 123.7], intensity: 'TY', time: '30日20時' },
-            { coords: [20.7, 123.1], intensity: 'TY', time: '30日23時' },
-            { coords: [21.0, 122.8], intensity: 'TY', time: '31日02時' },
-            { coords: [21.4, 122.6], intensity: 'TY', time: '31日05時' },
-            { coords: [21.8, 122.2], intensity: 'TY', time: '31日08時' },
-            { coords: [22.4, 121.7], intensity: 'TY', time: '31日11時' },
-            { coords: [23.0, 121.5], intensity: 'TY', time: '31日13時' },
-            { coords: [23.1, 121.3], intensity: 'TY', time: '31日14時' },
-            { coords: [23.2, 120.9], intensity: 'TY', time: '31日15時' },
-            { coords: [23.6, 120.3], intensity: 'ST', time: '31日17時' },
-            { coords: [23.8, 120.2], intensity: 'ST', time: '31日18時' },
-            { coords: [24.0, 120.1], intensity: 'ST', time: '31日20時' },
-            { coords: [24.0, 120.0], intensity: 'ST', time: '31日21時' },
+            { coords: [7.5, 147.5], intensity: 'TD', time: '10日02時' },{ coords: [9.8, 144.6], intensity: 'TD', time: '10日14時' }, 
+            { coords: [11.3, 140.6], intensity: 'TD', time: '11日02時' },{ coords: [12.4, 137.8], intensity: 'TD', time: '11日14時' },    
+
+            
         ];
 
         var currentPosition = {
-            coords: [24.0, 120.0],//東北'東南'西北'西南
-            radius7: { northeast: 290, northwest: 280, southeast: 290, southwest: 260 },
-            radius10: { northeast: 100, northwest: 90, southeast: 100, southwest: 90 },
+            coords: [12.4, 137.8],//東北'東南'西北'西南
+            radius7: { northeast: 0, northwest: 0, southeast: 0, southwest: 0 },
+            radius10: { northeast: 0, northwest: 0, southeast: 0, southwest: 0 },
             showIcon: true,
-            intensity: 'ST',
+            intensity: 'TD',
             time: '現在位置'
         };
 
         var futurePath = [
-            { coords: [26.5, 120.3], time: '01日08時', intensity: 'TS', radius7: 180, radius10: 0 },
-            { coords: [29.1, 122.3], time: '01日20時', intensity: 'TS', radius7: 120, radius10: 0 },
+            { coords: [13.8, 132.5], time: '12日14時', intensity: 'TS', radius7: 120, radius10: 0 },
+            { coords: [14.9, 128.3], time: '13日14時', intensity: 'TS', radius7: 120, radius10: 0 },
+            { coords: [16.8, 124.0], time: '14日08時', intensity: 'ST', radius7: 150, radius10: 50 },
+            { coords: [19.2, 121.1], time: '15日08時', intensity: 'TS', radius7: 150, radius10: 50 },
+            { coords: [20.6, 119.4], time: '16日08時', intensity: 'TS', radius7: 150, radius10: 0 },
+            
 
         ];
 
