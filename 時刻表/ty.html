@@ -66,14 +66,14 @@
         <img src="pic.png" alt="圖例" width="180px">
     </div>
     <div class="info-panel" id="info-panel">
-        <p>時間: 2024年11月11日08時</p>
-        <h3>中度颱風 準天兔 (TD29)</h3>
-        <p>中心氣壓: 1004 百帕</p>
-        <p>近中心最大風速: 15 公尺/秒</p>
-        <p>瞬間最大陣風: 23 公尺/秒</p>
-        <p>七級暴風圈半徑: 0 公里</p>
+        <p>時間: 2024年11月12日08時</p>
+        <h3>中度颱風 天兔 (USAGI)</h3>
+        <p>中心氣壓: 995 百帕</p>
+        <p>近中心最大風速: 20 公尺/秒</p>
+        <p>瞬間最大陣風: 28 公尺/秒</p>
+        <p>七級暴風圈半徑: 80 公里</p>
         <p>十級暴風圈半徑: 0 公里</p>
-        <p>未來預測路徑: 西北西 33 公里/時</p>
+        <p>未來預測路徑: 西北西 27 公里/時</p>
     </div>
     <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
     <script>
@@ -107,26 +107,28 @@
         // 過去路徑資料
         var pastPath = [
             { coords: [7.5, 147.5], intensity: 'TD', time: '10日02時' },{ coords: [9.8, 144.6], intensity: 'TD', time: '10日14時' }, 
-            { coords: [11.3, 140.6], intensity: 'TD', time: '11日02時' },{ coords: [12.4, 137.8], intensity: 'TD', time: '11日14時' },    
+            { coords: [11.3, 140.6], intensity: 'TD', time: '11日02時' },{ coords: [12.4, 137.8], intensity: 'TD', time: '11日14時' },
+            { coords: [12.3, 136.4], intensity: 'TD', time: '11日20時' },{ coords: [12.8, 134.9], intensity: 'TS', time: '12日02時' },  
+            { coords: [13.5, 133.6], intensity: 'TS', time: '12日08時' },  
 
             
         ];
 
         var currentPosition = {
-            coords: [12.4, 137.8],//東北'東南'西北'西南
-            radius7: { northeast: 0, northwest: 0, southeast: 0, southwest: 0 },
+            coords: [13.5, 133.6],//東北'東南'西北'西南
+            radius7: { northeast: 100, northwest: 50, southeast: 100, southwest: 80 },
             radius10: { northeast: 0, northwest: 0, southeast: 0, southwest: 0 },
             showIcon: true,
-            intensity: 'TD',
+            intensity: 'TS',
             time: '現在位置'
         };
 
         var futurePath = [
-            { coords: [13.8, 132.5], time: '12日14時', intensity: 'TS', radius7: 120, radius10: 0 },
-            { coords: [14.9, 128.3], time: '13日14時', intensity: 'TS', radius7: 120, radius10: 0 },
-            { coords: [17.3, 123.5], time: '14日14時', intensity: 'ST', radius7: 150, radius10: 50 },
-            { coords: [20.1, 121.1], time: '15日14時', intensity: 'TS', radius7: 150, radius10: 50 },
-            { coords: [22.5, 122.4], time: '16日14時', intensity: 'TS', radius7: 150, radius10: 0 },
+            { coords: [15.3, 127.9], time: '13日08時', intensity: 'TS', radius7: 150, radius10: 0 },
+            { coords: [17.3, 123.5], time: '14日08時', intensity: 'ST', radius7: 150, radius10: 50 },
+            { coords: [20.0, 121.2], time: '15日08時', intensity: 'ST', radius7: 150, radius10: 50 },
+            { coords: [21.9, 121.7], time: '16日08時', intensity: 'TS', radius7: 120, radius10: 0 },
+            { coords: [23.4, 123.0], time: '17日08時', intensity: 'TS', radius7: 100, radius10: 0 },
             
 
         ];
@@ -221,8 +223,8 @@
             var iconUrl = getIntensityIcon(intensity);
             var icon = L.icon({
                 iconUrl: iconUrl,
-                iconSize: [26, 26],
-                iconAnchor: [13, 13]
+                iconSize: [21, 21],
+                iconAnchor: [10.5, 10.5]
             });
 
             L.marker(coords, { icon: icon }).addTo(map);

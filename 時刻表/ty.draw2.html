@@ -53,25 +53,26 @@
         }).addTo(map);
 
         var pastPath = [
-        [11.8, 149.2],[12.1, 148.7],[11.4, 148.0],[11.7, 147.2],[14.0, 145.4],[14.8, 143.9],[15.1, 141.5],[16.3, 139.9],[16.7, 136.0],
-            [16.4, 134.5],[16.5, 133.3],[16.1, 132.4],[16.3, 131.3],[16.6, 130.3],[16.6, 130.2],[16.8, 129.0],
-            [16.8, 128.7],[16.8, 128.5],[17.3, 128.0],[17.5, 127.3],[17.8, 126.6],[18.0, 126.4],[18.4, 126.1],[18.7, 125.5],[18.7, 125.4],
-            [19.1, 124.9],[19.4, 124.5],[19.7, 124.2],[20.1, 123.8],[20.1, 123.7],[20.7, 123.1],[21.0, 122.8],[21.4, 122.6],[21.8, 122.2],
-            [22.4, 121.7],[23.0, 121.5],[23.1, 121.3],[23.2, 120.9],[23.4, 120.6],[23.6, 120.3],[23.8, 120.2],[23.8, 120.1],[24.0, 120.1],
+        [7.5, 147.5],[9.8, 144.6],[11.3, 140.6],[12.4, 137.8],[12.3, 136.4],[12.8, 134.9],[13.5, 133.6],
+
         ];
 
         var currentPosition = {
-            coords: [24.0, 120.1], //東北'東南'西北'西南
-            radius7: { northeast: 290, northwest: 280, southeast: 290, southwest: 260 },
-            radius10: { northeast: 100, northwest: 90, southeast: 100, southwest: 90 },
+            coords: [13.5, 133.6], //東北'東南'西北'西南
+            radius7: { northeast: 100, northwest: 50, southeast: 100, southwest: 80 },
+            radius10: { northeast: 0, northwest: 0, southeast: 0, southwest: 0 },
             showIcon: true,
-            intensity: 'ST',
+            intensity: 'TS',
             time: '現在位置'
         };
 
         var futurePath = [
-            { coords: [26.5, 120.3], radius7: 180, radius10: 0, errorRadius: 0, showIcon: true, intensity: 'TS', time: '01日08時' },
-            { coords: [29.1, 122.3], radius7: 120, radius10: 0, errorRadius: 0, showIcon: true, intensity: 'TS', time: '01日20時' },
+            { coords: [15.3, 127.9], radius7: 0, radius10: 0, errorRadius: 0, showIcon: true, intensity: 'TS', time: '13日08時' },
+            { coords: [17.3, 123.5], radius7: 0, radius10: 0, errorRadius: 0, showIcon: true, intensity: 'ST', time: '14日08時' },
+            { coords: [20.0, 121.2], radius7: 150, radius10: 50, errorRadius: 0, showIcon: true, intensity: 'ST', time: '15日08時' },
+            { coords: [21.9, 121.7], radius7: 120, radius10: 0, errorRadius: 0, showIcon: true, intensity: 'TS', time: '16日08時' },
+            { coords: [23.4, 123.0], radius7: 100, radius10: 0, errorRadius: 0, showIcon: true, intensity: 'TS', time: '17日08時' },
+
 
         ];
 
@@ -294,8 +295,8 @@
             var iconUrl = getIntensityIcon(intensity);
             var icon = L.icon({
                 iconUrl: iconUrl,
-                iconSize: [26, 26],
-                iconAnchor: [13, 13],
+                iconSize: [22, 22],
+                iconAnchor: [11, 11],
             });
 
             return L.marker([lat, lng], { icon: icon }).addTo(map);
