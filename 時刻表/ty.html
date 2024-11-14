@@ -66,14 +66,14 @@
         <img src="pic.png" alt="圖例" width="180px">
     </div>
     <div class="info-panel" id="info-panel">
-        <p>時間: 2024年11月13日20時</p>
+        <p>時間: 2024年11月14日11時</p>
         <h3>中度颱風 天兔 (USAGI)</h3>
-        <p>中心氣壓: 960 百帕</p>
-        <p>近中心最大風速: 40 公尺/秒</p>
-        <p>瞬間最大陣風: 50 公尺/秒</p>
-        <p>七級暴風圈半徑: 120 公里</p>
-        <p>十級暴風圈半徑: 40 公里</p>
-        <p>未來預測路徑: 西北西 24 公里/時</p>
+        <p>中心氣壓: 945 百帕</p>
+        <p>近中心最大風速: 45 公尺/秒</p>
+        <p>瞬間最大陣風: 55 公尺/秒</p>
+        <p>七級暴風圈半徑: 150 公里</p>
+        <p>十級暴風圈半徑: 50 公里</p>
+        <p>未來預測路徑:  西北 24 公里/時</p>
     </div>
     <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
     <script>
@@ -115,27 +115,31 @@
             { coords: [14.6, 129.0], intensity: 'TS', time: '13日02時' },
             { coords: [14.9, 128.3], intensity: 'ST', time: '13日08時' },
             { coords: [15.5, 126.4], intensity: 'ST', time: '13日14時' }, 
-            { coords: [16.2, 125.3], intensity: 'ST', time: '13日20時' }, 
+            { coords: [16.2, 125.3], intensity: 'ST', time: '13日20時' },
+            { coords: [16.6, 123.9], intensity: 'ST', time: '14日02時' },
+            { coords: [16.8, 123.5], intensity: 'ST', time: '14日05時' },
+            { coords: [17.2, 123.1], intensity: 'ST', time: '14日08時' }, 
+            { coords: [17.6, 122.6], intensity: 'ST', time: '14日11時' },
 
             
         ];
 
         var currentPosition = {
-            coords: [16.2, 125.3],//東北'東南'西北'西南
-            radius7: { northeast: 120, northwest: 130, southeast: 110, southwest: 130 },
-            radius10: { northeast: 40, northwest: 40, southeast: 40, southwest: 40 },
+            coords: [17.8, 122.3],//東北'東南'西北'西南
+            radius7: { northeast: 180, northwest: 110, southeast: 180, southwest: 130 },
+            radius10: { northeast: 60, northwest: 40, southeast: 60, southwest: 40 },
             showIcon: true,
             intensity: 'ST',
             time: '現在位置'
         };
 
         var futurePath = [
-            { coords: [17.4, 123.3], time: '14日08時', intensity: 'ST', radius7: 150, radius10: 50 },
-            { coords: [18.9, 121.8], time: '14日20時', intensity: 'ST', radius7: 150, radius10: 50 },
-            { coords: [20.3, 121.1], time: '15日08時', intensity: 'ST', radius7: 150, radius10: 50 },
-            { coords: [21.8, 121.2], time: '15日20時', intensity: 'TS', radius7: 120, radius10: 40 },
-            { coords: [23.7, 122.9], time: '16日20時', intensity: 'TS', radius7: 80, radius10: 0 },
-            { coords: [25.2, 126.1], time: '17日20時', intensity: 'TD', radius7: 0, radius10: 0 },
+            { coords: [19.1, 121.1], time: '14日23時', intensity: 'ST', radius7: 150, radius10: 50 },
+            { coords: [20.7, 120.2], time: '15日11時', intensity: 'ST', radius7: 150, radius10: 50 },
+            { coords: [21.9, 120.8], time: '15日23時', intensity: 'TS', radius7: 120, radius10: 40 },
+            { coords: [23.0, 121.8], time: '16日11時', intensity: 'TS', radius7: 120, radius10: 40 },
+            { coords: [24.2, 123.3], time: '17日11時', intensity: 'TS', radius7: 100, radius10: 0 },
+            { coords: [25.1, 124.9], time: '18日11時', intensity: 'TD', radius7: 0, radius10: 0 },
  
 
         ];
