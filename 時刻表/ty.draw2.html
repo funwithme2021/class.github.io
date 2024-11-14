@@ -54,27 +54,26 @@
 
         var pastPath = [
         [7.5, 147.5],[9.8, 144.6],[11.3, 140.6],[12.4, 137.8],[12.3, 136.4],[12.8, 134.9],[13.5, 133.6],[14.0, 131.9],[14.2, 130.4],
-        [14.6, 129.0],[14.9, 128.3],[15.5, 126.4],[16.2, 125.3],[16.6, 123.9],[16.8, 123.5],[17.2, 123.1],[17.6, 122.6],
-
+        [14.6, 129.0],[14.9, 128.3],[15.5, 126.4],[16.2, 125.3],[16.6, 123.9],[16.8, 123.5],[17.2, 123.1],[17.6, 122.6],[17.9, 122.1],
+        [18.2, 121.9],[18.6, 121.4],[19.1, 121.1],[19.6, 120.7],
 
         ];
 
         var currentPosition = {
-            coords: [17.8, 122.3], //東北'東南'西北'西南
-            radius7: { northeast: 180, northwest: 110, southeast: 180, southwest: 130 },
-            radius10: { northeast: 60, northwest: 40, southeast: 60, southwest: 40 },
+            coords: [19.6, 120.7], //東北'東南'西北'西南
+            radius7: { northeast: 160, northwest: 110, southeast: 160, southwest: 150 },
+            radius10: { northeast: 50, northwest: 50, southeast: 50, southwest: 40 },
             showIcon: true,
             intensity: 'ST',
             time: '現在位置'
         };
 
         var futurePath = [
-            { coords: [19.1, 121.1], radius7: 0, radius10: 0, errorRadius: 50, showIcon: true, intensity: 'ST', time: '14日23時' },
-            { coords: [20.7, 120.2], radius7: 150, radius10: 50, errorRadius: 90, showIcon: true, intensity: 'ST', time: '15日11時' },
-            { coords: [21.9, 120.8], radius7: 120, radius10: 40, errorRadius: 120, showIcon: true, intensity: 'TS', time: '15日23時' },
-            { coords: [23.0, 121.8], radius7: 100, radius10: 0, errorRadius: 150, showIcon: true, intensity: 'TS', time: '16日11時' },
-            { coords: [24.2, 123.3], radius7: 100, radius10: 0, errorRadius: 210, showIcon: true, intensity: 'TS', time: '17日11時' },
-            { coords: [25.1, 124.9], radius7: 0, radius10: 0, errorRadius: 310, showIcon: true, intensity: 'TD', time: '18日11時' },
+            { coords: [21.0, 119.8], radius7: 120, radius10: 40, errorRadius: 50, showIcon: true, intensity: 'TS', time: '15日14時' },
+            { coords: [21.7, 120.0], radius7: 100, radius10: 0, errorRadius: 90, showIcon: true, intensity: 'TS', time: '16日02時' },
+            { coords: [22.1, 120.5], radius7: 80, radius10: 0, errorRadius: 120, showIcon: true, intensity: 'TS', time: '16日14時' },
+            { coords: [22.3, 121.1], radius7: 80, radius10: 0, errorRadius: 150, showIcon: true, intensity: 'TS', time: '17日02時' },
+            { coords: [22.3, 121.5], radius7: 0, radius10: 0, errorRadius: 190, showIcon: true, intensity: 'TD', time: '17日14時' },
 
         ];
 
