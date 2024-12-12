@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Custom Range Slider</title>
+    <style>
+        body {
+            font-family: 'Roboto', Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            background:  linear-gradient(135deg, #e3f2fd, #e1bee7);
+            color: #333;
+        }
+
+        .range-slider {
+            width: 80%;
+            height: 40%;
+            max-width: 600px;
+            margin: 20px auto;
+            text-align: center;
+            background: #FAF4F0;
+            border-radius: 12px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            
+            justify-content: center;
+        }
+
+        .slider-container {
+            position: relative;
+            width: 100%;
+            height: 10px;
+            background: linear-gradient(90deg, #4089d1, #cd79e4);
+            border-radius: 5px;
+        }
+
+        .slider-point {
+            position: absolute;
+            top: 5px;
+            transform: translate(-50%, -50%);
+            width: 30px;
+            height: 30px;
+            background: #f3747e;
+            border-radius: 50%;
+            border: 3px solid #fff;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+            cursor: pointer;
+            transition: transform 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            font-weight: bold;
+            color: #fff;
+        }
+
+        .slider-point:hover {
+            transform: translate(-50%, -50%) scale(1.2);
+        }
+
+        .input-container {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 20px;
+            width: 100%;
+        }
+
+        .input-container input {
+            width: 30%;
+            padding: 10px;
+            font-size: 16px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            outline: none;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            transition: border-color 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .input-container input:focus {
+            border-color: #2196f3;
+            box-shadow: 0 2px 8px rgba(33, 150, 243, 0.3);
+        }
+
+        .value-display {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 10px;
+            font-size: 14px;
+            color: #555;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="range-slider">
+        <div class="slider-container" id="slider">
+            <div class="slider-point" id="slider-point">5.25</div>
+        </div>
+        <div class="value-display">
+            <span id="min-label">Min: 1</span>
+            <span id="max-label">Max: 7</span>
+        </div>
+        <div class="input-container">
+            <input type="number" id="min-value" placeholder="Min" value="1" step="0.01">
+            <input type="number" id="current-value-input" placeholder="Value" value="5.25" step="0.01">
+            <input type="number" id="max-value" placeholder="Max" value="7" step="0.01">
+        </div>
+    </div>
+
+    <script>
+        const slider = document.getElementById("slider");
+        const sliderPoint = document.getElementById("slider-point");
+        const minValueInput = document.getElementById("min-value");
+        const maxValueInput = document.getElementById("max-value");
+        const currentValueInput = document.getElementById("current-value-input");
+        const minLabel = document.getElementById("min-label");
+        const maxLabel = document.getElementById("max-label");
+
+        let minValue = parseFloat(minValueInput.value);
+        let maxValue = parseFloat(maxValueInput.value);
+        let currentValue = parseFloat(currentValueInput.value);
+
+        function updateSliderPoint() {
+            const sliderWidth = slider.offsetWidth;
+            const position = ((currentValue - minValue) / (maxValue - minValue)) * sliderWidth;
+            sliderPoint.style.left = `${position}px`;
+            sliderPoint.textContent = currentValue.toFixed(2);
+        }
+
+        function updateLabels() {
+            minLabel.textContent = `Min: ${minValue}`;
+            maxLabel.textContent = `Max: ${maxValue}`;
+        }
+
+        function updateCurrentValue() {
+            currentValue = Math.min(Math.max(currentValue, minValue), maxValue);
+            currentValueInput.value = currentValue.toFixed(2);
+            updateSliderPoint();
+            updateLabels();
+        }
+
+        minValueInput.addEventListener("input", () => {
+            minValue = parseFloat(minValueInput.value) || 0;
+            updateCurrentValue();
+        });
+
+        maxValueInput.addEventListener("input", () => {
+            maxValue = parseFloat(maxValueInput.value) || 100;
+            updateCurrentValue();
+        });
+
+        currentValueInput.addEventListener("input", () => {
+            currentValue = parseFloat(currentValueInput.value) || minValue;
+            updateCurrentValue();
+        });
+
+        updateCurrentValue();
+    </script>
+</body>
+</html>
