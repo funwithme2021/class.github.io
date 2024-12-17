@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>銷售情形總覽</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="1131data.js"></script>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f9f9f9;
+            color: #333;
+        }
+        h1 {
+            text-align: center;
+            font-size: 2.5rem;
+            color: #4CAF50;
+            margin-bottom: 10px;
+        }
+        h5 {
+            text-align: LEFT;
+            font-size: 1rem;
+            color: #ff0000;
+            margin-bottom: 10px;
+        }
+        #controls {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        #controls label {
+            font-weight: bold;
+            margin-right: 5px;
+        }
+        select, input {
+            padding: 8px 10px;
+            font-size: 1rem;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+        input[type="text"] {
+            width: 180px;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            padding: 8px 16px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            background-color: white;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 10px;
+            text-align: center;
+        }
+        th {
+            background-color: #4CAF50;
+            color: white;
+            font-weight: bold;
+        }
+        tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+        tr:hover {
+            background-color: #f1f1f1;
+        }
+        .suggestions {
+            position: absolute;
+            background: white;
+            border: 1px solid #ccc;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+            border-radius: 5px;
+            z-index: 1000;
+            max-height: 150px;
+            overflow-y: auto;
+            display: none;
+        }
+        .suggestions div {
+            padding: 8px 10px;
+            cursor: pointer;
+        }
+        .suggestions div:hover {
+            background-color: #f1f1f1;
+        }
+        nav {
+            display: flex;
+            justify-content: center;
+            background-color: #160956;
+            padding: 10px 0;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+        nav a {
+            text-decoration: none;
+            color: white;
+            font-weight: bold;
+            font-size: 1rem;
+            margin: 0 20px;
+            transition: color 0.3s ease;
+        }
+        nav a:hover {
+            color: #ffeb3b;
+        }
+    </style>
+</head>
+<body>
+    <nav>
+        <a href="1132-3.HTML"><strong><font size="3">訂單詳細資訊</font></strong></a>
+        <a href="1132-1.HTML"><strong><font size="3">銷售情形總覽</font></strong></a>
+        <a href="1132-2.HTML"><strong><font size="3">產品銷售排名</font></strong></a>
+    </nav>
+    <h1>訂單詳細資訊</h1>
+    
+    <div id="controls">
+        <label for="region-filter">1、地區：</label>
+        <select id="region-filter">
+            <option value="">所有</option>
+        </select>
+
+        <label for="age-filter">年齡：</label>
+        <select id="age-filter">
+            <option value="">所有</option>
+        </select>
+
+        <label for="job-filter">職業：</label>
+        <select id="job-filter">
+            <option value="">所有</option>
+        </select>
+
+        <label for="gender-filter">性別：</label>
+        <select id="gender-filter">
+            <option value="">所有</option>
+            <option value="男">男</option>
+            <option value="女">女</option>
+        </select>
+
+        <label for="name-filter">2、姓名：</label>
+        <div style="position: relative;">
+            <input type="text" id="name-filter" placeholder="輸入姓名">
+            <div id="name-suggestions" class="suggestions"></div>
+        </div>
+
+        <label for="order-filter">3、訂單編號：</label>
+        <div style="position: relative;">
+            <input type="text" id="order-filter" placeholder="輸入訂單編號">
+            <div id="order-suggestions" class="suggestions"></div>
+        </div>
+
+        <button onclick="applyFilters()">篩選</button>
+    </div>
+
+    <table id="sales-table">
+        <thead>
+            <tr>
+                <th>訂單編號</th>
+                <th>姓名</th>
+                <th>性別</th>
+                <th>年齡</th>
+                <th>職業</th>
+                <th>地區</th>
+                <th>項目</th>
+                <th>金額</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+    <script>
+        const tableBody = document.querySelector('#sales-table tbody');
+        const regionFilter = document.getElementById('region-filter');
+        const ageFilter = document.getElementById('age-filter');
+        const jobFilter = document.getElementById('job-filter');
+        const genderFilter = document.getElementById('gender-filter');
+        const nameFilter = document.getElementById('name-filter');
+        const orderFilter = document.getElementById('order-filter');
+        const nameSuggestions = document.getElementById('name-suggestions');
+        const orderSuggestions = document.getElementById('order-suggestions');
+    
+        // 標準化資料，例如 "36~45" 和 "36-45" 統一為 "36-45"
+        function normalizeData() {
+            data.forEach(order => {
+                if (order['年齡']) {
+                    order['年齡'] = order['年齡'].replace(/~|−/g, '-').trim();
+                }
+            });
+        }
+    
+        // 填充篩選選項
+        function populateFilters() {
+            const regions = new Set();
+            const ages = new Set();
+            const jobs = new Set();
+    
+            data.forEach(order => {
+                if (order['居住地區']) regions.add(order['居住地區']);
+                if (order['年齡']) ages.add(order['年齡']);
+                if (order['職業']) jobs.add(order['職業']);
+            });
+    
+            addOptions(regionFilter, regions);
+            addOptions(ageFilter, ages);
+            addOptions(jobFilter, jobs);
+        }
+    
+        function addOptions(selectElement, options) {
+            selectElement.innerHTML = '<option value="">所有</option>';
+            options.forEach(option => {
+                const opt = document.createElement('option');
+                opt.value = option;
+                opt.textContent = option;
+                selectElement.appendChild(opt);
+            });
+        }
+    
+        // 提示建議功能
+        function showSuggestions(input, suggestionsElement, field) {
+            const query = input.value.trim().toLowerCase();
+            const suggestions = query ? data.filter(order => order[field].toString().toLowerCase().includes(query)) : data;
+            const uniqueSuggestions = [...new Set(suggestions.map(order => order[field]))];
+    
+            suggestionsElement.innerHTML = uniqueSuggestions.map(s => `<div>${s}</div>`).join('');
+            suggestionsElement.style.display = uniqueSuggestions.length ? 'block' : 'none';
+    
+            suggestionsElement.querySelectorAll('div').forEach(div => {
+                div.addEventListener('click', () => {
+                    input.value = div.textContent;
+                    suggestionsElement.style.display = 'none';
+                    applyFilters();
+                });
+            });
+        }
+    
+        function validateFilters() {
+    const hasGroup1 = regionFilter.value || ageFilter.value || jobFilter.value || genderFilter.value;
+    const hasGroup2 = nameFilter.value.trim() !== '';
+    const hasGroup3 = orderFilter.value.trim() !== '';
+
+    // 檢查是否同時使用多個組合
+    const groupCount = [hasGroup1, hasGroup2, hasGroup3].filter(Boolean).length;
+    if (groupCount > 1) {
+        alert('(1：地區、年齡、職業、性別)與(2：姓名)與(3：訂單編號)只能選擇一組篩選條件，不能同時使用多組條件！');
+        return false;
+    }
+    return true;
+}
+
+function applyFilters() {
+    if (!validateFilters()) return;
+
+    const filteredData = data.filter(order =>
+        (!regionFilter.value || order['居住地區'] === regionFilter.value) &&
+        (!ageFilter.value || order['年齡'] === ageFilter.value) &&
+        (!jobFilter.value || order['職業'] === jobFilter.value) &&
+        (!genderFilter.value || order['性別'] === genderFilter.value) &&
+        (!nameFilter.value || order['訂購人姓名'].includes(nameFilter.value)) &&
+        (!orderFilter.value || order['訂單編號'].toString().includes(orderFilter.value))
+    );
+    renderTable(filteredData);
+}
+
+    
+        function renderTable(filteredData) {
+            tableBody.innerHTML = '';
+            filteredData.forEach(order => {
+                const row = `
+                    <tr>
+                        <td>${order['訂單編號']}</td>
+                        <td>${order['訂購人姓名']}</td>
+                        <td>${order['性別']}</td>
+                        <td>${order['年齡']}</td>
+                        <td>${order['職業']}</td>
+                        <td>${order['居住地區']}</td>
+                        <td>${order['項目']}</td>
+                        <td>${order['金額']}</td>
+                    </tr>
+                `;
+                tableBody.insertAdjacentHTML('beforeend', row);
+            });
+        }
+    
+        // 初始化功能
+        normalizeData();
+        populateFilters();
+        renderTable(data);
+    
+        // 綁定事件 - 名稱和訂單編號的提示功能
+        nameFilter.addEventListener('focus', () => showSuggestions(nameFilter, nameSuggestions, '訂購人姓名'));
+        nameFilter.addEventListener('input', () => showSuggestions(nameFilter, nameSuggestions, '訂購人姓名'));
+        nameFilter.addEventListener('blur', () => setTimeout(() => nameSuggestions.style.display = 'none', 200));
+    
+        orderFilter.addEventListener('focus', () => showSuggestions(orderFilter, orderSuggestions, '訂單編號'));
+        orderFilter.addEventListener('input', () => showSuggestions(orderFilter, orderSuggestions, '訂單編號'));
+        orderFilter.addEventListener('blur', () => setTimeout(() => orderSuggestions.style.display = 'none', 200));
+    
+        // 篩選條件變更時自動應用篩選
+        regionFilter.addEventListener('change', applyFilters);
+        ageFilter.addEventListener('change', applyFilters);
+        jobFilter.addEventListener('change', applyFilters);
+        genderFilter.addEventListener('change', applyFilters);
+    </script>
+    
+</body>
+</html>
