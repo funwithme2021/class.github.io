@@ -318,9 +318,8 @@
       '斗南', '民雄', '嘉義', '新營', '善化', '永康', '臺南', '岡山', '新左營', '高雄',
       '鳳山', '九曲堂', '屏東', '西勢', '潮州', '南州', '林邊', '枋寮'
     ];
-
-    /***** 2. 動態生成站名選單 *****/
-    var departureSelect = document.getElementById('departure-station');
+/***** 2. 動態生成站名選單 *****/
+var departureSelect = document.getElementById('departure-station');
     var arrivalSelect = document.getElementById('arrival-station');
     stations.forEach(station => {
       const option1 = document.createElement('option');
@@ -335,6 +334,7 @@
     });
 
     /***** 3. 工具函式 *****/
+    // 若有需要對車站名稱做特殊處理，可在此自訂，這裡先直接回傳
     function normalizeStationName(name) {
       return name;
     }
@@ -342,6 +342,7 @@
     // 計算時段加權 (簡易邏輯)
     function calculateTimeWeight(time) {
       var hour = parseInt(time.split(':')[0], 10);
+
       // 以下邏輯可視實際需求調整
       if ((hour >= 6 && hour < 9.5) || (hour >= 12 && hour < 13) ||
           (hour >= 16 && hour < 20) || (hour >= 21 && hour < 22)) {
@@ -413,20 +414,16 @@
       return (utilizationValue + extraLoad) <= 100;
     }
 
-    /***** 5. 顯示車次 (不管可不可訂，都顯示) *****/
-    function displayTrain(trainNumber, train, departure, arrival, canBook) {
+    /***** 5. 將符合條件的車次顯示在表格 *****/
+    function displayTrain(trainNumber, train, departure, arrival) {
       const departureTime = getStopTime(train, departure);
       const arrivalTime = getStopTime(train, arrival);
 
       // 計算出發站時間的運用率（顯示於表格）
       const utilizationRate = calculateStationUtilizationRate(train, departure, departureTime);
+      const numericUtil = parseFloat(utilizationRate.replace('%', ''));
+
       const row = document.createElement('tr');
-
-      // 若 canBook = true => 顯示「確認訂票」，否則「尚無座位」
-      const operationCell = canBook
-        ? `<button onclick="confirmBooking('${trainNumber}', '${train['車種']}', '${departure}', '${arrival}', '${departureTime}', '${arrivalTime}')">確認訂票</button>`
-        : `<span class="no-seats">尚無座位</span>`;
-
       row.innerHTML = `
         <td>${trainNumber}</td>
         <td>${train['車種']}</td>
@@ -434,7 +431,13 @@
         <td>${departureTime}</td>
         <td>${arrivalTime}</td>
         <td>${utilizationRate}</td>
-        <td>${operationCell}</td>
+        <td>
+          ${
+            numericUtil < 100 
+              ? `<button onclick="confirmBooking('${trainNumber}', '${train['車種']}', '${departure}', '${arrival}', '${departureTime}', '${arrivalTime}')">確認訂票</button>`
+              : '<span class="no-seats">尚無座位</span>'
+          }
+        </td>
       `;
       resultsTableBody.appendChild(row);
     }
@@ -447,7 +450,7 @@
       // 模擬隨機座位
       const seats = Array.from({ length: ticketQuantity }, (_, i) => {
         const carNo = Math.ceil(Math.random() * 12);  // 第幾車
-        const seatNo = Math.ceil(Math.random() * 52); // 第幾號
+        const seatNo = Math.ceil(Math.random() * 40); // 第幾號
         return `第${carNo}車 ${seatNo}號`;
       }).join('<br>');
 
@@ -531,10 +534,14 @@
           return;
         }
 
-        // 不管是否可訂，都顯示在表格
-        const canBook = isAvailable(train, departure, arrival, quantity);
-        displayTrain(trainNumber, train, departure, arrival, canBook);
-        resultsSection.classList.remove('hidden');
+        // 檢查是否可訂
+        if (isAvailable(train, departure, arrival, quantity)) {
+          displayTrain(trainNumber, train, departure, arrival);
+          resultsSection.classList.remove('hidden');
+        } else {
+          alert('該車次在此區段的運用已滿，無法訂票。');
+        }
+
       }
       // 依時段訂票
       else if (bookingMethod === 'time-slot') {
@@ -557,12 +564,13 @@
           if (['區間車', '區間快'].includes(train['車種'])) {
             continue;
           }
+
           const departureStop = train['車站時間'].find(stop => normalizeStationName(stop[0]) === departure);
           if (!departureStop) continue;
 
           const depTime = departureStop[1];
-          // 出發時間若在 [startTime, endTime] 內，就列入顯示
-          if (depTime >= startTime && depTime <= endTime) {
+          // 若出發時間符合時段 & 還有位子可訂
+          if (depTime >= startTime && depTime <= endTime && isAvailable(train, departure, arrival, quantity)) {
             filteredTrains.push({ trainNumber, train });
           }
         }
@@ -574,16 +582,15 @@
           return depTimeA.localeCompare(depTimeB);
         });
 
-        // 不管是否可訂，都顯示出來
+        // 顯示在表格
         filteredTrains.forEach(({ trainNumber, train }) => {
-          const canBook = isAvailable(train, departure, arrival, quantity);
-          displayTrain(trainNumber, train, departure, arrival, canBook);
+          displayTrain(trainNumber, train, departure, arrival);
         });
 
         if (resultsTableBody.children.length > 0) {
           resultsSection.classList.remove('hidden');
         } else {
-          alert('沒有符合條件的列車。');
+          alert('沒有符合條件的列車可以訂票。');
         }
       }
     });
