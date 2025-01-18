@@ -1,19 +1,11 @@
 <!DOCTYPE html>
 <html lang="zh-Hant">
-
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>列車訂票系統</title>
-  
-  <!-- Google Fonts 引入 -->
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <!-- 建議可換成您喜歡的其他字體 -->
-  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700&display=swap" rel="stylesheet">
-
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>各站點平均運量</title>
   <style>
-    /* ===== Reset & Basic Style ===== */
+    /* ===== RESET & BASIC ===== */
     * {
       margin: 0;
       padding: 0;
@@ -21,572 +13,430 @@
       font-family: 'Noto Sans TC', sans-serif;
     }
     body {
-      background: linear-gradient(to right, #74ABE2, #5563DE);
-    }
-    h1, h2, p {
+      background: linear-gradient(to right, #e4ecfa, #f5f8ff);
+      color: #333;
       margin: 0;
-      padding: 0;
+      padding-bottom: 50px;
+      transition: background-color 0.3s ease, color 0.3s ease;
+    }
+    body.dark-mode {
+      background: #121212;
+      color: #ccc;
     }
 
-    /* ===== Container & Card ===== */
-    .container {
-      max-width: 900px;
-      margin: 40px auto;
-      background: #ffffffdd;
-      padding: 20px 30px;
-      border-radius: 12px;
-      box-shadow: 0 6px 16px rgba(0,0,0,0.2);
-    }
-    .form-card {
-      background: #ffffff;
-      padding: 20px;
-      margin-bottom: 30px;
-      border-radius: 8px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-    }
-    .section-title {
+    /* Header / Navbar */
+    .header {
+      background-color: #333;
+      color: #fff;
       text-align: center;
-      margin-bottom: 20px;
-      color: #333;
+      padding: 10px 20px;
+    }
+    .header h1 {
+      margin: 0;
+      font-size: 24px;
       font-weight: 700;
-      font-size: 1.5rem;
+      letter-spacing: 1px;
     }
-
-    /* ===== Form & Inputs ===== */
-    .form-section {
-      margin-bottom: 20px;
-    }
-    label {
-      display: block;
-      margin-bottom: 8px;
-      font-weight: 700;
-      color: #333;
-    }
-    select, input[type="date"], input[type="number"], input[type="time"], input[type="text"] {
-      width: 100%;
-      padding: 10px;
-      border: 1px solid #ddd;
-      border-radius: 4px;
-      font-size: 14px;
-      margin-bottom: 10px;
-      transition: border-color 0.2s;
-    }
-    select:focus,
-    input[type="date"]:focus,
-    input[type="number"]:focus,
-    input[type="time"]:focus,
-    input[type="text"]:focus {
-      outline: none;
-      border-color: #5563DE;
-    }
-    .radio-group {
-      display: flex;
-      gap: 20px;
+    .header nav {
       margin-top: 8px;
     }
-    .radio-group label {
-      font-weight: normal;
-      color: #555;
+    .header nav a {
+      color: #fff;
+      text-decoration: none;
+      font-size: 14px;
+      margin: 0 8px;
+      padding: 6px 10px;
+      border-radius: 4px;
+      transition: background-color 0.3s;
+    }
+    .header nav a:hover {
+      background-color: #222;
     }
 
-    /* ===== Button ===== */
-    button {
-      display: inline-block;
-      padding: 12px 20px;
-      background-color: #5563DE;
+    /* Dark Mode Toggle */
+    .dark-mode-toggle {
+      position: fixed;
+      top: 10px;
+      right: 10px;
+      background-color: #444;
       color: #fff;
-      font-size: 16px;
       border: none;
       border-radius: 4px;
+      padding: 6px 12px;
       cursor: pointer;
-      transition: background-color 0.3s;
-      font-weight: 700;
+      font-size: 14px;
+      z-index: 999;
     }
-    button:hover {
-      background-color: #2f3b90;
+    .dark-mode-toggle:hover {
+      background-color: #222;
     }
 
-    /* ===== Table ===== */
+    /* Container */
+    .container {
+      max-width: 1200px;
+      margin: 20px auto;
+      background: #fff;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      padding: 20px;
+      transition: background-color 0.3s ease, color 0.3s ease;
+    }
+    body.dark-mode .container {
+      background: #1f1f1f;
+      color: #ddd;
+    }
+
+    /* Main Title */
+    .main-title {
+      font-size: 20px;
+      text-align: center;
+      margin-bottom: 20px;
+      font-weight: 700;
+      color: #333;
+    }
+    body.dark-mode .main-title {
+      color: #ccc;
+    }
+
+    /* Table Wrappers & Titles */
+    .table-wrapper {
+      margin-bottom: 40px;
+    }
+    .table-title {
+      font-size: 18px;
+      margin-bottom: 10px;
+      font-weight: 700;
+      border-left: 5px solid #130058;
+      padding-left: 10px;
+      color: #333;
+    }
+    body.dark-mode .table-title {
+      color: #ddd;
+    }
+
+    /* Table Common Styles */
     table {
       width: 100%;
       border-collapse: collapse;
-      margin-top: 20px;
-      background: #fff;
-      border-radius: 6px;
+      margin-bottom: 20px;
       overflow: hidden;
+      border-radius: 6px;
     }
-    th, td {
-      padding: 12px;
-      text-align: left;
-      border-bottom: 1px solid #eee;
+    thead th {
+      background-color: #333;
+      color: #fff;
+      font-weight: 600;
+      text-align: center;
+      padding: 12px 8px;
+      cursor: pointer; /* 可以提示使用者可點擊 */
+    }
+    body.dark-mode thead th {
+      background-color: #444;
+    }
+    tbody tr {
+      border-bottom: 1px solid #ddd;
+      transition: background-color 0.2s;
+    }
+    body.dark-mode tbody tr {
+      border-bottom: 1px solid #555;
+    }
+    tbody tr:nth-child(even) {
+      background: #f9f9f9;
+    }
+    body.dark-mode tbody tr:nth-child(even) {
+      background: #2a2a2a;
+    }
+    tbody tr:hover {
+      background-color: #f1f1f1;
+      cursor: pointer;
+    }
+    body.dark-mode tbody tr:hover {
+      background-color: #333;
+    }
+    td, th {
+      padding: 10px;
+      text-align: center;
       font-size: 14px;
       color: #333;
     }
-    thead {
-      background: #f7f7f7;
-    }
-    tbody tr:hover {
-      background: #fafafa;
+    body.dark-mode td, body.dark-mode th {
+      color: #ddd;
     }
 
-    /* ===== Misc ===== */
-    .hidden {
-      display: none;
-    }
-    .no-seats {
-      color: #d9534f;
+    /* Ranking Table highlight */
+    .ranking-table tbody tr td:nth-child(2) {
       font-weight: 700;
+      color: #d0021b;
     }
-    .results-section h2 {
-      margin-top: 10px;
-      color: #333;
-      font-weight: 700;
-      font-size: 1.3rem;
-      text-align: center;
-    }
-    .confirmation {
-      max-width: 600px;
-      margin: 40px auto;
-      background: #fff;
-      padding: 20px;
-      border-radius: 8px;
-      text-align: center;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-    }
-    .confirmation h1 {
-      margin-bottom: 16px;
-      color: #333;
-    }
-    .confirmation button {
-      margin-top: 20px;
+    body.dark-mode .ranking-table tbody tr td:nth-child(2) {
+      color: #ff5f5f;
     }
   </style>
 </head>
 
 <body>
+  <button class="dark-mode-toggle" id="darkModeToggle">Dark Mode</button>
+
+
+  <div class="header">
+    <h1>各站點平均運量</h1>
+    <nav>
+      <a href="index.html">時刻表</a>
+      <a href="index-tra.easy.html">簡式時刻表</a>
+      <a href="index-tra.type.html">依車種時刻表</a>
+      <a href="train-info.html">車站資訊板</a>
+      <a href="train-info4.html">多站車站資訊板</a>
+      <a href="people.html">運量查詢</a>
+      <a href="index.trainrate.html">運用率查詢</a>
+    </nav>
+  </div>
+
   <div class="container">
-    <h1 style="text-align:center; color:#fff; margin-bottom:20px;">
-      列車訂票系統
-    </h1>
+    <h2 class="main-title">站點運量統計</h2>
 
-    <!-- Booking Form -->
-    <div class="form-card">
-      <h2 class="section-title">線上訂票</h2>
-      <form id="booking-form">
-        <div class="form-section">
-          <label for="departure-station">出發站:</label>
-          <select id="departure-station" required></select>
-
-          <label for="arrival-station">抵達站:</label>
-          <select id="arrival-station" required></select>
-        </div>
-
-        <div class="form-section">
-          <label for="date">日期:</label>
-          <input type="date" id="date" required />
-
-          <label for="ticket-quantity">張數:</label>
-          <input type="number" id="ticket-quantity" min="1" value="1" required />
-        </div>
-
-        <div class="form-section">
-          <label>訂票方式:</label>
-          <div class="radio-group">
-            <label><input type="radio" name="booking-method" value="train-number" required/> 依車次</label>
-            <label><input type="radio" name="booking-method" value="time-slot" required/> 依時段</label>
-          </div>
-        </div>
-
-        <div id="train-number-section" class="hidden">
-          <label for="train-number">車次:</label>
-          <input type="text" id="train-number" placeholder="輸入車次" />
-        </div>
-
-        <div id="time-slot-section" class="hidden">
-          <label for="start-time">時段(起):</label>
-          <input type="time" id="start-time" />
-
-          <label for="end-time">時段(迄):</label>
-          <input type="time" id="end-time" />
-        </div>
-
-        <button type="submit">查詢</button>
-      </form>
-    </div>
-
-    <!-- Search Results -->
-    <div id="results-section" class="hidden results-section">
-      <h2>可訂票列車</h2>
-      <table>
+    <div class="table-wrapper">
+      <h3 class="table-title">站點平均運量 & 各車種列車數 & 整體運用率</h3>
+      <table id="station-table">
         <thead>
           <tr>
-            <th>車次</th>
-            <th>車種</th>
-            <th>行駛區間</th>
-            <th>出發時間</th>
-            <th>抵達時間</th>
-            <th>運用率</th>
-            <th>操作</th>
+            <th data-sort-col="none">排名</th>
+            <th data-sort-col="none">站點</th>
+            <th data-sort-col="avgLoad">平均運量</th>
+            <th data-sort-col="usageRate">整體運用率</th>
+            <th data-sort-col="totalTrain">總列車數</th>
+            <th data-sort-col="新自強">新自強</th>
+            <th data-sort-col="普悠瑪">普悠瑪</th>
+            <th data-sort-col="自強號(新)">自強號(新)</th>
+            <th data-sort-col="自強號">自強號</th>
+            <th data-sort-col="莒光號">莒光號</th>
+            <th data-sort-col="復興號">復興號</th>
+            <th data-sort-col="區間快">區間快</th>
+            <th data-sort-col="區間車">區間車</th>
+            <th data-sort-col="加班車">加班車</th>
           </tr>
         </thead>
-        <tbody id="results-table-body"></tbody>
+        <tbody><!-- 動態插入 --></tbody>
+      </table>
+    </div>
+
+    <div class="table-wrapper">
+      <h3 class="table-title">站點原序 & 排名對照</h3>
+      <table class="ranking-table" id="ranking-table">
+        <thead>
+          <tr>
+            <th>站點</th>
+            <th>排名</th>
+            <th>平均運量</th>
+          </tr>
+        </thead>
+        <tbody><!-- 動態插入 --></tbody>
       </table>
     </div>
   </div>
 
-  <!-- 假設 train-schedule.js 裡面定義了 trainSchedule 物件，請自行引入 -->
   <script src="train-schedule.js"></script>
   <script>
-    /***** 1. 基本參數設定 *****/
-    // 各車種最大載客數
-    var stationMaxCapacities = {
-      '新自強': 638,
+    
+
+    /****************************
+      Dark Mode
+    ****************************/
+    const darkModeToggle = document.getElementById('darkModeToggle');
+    darkModeToggle.addEventListener('click', ()=>{
+      document.body.classList.toggle('dark-mode');
+    });
+
+    /* 1) Station Original Order */
+    var stationsOrder = [
+      '臺東','山里','鹿野','瑞源','瑞和','關山','海端','池上','富里','東竹','東里',
+      '玉里','三民','瑞穗','富源','光復','萬榮','鳳林','南平','林榮新光','豐田','壽豐','平和','志學','吉安',
+      '花蓮','北埔','景美','新城','崇德','和仁','和平','漢本','武塔','南澳','東澳','蘇澳','永樂','蘇澳新','冬山',
+      '羅東','中里','二結','宜蘭','礁溪','頂埔','頭城','外澳','龜山','大溪','大里','石城','福隆','雙溪','猴硐','瑞芳',
+      '基隆','三坑','八堵','七堵','百福',
+      '汐止','汐科','南港','松山','臺北','萬華','板橋','浮洲','樹林','山佳','鶯歌','鳳鳴','桃園','內壢',
+      '中壢','埔心','楊梅','富岡','北湖','湖口','新豐','竹北','新竹','香山','崎頂','竹南',
+      '談文','大山','後龍','白沙屯','通宵','苑裡','日南','大甲','台中港','清水','沙鹿','大肚','追分',
+      '造橋','苗栗','銅鑼','三義','后里',
+      '豐原','潭子','臺中','新烏日','彰化','員林','社頭','田中','二水','斗六',
+      '斗南','民雄','嘉義','新營','善化','永康','臺南','岡山','新左營','高雄',
+      '鳳山','九曲堂','屏東','西勢','潮州','南州','林邊','枋寮'
+    ];
+
+   /* 2) stationMaxCapacities */
+   var stationMaxCapacities = {
+      '新自強': 838,
       '普悠瑪': 406,
-      '自強號(新)': 906,
-      '自強號': 866,
+      '自強號(新)': 1306,
+      '自強號': 1366,
       '莒光號': 1000,
       '復興號': 1000,
       '區間快': 1700,
       '區間車': 1700,
-      '加班車': 638,
+      '加班車': 638
     };
 
-    // 車種熱門度
-    var popularityWeights = {
-      '普悠瑪': 2.35,
-      '新自強': 2.2,
-      '加班車': 2.4,
-      '自強號(新)': 4.3,
-      '自強號': 3.2,
-      '莒光號': 3.0,
-      '復興號': 3.35,
-      '區間快': 5.85,
-      '區間車': 5.65
-    };
+    var stationTotalLoads = {};
+    var stationTrainCounts = {};
+    var stationTotalTrains = {};
 
-    // 不同時段的加權 (簡易示範)
-    var timeWeights = {
-      'short_peak': 4.0,
-      'short_offpeak': 2.0,
-      'long_peak': 6.0,
-      'long_offpeak': 2.0
-    };
+    // 假設 trainSchedule 存在於 train-schedule.js
+    for(var tn in trainSchedule) {
+      let train= trainSchedule[tn];
+      let tType= train['車種'];
+      let maxCap= stationMaxCapacities[tType]||100;
 
-    // 站點密度 (示範用，可自行增補或修改)
-    var stationDensity = {
-      '基隆': 110,
-      '南港': 110,
-      '松山': 120,
-      '臺北': 130,
-      '萬華': 130,
-      '板橋': 135,
-      '桃園': 140,
-      '中壢': 140,
-      '新竹': 140,
-      '苗栗': 60,
-      '豐原': 110,
-      '臺中': 160,
-      '彰化': 100,
-      '員林': 90,
-      '斗六': 70,
-      '嘉義': 130,
-      '新營': 80,
-      '臺南': 135,
-      '新左營': 120,
-      '高雄': 150,
-      '鳳山': 95,
-      '屏東': 70,
-      '潮州': 70,
-      '宜蘭': 110,
-      '羅東': 110,
-      '花蓮': 150,
-      '玉里': 100,
-      '臺東': 150,
-    };
+      train['車站時間'].forEach(st=>{
+        let station= st[0];
+        if(!stationTotalLoads[station]) {
+          stationTotalLoads[station]= {totalLoad:0, trainCount:0};
+        }
+        if(!stationTrainCounts[station]) {
+          stationTrainCounts[station]= {
+            '新自強':0,'普悠瑪':0,'自強號(新)':0,'自強號':0,'莒光號':0,'復興號':0,'區間快':0,'區間車':0,'加班車':0
+          };
+        }
+        if(!stationTotalTrains[station]){
+          stationTotalTrains[station]=0;
+        }
+        let load= Math.floor(Math.random()* maxCap)+1;
+        stationTotalLoads[station].totalLoad += load;
+        stationTotalLoads[station].trainCount++;
+        stationTrainCounts[station][tType]++;
+        stationTotalTrains[station]++;
+      });
+    }
 
-    // 車站列表 (可依實際需求調整)
-    var stations = [
-      '臺東', '鹿野', '關山', '池上', '富里', '玉里', '瑞穗', '光復', '萬榮', '鳳林',
-      '壽豐', '志學', '吉安', '花蓮', '新城', '和平', '南澳', '東澳', '蘇澳', '蘇澳新', '冬山',
-      '羅東', '中里', '二結', '宜蘭', '礁溪', '頭城', '外澳', '龜山', '大溪', '大里', '石城', '福隆', '雙溪', '猴硐', '瑞芳',
-      '基隆', '三坑', '八堵', '七堵', '百福',
-      '汐止', '汐科', '南港', '松山', '臺北', '萬華', '板橋', '浮洲', '樹林', '山佳', '鶯歌', '鳳鳴', '桃園', '內壢',
-      '中壢', '埔心', '楊梅', '富岡', '北湖', '湖口', '新豐', '竹北', '新竹', '香山', '崎頂', '竹南',
-      '談文', '大山', '後龍', '白沙屯', '通宵', '苑裡', '日南', '大甲', '台中港', '清水', '沙鹿', '大肚', '追分',
-      '造橋', '苗栗', '銅鑼', '三義', '后里',
-      '豐原', '潭子', '臺中', '新烏日', '彰化', '員林', '社頭', '田中', '二水', '斗六',
-      '斗南', '民雄', '嘉義', '新營', '善化', '永康', '臺南', '岡山', '新左營', '高雄',
-      '鳳山', '九曲堂', '屏東', '西勢', '潮州', '南州', '林邊', '枋寮'
-    ];
-
-    /***** 2. 動態生成站名選單 *****/
-    var departureSelect = document.getElementById('departure-station');
-    var arrivalSelect = document.getElementById('arrival-station');
-    stations.forEach(station => {
-      const option1 = document.createElement('option');
-      option1.value = station;
-      option1.textContent = station;
-      departureSelect.appendChild(option1);
-
-      const option2 = document.createElement('option');
-      option2.value = station;
-      option2.textContent = station;
-      arrivalSelect.appendChild(option2);
+    // 按 totalLoad 大->小
+    let sortedStations= Object.keys(stationTotalLoads).sort((a,b)=>{
+      return stationTotalLoads[b].totalLoad - stationTotalLoads[a].totalLoad;
     });
 
-    /***** 3. 工具函式 *****/
-    function normalizeStationName(name) {
-      return name;
-    }
-
-    // 計算時段加權 (簡易邏輯)
-    function calculateTimeWeight(time) {
-      var hour = parseInt(time.split(':')[0], 10);
-      // 以下邏輯可視實際需求調整
-      if ((hour >= 6 && hour < 9.5) || (hour >= 12 && hour < 13) ||
-          (hour >= 16 && hour < 20) || (hour >= 21 && hour < 22)) {
-        return timeWeights['short_peak'];
+    // 產生第一張表
+    let stationTableBody= document.querySelector('#station-table tbody');
+    let rank=1;
+    sortedStations.forEach(station=>{
+      let row= stationTableBody.insertRow();
+      // 14 columns
+      for(let i=0;i<14;i++){
+        row.insertCell(i);
       }
-      if ((hour >= 6.5 && hour < 10) || (hour >= 16 && hour < 20.5) ||
-          (hour >= 0.5 && hour < 4.5)) {
-        return timeWeights['long_peak'];
-      }
-      return timeWeights['short_offpeak'];
-    }
+      // col0 => ranking
+      row.cells[0].textContent= rank;
+      rank++;
+      // col1 => station
+      row.cells[1].textContent= station;
 
-    // 不同車種的隨機波動因子
-    function getRandomFactor(trainType) {
-      if (['普悠瑪', '新自強', '自強號', '自強號(新)', '莒光號'].includes(trainType)) {
-        return (Math.random() * 0.15) - 0.1;
+      let totalLoad= stationTotalLoads[station].totalLoad;
+      let count= stationTotalLoads[station].trainCount;
+      // avgLoad => totalLoad (or totalLoad/count)
+      let avgLoad= (totalLoad).toFixed(0);
+      row.cells[2].textContent= avgLoad;
+
+      // usageRate => ( totalLoad / Σ( cntOfType * maxCapOfType ) )*100
+      let sumOfMaxCap=0;
+      for(let t in stationTrainCounts[station]){
+        let c= stationTrainCounts[station][t];
+        let cap= stationMaxCapacities[t]||100;
+        sumOfMaxCap+= (c*cap);
+      }
+      let usageRate= sumOfMaxCap>0 ? (totalLoad/sumOfMaxCap)*100 :0;
+      row.cells[3].textContent= usageRate.toFixed(2)+'%';
+
+      row.cells[4].textContent= stationTotalTrains[station];
+      row.cells[5].textContent= stationTrainCounts[station]['新自強'];
+      row.cells[6].textContent= stationTrainCounts[station]['普悠瑪'];
+      row.cells[7].textContent= stationTrainCounts[station]['自強號(新)'];
+      row.cells[8].textContent= stationTrainCounts[station]['自強號'];
+      row.cells[9].textContent= stationTrainCounts[station]['莒光號'];
+      row.cells[10].textContent= stationTrainCounts[station]['復興號'];
+      row.cells[11].textContent= stationTrainCounts[station]['區間快'];
+      row.cells[12].textContent= stationTrainCounts[station]['區間車'];
+      row.cells[13].textContent= stationTrainCounts[station]['加班車'];
+    });
+
+    // 產生第二張表 (ranking)
+    let rankingTableBody= document.querySelector('#ranking-table tbody');
+    stationsOrder.forEach(station=>{
+      let row= rankingTableBody.insertRow();
+      let cSt= row.insertCell(0);
+      let cRank= row.insertCell(1);
+      let cAvg= row.insertCell(2);
+
+      cSt.textContent= station;
+      let idx= sortedStations.indexOf(station);
+      if(idx===-1){
+        cRank.textContent='-';
+        cAvg.textContent='0';
       } else {
-        return (Math.random() * 0.22) - 0.1;
-      }
-    }
-
-    // 計算「單一車站 + 時間」的運用率
-    function calculateStationUtilizationRate(train, station, time) {
-      // 該車種最大載客數 (找不到則預設 110)
-      var maxCapacityPerTrain = stationMaxCapacities[train['車種']] || 110; 
-      var popularityWeight = popularityWeights[train['車種']] || 1;
-      var timeWeight = calculateTimeWeight(time);
-
-      // 假設該站的密度若查不到，就給個預設 50
-      var baseDensity = stationDensity[station] || 50;
-
-      var load = 0;
-      for (var i = 0; i < 3; i++) {
-        var randomFactor = getRandomFactor(train['車種']);
-        load += baseDensity * timeWeight * popularityWeight * (1 + randomFactor);
-      }
-
-      var averageLoad = load / 3;
-      // 最後轉為百分比，做一些上下限保護
-      var utilizationRate = Math.min(Math.max((averageLoad / maxCapacityPerTrain) * 50, 0), 100);
-      return utilizationRate.toFixed(2) + '%';
-    }
-
-    // 取得該車次在某個站的停靠時間
-    function getStopTime(train, station) {
-      const stop = train['車站時間'].find(s => normalizeStationName(s[0]) === station);
-      return stop ? stop[1] : '';
-    }
-
-    /***** 4. 計算該區間是否還有座位可訂 *****/
-    function isAvailable(train, departure, arrival, quantity) {
-      const stops = train['車站時間'];
-      const departureStop = stops.find(stop => normalizeStationName(stop[0]) === departure);
-      const arrivalStop = stops.find(stop => normalizeStationName(stop[0]) === arrival);
-
-      // 若找不到對應的出發 or 抵達，就不可訂
-      if (!departureStop || !arrivalStop) return false;
-
-      // 用出發站時間來算運用率
-      const departureTime = departureStop[1];
-      const utilizationRate = calculateStationUtilizationRate(train, departure, departureTime);
-
-      // 將字串 "xx.xx%" 轉為數值
-      const utilizationValue = parseFloat(utilizationRate.replace('%', ''));
-      // 估算：若再加入欲訂張數(以最大容量來看)會超過 100，就視為無法訂
-      const maxCapacity = stationMaxCapacities[train['車種']] || 110;
-      const extraLoad = (quantity / maxCapacity) * 100;
-
-      return (utilizationValue + extraLoad) <= 100;
-    }
-
-    /***** 5. 顯示車次 (不管可不可訂，都顯示) *****/
-    function displayTrain(trainNumber, train, departure, arrival, canBook) {
-      const departureTime = getStopTime(train, departure);
-      const arrivalTime = getStopTime(train, arrival);
-
-      // 計算出發站時間的運用率（顯示於表格）
-      const utilizationRate = calculateStationUtilizationRate(train, departure, departureTime);
-      const row = document.createElement('tr');
-
-      // 若 canBook = true => 顯示「確認訂票」，否則「尚無座位」
-      const operationCell = canBook
-        ? `<button onclick="confirmBooking('${trainNumber}', '${train['車種']}', '${departure}', '${arrival}', '${departureTime}', '${arrivalTime}')">確認訂票</button>`
-        : `<span class="no-seats">尚無座位</span>`;
-
-      row.innerHTML = `
-        <td>${trainNumber}</td>
-        <td>${train['車種']}</td>
-        <td>${departure} ➝ ${arrival}</td>
-        <td>${departureTime}</td>
-        <td>${arrivalTime}</td>
-        <td>${utilizationRate}</td>
-        <td>${operationCell}</td>
-      `;
-      resultsTableBody.appendChild(row);
-    }
-
-    /***** 6. 確認訂票 *****/
-    function confirmBooking(trainNumber, trainType, departure, arrival, departureTime, arrivalTime) {
-      const bookingCode = Math.floor(100000 + Math.random() * 900000); // 產生 6 位數訂票代碼
-      const ticketQuantity = parseInt(document.getElementById('ticket-quantity').value);
-
-      // 模擬隨機座位
-      const seats = Array.from({ length: ticketQuantity }, (_, i) => {
-        const carNo = Math.ceil(Math.random() * 12);  // 第幾車
-        const seatNo = Math.ceil(Math.random() * 52); // 第幾號
-        return `第${carNo}車 ${seatNo}號`;
-      }).join('<br>');
-
-      const confirmationPage = `
-        <div class="confirmation">
-          <h1>訂票結果</h1>
-          <p>訂票代碼: <strong>${bookingCode}</strong></p>
-          <p>旅程: <strong>${departureTime} ${departure} 到 ${arrivalTime} ${arrival}</strong></p>
-          <p>行程資訊: <strong>${trainNumber}車次 ${trainType}</strong></p>
-          <p>票數: <strong>${ticketQuantity}</strong></p>
-          <div class="seats-info" style="margin:10px 0;">
-            <strong>座位號:</strong><br>${seats}
-          </div>
-          <button onclick="window.location.reload()">返回主頁</button>
-        </div>
-      `;
-      document.body.innerHTML = confirmationPage;
-    }
-
-    /***** 7. 監聽表單 *****/
-    const bookingForm = document.getElementById('booking-form');
-    const trainNumberSection = document.getElementById('train-number-section');
-    const timeSlotSection = document.getElementById('time-slot-section');
-    const resultsSection = document.getElementById('results-section');
-    const resultsTableBody = document.getElementById('results-table-body');
-
-    // 切換「依車次 / 依時段」區塊顯示
-    bookingForm.addEventListener('change', (event) => {
-      if (event.target.name === 'booking-method') {
-        if (event.target.value === 'train-number') {
-          trainNumberSection.classList.remove('hidden');
-          timeSlotSection.classList.add('hidden');
-          document.getElementById('train-number').required = true;
-          document.getElementById('start-time').required = false;
-          document.getElementById('end-time').required = false;
-        } else if (event.target.value === 'time-slot') {
-          timeSlotSection.classList.remove('hidden');
-          trainNumberSection.classList.add('hidden');
-          document.getElementById('train-number').required = false;
-          document.getElementById('start-time').required = true;
-          document.getElementById('end-time').required = true;
-        }
+        cRank.textContent= idx+1;
+        cAvg.textContent= stationTotalLoads[station].totalLoad.toFixed(0);
       }
     });
 
-    // 表單送出
-    bookingForm.addEventListener('submit', (event) => {
-      event.preventDefault();
+    /*********************************
+     * Sorting columns
+     *   sortDirections => 紀錄每欄位目前 asc/desc
+     *   click => 重新排序 #station-table
+    *********************************/
+    // 原本 col => dataSortMap
+    // "avgLoad" => col2, "usageRate" => col3, "totalTrain" => col4, 
+    //   "新自強" => col5, "普悠瑪" => col6, "自強號(新)" => col7, "自強號" => col8, ...
+    //   其實可以直接從 row.cells[colIndex].textContent parse => numeric
+    //   再 reorder
+    //   之後要更新 "排名" col0 => rowIndex+1
+    const stationTable= document.getElementById('station-table');
+    const stationTableTbody= stationTable.querySelector('tbody');
+    let sortDirections= {}; 
+    // 初始欄位 => asc
+    // col2(平均運量),3(運用率),4(總列車),5..13(各車種)
+    for(let c of [2,3,4,5,6,7,8,9,10,11,12,13]){
+      sortDirections[c]='asc';
+    }
 
-      // 讀取表單輸入
-      const departure = normalizeStationName(departureSelect.value);
-      const arrival = normalizeStationName(arrivalSelect.value);
-      const date = document.getElementById('date').value;
-      const quantity = parseInt(document.getElementById('ticket-quantity').value);
-      const bookingMethod = document.querySelector('input[name="booking-method"]:checked').value;
-      resultsTableBody.innerHTML = '';
-
-      // 若出發站和抵達站相同，直接報錯
-      if (departure === arrival) {
-        alert('出發站與抵達站不能相同，請重新選擇。');
-        return;
-      }
-
-      // 依車次訂票
-      if (bookingMethod === 'train-number') {
-        const trainNumber = document.getElementById('train-number').value.trim();
-        const train = trainSchedule[trainNumber];
-
-        if (!train) {
-          alert('無此車次，請確認輸入是否正確。');
-          return;
-        }
-
-        const stops = train['車站時間'];
-        const departureStop = stops.find(stop => normalizeStationName(stop[0]) === departure);
-        const arrivalStop = stops.find(stop => normalizeStationName(stop[0]) === arrival);
-
-        // 檢查區間合理性
-        if (!departureStop || !arrivalStop || stops.indexOf(departureStop) >= stops.indexOf(arrivalStop)) {
-          alert('行程錯誤。請確認輸入的出發站和抵達站是否正確。');
-          return;
-        }
-
-        // 不管是否可訂，都顯示在表格
-        const canBook = isAvailable(train, departure, arrival, quantity);
-        displayTrain(trainNumber, train, departure, arrival, canBook);
-        resultsSection.classList.remove('hidden');
-      }
-      // 依時段訂票
-      else if (bookingMethod === 'time-slot') {
-        const startTime = document.getElementById('start-time').value;
-        const endTime = document.getElementById('end-time').value;
-
-        if (!startTime || !endTime) {
-          alert('請輸入完整的時段。');
-          return;
-        }
-        if (startTime >= endTime) {
-          alert('結束時間需大於開始時間。');
-          return;
-        }
-
-        const filteredTrains = [];
-        for (const trainNumber in trainSchedule) {
-          const train = trainSchedule[trainNumber];
-          // 若車種是「區間車/區間快」，此示例中略過，可自行調整
-          if (['區間車', '區間快'].includes(train['車種'])) {
-            continue;
-          }
-          const departureStop = train['車站時間'].find(stop => normalizeStationName(stop[0]) === departure);
-          if (!departureStop) continue;
-
-          const depTime = departureStop[1];
-          // 出發時間若在 [startTime, endTime] 內，就列入顯示
-          if (depTime >= startTime && depTime <= endTime) {
-            filteredTrains.push({ trainNumber, train });
-          }
-        }
-
-        // 依出發時間排序
-        filteredTrains.sort((a, b) => {
-          const depTimeA = getStopTime(a.train, departure);
-          const depTimeB = getStopTime(b.train, departure);
-          return depTimeA.localeCompare(depTimeB);
+    // 在 <th> data-sort-col != 'none' 的欄位上加監聽
+    let stationTableThs= stationTable.querySelectorAll('thead th');
+    stationTableThs.forEach((th, colIndex)=>{
+      let sortAttr= th.getAttribute('data-sort-col');
+      if(sortAttr && sortAttr!=='none') {
+        th.addEventListener('click', ()=> {
+          sortStationTable(colIndex);
         });
-
-        // 不管是否可訂，都顯示出來
-        filteredTrains.forEach(({ trainNumber, train }) => {
-          const canBook = isAvailable(train, departure, arrival, quantity);
-          displayTrain(trainNumber, train, departure, arrival, canBook);
-        });
-
-        if (resultsTableBody.children.length > 0) {
-          resultsSection.classList.remove('hidden');
-        } else {
-          alert('沒有符合條件的列車。');
-        }
       }
     });
+
+    function sortStationTable(colIndex) {
+      // 取得當前方向
+      let currentDir= sortDirections[colIndex] || 'asc';
+      // 讀取 tbody rows
+      let rows= Array.from(stationTableTbody.querySelectorAll('tr'));
+
+      rows.sort((a,b)=>{
+        let aVal= a.cells[colIndex].textContent.trim();
+        let bVal= b.cells[colIndex].textContent.trim();
+
+        // 若帶% => 去掉
+        aVal= aVal.replace('%','');
+        bVal= bVal.replace('%','');
+
+        let numA= parseFloat(aVal);
+        let numB= parseFloat(bVal);
+        if(isNaN(numA)) numA=0;
+        if(isNaN(numB)) numB=0;
+
+        return (currentDir==='asc')? (numA - numB) : (numB - numA);
+      });
+
+      // 重新塞回 table
+      stationTableTbody.innerHTML='';
+      rows.forEach((row, idx)=>{
+        // 重設 "排名" (col0)
+        row.cells[0].textContent= (idx+1);
+        stationTableTbody.appendChild(row);
+      });
+
+      // flip dir
+      sortDirections[colIndex]= (currentDir==='asc'?'desc':'asc');
+    }
   </script>
 </body>
 </html>
