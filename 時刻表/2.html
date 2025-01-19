@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8"/>
+  <title>可刪除&拖曳站序 + 自動排點</title>
+  <style>
+    body {
+      margin: 0; padding: 0;
+      font-family: "Microsoft JhengHei", sans-serif;
+      background: linear-gradient(120deg, #fdfbfb, #ebedee);
+    }
+    header {
+      background: #4e77b6; color: #fff; padding: 1rem; text-align: center;
+    }
+    .container {
+      max-width: 800px; margin: 2rem auto;
+      background: #fff; padding: 1.5rem; border-radius: 8px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+    label {
+      display: inline-block; width: 80px; margin-right: 10px; font-weight: bold;
+    }
+    select, input, button {
+      font-size: 0.8rem; padding: 1px; margin-bottom: 1px;
+    }
+    .stations-list {
+      margin: 1rem 0; padding: 0; list-style: none;
+      border: 1px solid #ccc; border-radius: 6px; background: #f9f9f9;
+    }
+    .station-item {
+      display: flex; align-items: center;
+      gap: 10px; padding: 0.5rem; border-bottom: 1px solid #ddd;
+      cursor: move; /* 提示可拖曳 */
+    }
+    .station-item:last-child {
+      border-bottom: none;
+    }
+    .station-item.dragging {
+      opacity: 0.5;
+      background: #d0ebff;
+    }
+    .station-item select {
+      flex: 1; /* 站名下拉佔寬 */
+    }
+    .remove-btn {
+      background: #cc3333; color: #fff; border: none; border-radius: 4px;
+      cursor: pointer; padding: 2px 3px;
+    }
+    .remove-btn:hover {
+      background: #aa0000;
+    }
+    button.btn-primary {
+      background: #4e77b6; color: #fff; border: none; border-radius: 4px;
+      cursor: pointer; margin-right: 10px;
+    }
+    .result-area {
+      margin-top: 1rem; background: #f8f8f8; padding: 1rem; border-radius: 6px; border: 1px solid #ccc;
+    }
+    pre {
+      background: #fff; border: 1px solid #ddd; padding: 10px;
+      border-radius: 4px; max-height: 300px; overflow: auto;
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>可刪除 & 拖曳站序 + 自動排點</h1>
+</header>
+
+<div class="container">
+  <!-- 基本輸入 -->
+  <div>
+    <label for="trainId">車次：</label>
+    <input type="text" id="trainId" placeholder="例如: 9999" />
+  </div>
+  <div>
+    <label for="trainType">車種：</label>
+    <select id="trainType">
+      <option value="自強號">自強號</option>
+      <option value="普悠瑪">普悠瑪</option>
+      <option value="新自強">新自強</option>
+      <option value="自強號(新)">自強號(新)</option>
+      <option value="加班車">加班車</option>
+      <option value="莒光號">莒光號</option>
+      <option value="復興號">復興號</option>
+      <option value="區間快">區間快</option>
+      <option value="區間車">區間車</option>
+    </select>
+  </div>
+  <div>
+    <label for="startTime">起站時間：</label>
+    <input type="time" id="startTime" value="08:00" />
+  </div>
+
+  <hr/>
+
+  <!-- 動態站點清單(UL) + 按鈕 -->
+  <ul class="stations-list" id="stationList"></ul>
+  <button class="btn-primary" onclick="addStationItem()">新增</button>
+  <br/>
+  <small>可直接按住站點區塊拖曳上下交換順序</small>
+
+  <hr/>
+  <button class="btn-primary" onclick="autoSchedule()">自動排點</button>
+
+  <div class="result-area">
+    <h3>排點結果</h3>
+    <div id="scheduleOutput"></div>
+    <h4>可複製的程式碼：</h4>
+    <pre id="codeOutput"></pre>
+  </div>
+</div>
+
+<script src="train-schedule.js"></script>
+<script>
+
+
+//-------------------------------------------
+// (B) UI: "stationList" <ul> 的初始化
+//-------------------------------------------
+var stationListUl = document.getElementById("stationList");
+
+// 先放2個(起站, 第二站)
+addStationItem();
+addStationItem();
+
+/** 新增一行 <li> (select + remove btn) */
+function addStationItem(value) {
+  if(!value) value = stations[0]; // 預設選第一個
+
+  // 建立 <li> with draggable
+  var li = document.createElement("li");
+  li.className = "station-item";
+  li.draggable = true;
+  // 綁定拖曳事件
+  li.addEventListener("dragstart", onDragStart);
+  li.addEventListener("dragover", onDragOver);
+  li.addEventListener("drop", onDrop);
+  li.addEventListener("dragend", onDragEnd);
+
+  // 建立 <select>
+  var sel = document.createElement("select");
+  stations.forEach(function(station){
+    var opt = document.createElement("option");
+    opt.value = station;
+    opt.textContent = station;
+    sel.appendChild(opt);
+  });
+  sel.value = value;
+
+  // 建立刪除按鈕
+  var btn = document.createElement("button");
+  btn.textContent = "X";
+  btn.className = "remove-btn";
+  btn.addEventListener("click", function(){
+    removeStationItem(li);
+  });
+
+  // 組合
+  li.appendChild(sel);
+  li.appendChild(btn);
+
+  stationListUl.appendChild(li);
+}
+
+/** 刪除該<li> (保留至少2個) */
+function removeStationItem(li) {
+  if(stationListUl.children.length <= 2) {
+    alert("最少需保留2個站！");
+    return;
+  }
+  stationListUl.removeChild(li);
+}
+
+//-------------------------------------------
+// (C) Drag & Drop：讓 <li> 可上下拖曳交換
+//-------------------------------------------
+var dragSrcEl = null; // 被拖曳的 <li>
+
+function onDragStart(e) {
+  e.currentTarget.classList.add("dragging");
+  dragSrcEl = e.currentTarget;
+}
+
+function onDragOver(e) {
+  // 允許 drop
+  e.preventDefault();
+}
+
+function onDrop(e) {
+  e.preventDefault();
+  // drop 的目標 li
+  var dropTarget = e.currentTarget;
+  if(dragSrcEl && dropTarget && dragSrcEl!==dropTarget) {
+    // 交換位置
+    // 取得各自位置
+    var list = stationListUl;
+    var childrenArr = Array.from(list.children);
+    var srcIndex = childrenArr.indexOf(dragSrcEl);
+    var tgtIndex = childrenArr.indexOf(dropTarget);
+    if(srcIndex < tgtIndex) {
+      list.insertBefore(dragSrcEl, dropTarget.nextSibling);
+    } else {
+      list.insertBefore(dragSrcEl, dropTarget);
+    }
+  }
+}
+
+function onDragEnd(e) {
+  e.currentTarget.classList.remove("dragging");
+  dragSrcEl = null;
+}
+
+//-------------------------------------------
+// (D) 自動排點邏輯
+//-------------------------------------------
+
+// 車種優先順序
+var priorityTypes = [
+  "普悠瑪","新自強","自強號(新)","自強號","加班車","莒光號","復興號","區間快","區間車"
+];
+
+/** "HH:MM" => 總分鐘 */
+function toMinutes(hhmm){
+  var [h,m] = hhmm.split(":").map(Number);
+  return h*60 + m;
+}
+/** 總分鐘 => "HH:MM" */
+function toHHMM(total){
+  var hh = Math.floor(total/60) % 24;
+  var mm = total % 60;
+  return String(hh).padStart(2,"0")+":"+String(mm).padStart(2,"0");
+}
+
+/**
+ * 取得 stationA->stationB 最短行駛時間(允許中途停站)
+ * 若找不到 => 依車種優先序繼續往下
+ */
+function getSegmentMinutes(mainType, stationA, stationB){
+  var startIdx = priorityTypes.indexOf(mainType);
+  if(startIdx<0) startIdx=0;
+
+  for(var i=startIdx; i<priorityTypes.length; i++){
+    var t = priorityTypes[i];
+    var candidates = [];
+
+    // 遍歷 trainSchedule
+    Object.keys(trainSchedule).forEach(function(trainId){
+      var data = trainSchedule[trainId];
+      if(data.車種 === t) {
+        var times = data.車站時間;
+        // 找stationA, stationB
+        var idxA=-1, idxB=-1;
+        for(let k=0;k<times.length;k++){
+          if(times[k][0]===stationA) idxA=k;
+          if(times[k][0]===stationB) idxB=k;
+        }
+        // B在A之後 => 計算行駛時間
+        if(idxA>=0 && idxB>idxA) {
+          let startMin = toMinutes(times[idxA][1]);
+          let endMin = toMinutes(times[idxB][1]);
+          let total = endMin - startMin;
+          let stopCount = idxB - idxA;
+          if(total>0) {
+            candidates.push({total, stopCount});
+          }
+        }
+      }
+    });
+    if(candidates.length>0){
+      // sort by total(asc), then stopCount(asc)
+      candidates.sort((a,b)=>{
+        if(a.total!==b.total) return a.total-b.total;
+        return a.stopCount - b.stopCount;
+      });
+      return candidates[0].total;
+    }
+  }
+
+  // 全找不到 => 給個保底
+  return 30;
+}
+
+/** 按鈕: 自動排點 */
+function autoSchedule(){
+  var trainId = document.getElementById("trainId").value.trim() || "9999";
+  var trainType = document.getElementById("trainType").value;
+  var start = document.getElementById("startTime").value || "08:00";
+
+  // 取出 stationListUl 中的 select values
+  var liArr = Array.from(stationListUl.children);
+  if(liArr.length<2){
+    alert("至少需要2個站！");
+    return;
+  }
+  var route = liArr.map(li => {
+    let sel = li.querySelector("select");
+    return sel.value;
+  });
+
+  // 排點
+  var schedule = [];
+  var currentMin = toMinutes(start);
+  schedule.push([route[0], toHHMM(currentMin)]);
+
+  for(var i=0; i<route.length-1; i++){
+    let sA = route[i];
+    let sB = route[i+1];
+    let seg = getSegmentMinutes(trainType, sA, sB);
+    currentMin += seg;
+    schedule.push([ sB, toHHMM(currentMin) ]);
+  }
+
+  // 結果顯示
+  var outArr = schedule.map(s => `${s[0]} - ${s[1]}`);
+  document.getElementById("scheduleOutput").innerHTML = outArr.join("<br/>");
+
+  // 產生可複製的程式碼
+  var code = `
+'${trainId}': {
+  '車種': '${trainType}',
+  '車站時間': [
+    ${schedule.map(s=>`['${s[0]}','${s[1]}']`).join(", ")}
+  ]
+},
+`.trim();
+  document.getElementById("codeOutput").textContent = code;
+}
+</script>
+
+</body>
+</html>

@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8" />
+  <title>動態新增/刪除停靠站 & 自動排點</title>
+  <style>
+    /* ===== 簡易美觀佈景 ===== */
+    body {
+      margin: 0; padding: 0;
+      font-family: "Microsoft JhengHei", sans-serif;
+      background: linear-gradient(120deg, #fdfbfb, #ebedee);
+    }
+    header {
+      background: #4e77b6; color: white;
+      padding: 1.5rem; text-align: center;
+    }
+    header h1 { margin: 0; font-size: 1.4rem; }
+    .container {
+      max-width: 800px; margin: 2rem auto;
+      background: #fff; border-radius: 8px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      padding: 2rem;
+    }
+    label { display: inline-block; width: 80px; margin-right: 10px; font-weight: bold; }
+    select, input, button {
+      padding: 6px; font-size: 1rem; margin-bottom: 10px;
+    }
+    .stations-box {
+      border: 1px solid #ccc; padding: 10px; border-radius: 6px;
+      background: #f9f9f9; margin: 1rem 0;
+    }
+    .stations-box p {
+      margin: 0; padding: 0; margin-bottom: 0.5rem; font-weight: bold;
+    }
+    .station-select-row {
+      display: flex; flex-wrap: wrap; gap: 8px;
+    }
+    .result-area {
+      margin-top: 1.5rem;
+      background: #f8f8f8; padding: 1rem; border-radius: 6px; border: 1px solid #ccc;
+    }
+    pre {
+      background: #fff; border: 1px solid #ddd; padding: 10px;
+      border-radius: 4px; max-height: 300px; overflow: auto;
+    }
+    button { border: none; border-radius: 4px; cursor: pointer; }
+    button:hover { opacity: 0.9; }
+    .btn-primary { background: #4e77b6; color: #fff; }
+    .btn-danger { background: #cc3333; color: #fff; }
+    .highlight { background: #f0f7fd; padding: 0.5rem; border-radius: 4px; }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>動態新增/刪除停靠站 & 自動排點</h1>
+</header>
+
+<div class="container">
+  <!-- ===== 輸入車次、車種、起始時間 ===== -->
+  <div>
+    <label for="trainId">車次：</label>
+    <input type="text" id="trainId" placeholder="範例：9999" />
+  </div>
+
+  <div>
+    <label for="trainType">車種：</label>
+    <select id="trainType">
+      <option value="自強號">自強號</option>
+      <option value="普悠瑪">普悠瑪</option>
+      <option value="新自強">新自強</option>
+      <option value="自強號(新)">自強號(新)</option>
+      <option value="加班車">加班車</option>
+      <option value="莒光號">莒光號</option>
+      <option value="復興號">復興號</option>
+      <option value="區間快">區間快</option>
+      <option value="區間車">區間車</option>
+    </select>
+  </div>
+
+  <div>
+    <label for="startTime">起站時間：</label>
+    <input type="time" id="startTime" value="08:00" />
+  </div>
+
+  <hr/>
+
+  <!-- ===== 動態站點清單(多個 select) ===== -->
+  <div class="stations-box">
+    <p>設定停靠站：</p>
+    <div class="station-select-row" id="stationsContainer">
+      <!-- 預設放兩個(起站、第二站)。可自行增刪。 -->
+    </div>
+    <button class="btn-primary" onclick="addStationSelect()">新增站</button>
+    <button class="btn-danger" onclick="removeStationSelect()">刪除站</button>
+    <br/>
+    <small>（最少需保留2個站）</small>
+  </div>
+
+  <button class="btn-primary" onclick="autoSchedule()">自動排點</button>
+
+  <!-- ===== 結果輸出 ===== -->
+  <div class="result-area" id="resultArea">
+    <h2>排點結果</h2>
+    <div id="scheduleOutput" class="highlight"></div>
+    <h4>可複製的 JSON 程式碼：</h4>
+    <pre id="codeOutput"></pre>
+  </div>
+</div>
+
+<script src="train-schedule.js"></script>
+<script>
+//=================================================
+// 1) 您的 trainSchedule (以下僅貼測試用的一小段)
+//=================================================
+
+
+
+
+//=================================================
+// 2) UI: 動態「新增/刪除」站名 select
+//=================================================
+var stationsContainer = document.getElementById("stationsContainer");
+
+// 預設放 2 個下拉(起站、第二站)
+addStationSelect();
+addStationSelect();
+
+function addStationSelect() {
+  // 建立 <select>
+  var sel = document.createElement("select");
+  stations.forEach(function(st){
+    var opt = document.createElement("option");
+    opt.value = st;
+    opt.textContent = st;
+    sel.appendChild(opt);
+  });
+  stationsContainer.appendChild(sel);
+}
+function removeStationSelect() {
+  // 最少保留 2 個
+  if(stationsContainer.children.length > 2) {
+    stationsContainer.removeChild(stationsContainer.lastElementChild);
+  }
+}
+
+//=================================================
+// 3) 查「相鄰站最短行駛時間」的核心邏輯
+//    (允許中途停站，但選行駛時間最短 + 停站最少的參考班次)
+//=================================================
+
+// 定義車種搜尋優先序
+var priorityTypes = [
+  "普悠瑪","新自強","自強號(新)","自強號","加班車","莒光號","復興號","區間快","區間車"
+];
+
+/** 轉換 "HH:MM" => 總分鐘 */
+function toMinutes(hhmm){
+  var [h,m] = hhmm.split(":").map(Number);
+  return h*60 + m;
+}
+/** 總分鐘 => "HH:MM" (不考慮跨日超過24:00) */
+function toHHMM(total){
+  var hh = Math.floor(total/60) % 24;
+  var mm = total % 60;
+  return String(hh).padStart(2,"0")+":"+String(mm).padStart(2,"0");
+}
+
+/**
+ * 取得「stationA -> stationB」的最短行駛時間(分鐘)
+ *  - 先嘗試 mainType，如果該車種找不到資料 => 依 priorityTypes 依序往下
+ *  - 若有多個符合 => 先比「totalMin (小到大)」，再比「停站數 (少到多)」
+ */
+function getSegmentMinutes(mainType, stationA, stationB){
+  var startIdx = priorityTypes.indexOf(mainType);
+  if(startIdx<0) startIdx=0;
+
+  for(var i=startIdx; i<priorityTypes.length; i++){
+    var t = priorityTypes[i];
+    var candidates = [];
+
+    // 遍歷 trainSchedule
+    Object.keys(trainSchedule).forEach(function(trainId){
+      var data = trainSchedule[trainId];
+      if(data.車種 === t) {
+        var times = data.車站時間;
+        // 找 stationA, stationB 的索引
+        var idxA = -1, idxB = -1;
+        for(var k=0; k<times.length; k++){
+          if(times[k][0]===stationA) idxA = k;
+          if(times[k][0]===stationB) idxB = k;
+        }
+        // 若找到 A,B 並且 B在A之後 => 取行駛時間
+        if(idxA>=0 && idxB>idxA) {
+          var startTime = toMinutes(times[idxA][1]);
+          var endTime = toMinutes(times[idxB][1]);
+          var totalMin = endTime - startTime;
+          var stopCount = idxB - idxA;
+          if(totalMin>0) {
+            candidates.push({ totalMin, stopCount, trainId });
+          }
+        }
+      }
+    });
+
+    if(candidates.length>0) {
+      // 排序 (行駛時間最短優先 + 停站數最少)
+      candidates.sort((a,b)=>{
+        if(a.totalMin!==b.totalMin) return a.totalMin - b.totalMin;
+        return a.stopCount - b.stopCount;
+      });
+      return candidates[0].totalMin; // 拿第一筆
+    }
+  }
+
+  // 全都找不到 => 給個保底時間(如 30min)
+  return 30;
+}
+
+//=================================================
+// 4) 主函式：取得所有停靠站，依序計算各站時間
+//=================================================
+function autoSchedule() {
+  var trainId = document.getElementById("trainId").value.trim() || "9999";
+  var trainType = document.getElementById("trainType").value;
+  var startTime = document.getElementById("startTime").value || "08:00";
+  
+  // 取得所有 <select> 的值
+  var selList = stationsContainer.querySelectorAll("select");
+  if(selList.length<2) {
+    alert("請至少設定2個站(起站/終站)");
+    return;
+  }
+  var route = [];
+  selList.forEach(function(s){
+    route.push(s.value);
+  });
+
+  // 做排點
+  var result = [];
+  var currentMin = toMinutes(startTime);
+  // 第1站
+  result.push([ route[0], toHHMM(currentMin) ]);
+
+  // 從第1站 -> 第2站、第2站 -> 第3站…逐段計算
+  for(var i=0; i<route.length-1; i++){
+    var sA = route[i];
+    var sB = route[i+1];
+    var segMin = getSegmentMinutes(trainType, sA, sB);
+    // 下一站 = 當前站時間 + segMin
+    currentMin += segMin;
+    result.push([ sB, toHHMM(currentMin) ]);
+  }
+
+  // 顯示
+  var lines = result.map(item => item[0] + " - " + item[1]);
+  document.getElementById("scheduleOutput").innerHTML = lines.join("<br/>");
+
+  // 輸出 JSON 程式碼
+  var code = `
+'${trainId}': {
+  '車種': '${trainType}',
+  '車站時間': [
+    ${result.map(r=>`['${r[0]}','${r[1]}']`).join(", ")}
+  ]
+},
+`.trim();
+  document.getElementById("codeOutput").textContent = code;
+}
+</script>
+
+</body>
+</html>
