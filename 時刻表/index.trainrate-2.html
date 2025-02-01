@@ -162,7 +162,6 @@
       border-bottom: 1px solid #ddd;
       font-size: 14px;
       vertical-align: middle;
-      /* 不可換行 */
       white-space: nowrap;
       transition: background-color 0.3s ease;
     }
@@ -191,8 +190,6 @@
     body.dark-mode tr:hover {
       background-color: #333;
     }
-
-    /* 讓「沿途停靠站」可以自動換行 */
     td.transfer-stations {
       white-space: normal;
       line-height: 1.5;
@@ -208,7 +205,7 @@
       color: #000;
     }
     body.dark-mode .peak-hour {
-      background: #e09f00; 
+      background: #e09f00;
       color: #fff;
     }
 
@@ -316,7 +313,7 @@
     <div class="card">
       <h2 class="section-title">出發站 & 抵達站查詢</h2>
       <!-- datalist for station input -->
-      <datalist id="stationList"><!-- 由JS動態生成 --></datalist>
+      <datalist id="stationList"></datalist>
       <div style="margin-bottom:10px;">
         <label for="startStationInput">出發站：</label>
         <input 
@@ -334,7 +331,6 @@
         />
       </div>
       <div style="margin-bottom:10px;">
-        <!-- 車種複選：Start-End -->
         <input type="checkbox" id="trainTypeNew" onclick="toggleTrainTypeFilter('start-end', '新自強')">
         <label for="trainTypeNew">新自強</label>
 
@@ -364,6 +360,7 @@
 
         <button onclick="filterTrainScheduleByStation()">查詢</button>
       </div>
+      <!-- 新增「運用率」 => 第7欄 -->
       <table id="scheduleTableByStation">
         <thead>
           <tr>
@@ -373,6 +370,7 @@
             <th>抵達站(時間)</th>
             <th>行駛時間</th>
             <th>沿途停靠站</th>
+            <th>運用率</th>
           </tr>
         </thead>
         <tbody><!-- 由JS插入 --></tbody>
@@ -424,12 +422,14 @@
 
         <button onclick="filterTrainScheduleByStationName()">查詢</button>
       </div>
+      <!-- 新增「運用率」 => 第4欄 -->
       <table id="scheduleTableByStationName">
         <thead>
           <tr>
             <th>車次</th>
             <th>車種 (行駛區間)</th>
             <th>開車時間</th>
+            <th>運用率</th>
           </tr>
         </thead>
         <tbody><!-- 由JS插入 --></tbody>
@@ -451,11 +451,13 @@
       </select>
       <button onclick="filterTrainScheduleByNumber()">查詢</button>
 
+      <!-- 新增「運用率」 => 第3欄 -->
       <table id="scheduleTableByNumber">
         <thead>
           <tr>
             <th>車次</th>
             <th>車種 (行駛區間)</th>
+            <th>運用率</th>
           </tr>
         </thead>
         <tbody><!-- 由JS插入 --></tbody>
@@ -506,6 +508,205 @@
       stationList.appendChild(opt);
     });
 
+    /************************************************
+     ★★★ 運用率公式區 (from your code) + 整合函式
+    ************************************************/
+    let selectedTrainTypes= ['新自強','普悠瑪','自強號','自強號(新)','莒光號','復興號','區間快','區間車','加班車'];
+    var stationMaxCapacities = {
+      '新自強': 638,
+      '普悠瑪': 406,
+      '自強號(新)': 906,
+      '自強號': 866,
+      '莒光號': 1000,
+      '復興號': 1000,
+      '區間快': 1700,
+      '區間車': 1700,
+      '加班車': 638,
+    };
+    var popularityWeights = {
+      '普悠瑪': 1.42,
+      '新自強': 2.4,
+      '加班車': 2.4,
+      '自強號(新)': 4.7,
+      '自強號': 3.15,
+      '莒光號': 3.0,
+      '復興號': 3.35,
+      '區間快': 5.85,
+      '區間車': 5.65
+    };
+    var timeWeights = {
+      'short_peak': 5.0,
+      'short_offpeak': 3.0,
+      'long_peak': 7.5,
+      'long_offpeak': 3.0
+    };
+
+    // stationDensity: 計算每個車站在所有車次中出現幾次
+    var stationDensity = {};
+    for(let tn in trainSchedule) {
+      let train= trainSchedule[tn];
+      train['車站時間'].forEach(st => {
+        let stName= st[0];
+        if(!stationDensity[stName]) stationDensity[stName]=0;
+        stationDensity[stName]++;
+      });
+    }
+
+    function calculateTimeWeight(time) {
+      let hour= parseInt(time.split(':')[0],10);
+      // 您的時間區間判斷 (舉例)
+      // 可依您實際需求調整
+      if((hour>=6 && hour<9.5)||(hour>=12 && hour<13)||(hour>=16 && hour<20)||(hour>=21 && hour<22)) {
+        return timeWeights['short_peak'];
+      }
+      if((hour>=6.5 && hour<10)||(hour>=16 && hour<20.5)||(hour>=0.5 && hour<4.5)) {
+        return timeWeights['long_peak'];
+      }
+      return timeWeights['short_offpeak'];
+    }
+
+    function getRandomFactor(trainType) {
+      if(['普悠瑪','新自強','自強號','自強號(新)','莒光號'].includes(trainType)) {
+        return (Math.random()*0.15)-0.1; 
+      } else {
+        return (Math.random()*0.22)-0.1; 
+      }
+    }
+
+    /**
+     * 計算「單一車站」對應此列車(車種) + 時間 => 運用率
+     */
+    function calculateStationUtilizationRate(train, station, time) {
+      let maxCap= stationMaxCapacities[train['車種']]||110;
+      let load=0;
+      let pWeight= popularityWeights[train['車種']]||1;
+      let tWeight= calculateTimeWeight(time);
+      // 做 3 次取平均
+      for(let i=0;i<3;i++){
+        let rnd= getRandomFactor(train['車種']);
+        load += ((stationDensity[station]||0)* tWeight* pWeight)*(1+rnd);
+      }
+      let avg= load/3;
+      let usage= Math.min(Math.max((avg/maxCap)*50,0),100);
+      return usage.toFixed(2)+'%';
+    }
+
+    /**
+     * 計算「整車(全站序)」運用率
+     */
+    function calculateUtilizationRate(train) {
+      let maxCap= stationMaxCapacities[train['車種']]||110;
+      let totalLoad=0;
+      let stTimes= train['車站時間'];
+
+      if(['普悠瑪','新自強','自強號','自強號(新)','莒光號'].includes(train['車種'])){
+        // 做 3 次測試取平均
+        for(let i=0;i<3;i++){
+          let day=0;
+          stTimes.forEach(st=>{
+            let stName= st[0];
+            let stTime= st[1];
+            let tW= calculateTimeWeight(stTime);
+            let pW= popularityWeights[train['車種']]||1;
+            let rnd= (Math.random()*0.15)-0.1;
+            day += ((stationDensity[stName]||0)* tW* pW)*(1+rnd);
+          });
+          totalLoad += day / stTimes.length;
+        }
+      } else {
+        // 其他車種
+        for(let i=0;i<3;i++){
+          let day=0;
+          stTimes.forEach(st=>{
+            let stName= st[0];
+            let stTime= st[1];
+            let tW= calculateTimeWeight(stTime);
+            let pW= popularityWeights[train['車種']]||1;
+            let rnd= (Math.random()*0.22)-0.1;
+            day += ((stationDensity[stName]||0)* tW* pW)*(1+rnd);
+          });
+          totalLoad += day / stTimes.length;
+        }
+      }
+      let usage= Math.min(Math.max(((totalLoad/3)/maxCap)*50,0),100);
+      return usage.toFixed(2)+'%';
+    }
+
+    /**
+     * ★★★ Segment 版本函式：只計算「部分區段(起站→迄站)」的運用率。
+     */
+    function calculateSegmentUtilizationRate(train, subStations) {
+      // subStations: e.g. stTimes[from..to]
+      let maxCap= stationMaxCapacities[train['車種']]||110;
+      let totalLoad=0;
+      if(['普悠瑪','新自強','自強號','自強號(新)','莒光號'].includes(train['車種'])){
+        for(let i=0;i<3;i++){
+          let day=0;
+          subStations.forEach(item=>{
+            let stName= item[0];
+            let stTime= item[1];
+            let tW= calculateTimeWeight(stTime);
+            let pW= popularityWeights[train['車種']]||1;
+            let rnd= (Math.random()*0.15)-0.1;
+            day += ((stationDensity[stName]||0)* tW* pW)*(1+rnd);
+          });
+          day = day / subStations.length;
+          totalLoad += day;
+        }
+      } else {
+        for(let i=0;i<3;i++){
+          let day=0;
+          subStations.forEach(item=>{
+            let stName= item[0];
+            let stTime= item[1];
+            let tW= calculateTimeWeight(stTime);
+            let pW= popularityWeights[train['車種']]||1;
+            let rnd= (Math.random()*0.22)-0.1;
+            day += ((stationDensity[stName]||0)* tW* pW)*(1+rnd);
+          });
+          day = day / subStations.length;
+          totalLoad += day;
+        }
+      }
+      let usage= Math.min(Math.max(((totalLoad/3)/maxCap)*50,0),100);
+      return usage.toFixed(2) + '%';
+    }
+
+    /************************************************
+     ★★★ 運用率函式整合給三個查詢使用
+    ************************************************/
+    // 1) 出發站 & 抵達站 => 區段
+    function getSegmentUsageRate(trainNumber, startStation, endStation) {
+      let train= trainSchedule[trainNumber];
+      let stTimes= train['車站時間'];
+      let startIndex= stTimes.findIndex(x=> x[0]===startStation);
+      let endIndex= stTimes.findIndex(x=> x[0]===endStation);
+      // 取子陣列: stTimes[startIndex..endIndex]
+      if(startIndex>=0 && endIndex>startIndex) {
+        let subArr= stTimes.slice(startIndex, endIndex+1);
+        return calculateSegmentUtilizationRate(train, subArr);
+      } 
+      // 若找不到 => 0%
+      return '0.00%';
+    }
+
+    // 2) 車站查詢 => 單一車站
+    function getStationUsageRate(trainNumber, stationName) {
+      let train= trainSchedule[trainNumber];
+      let stTimes= train['車站時間'];
+      let found= stTimes.find(x=> x[0]===stationName);
+      if(found) {
+        return calculateStationUtilizationRate(train, stationName, found[1]);
+      }
+      return '0.00%';
+    }
+
+    // 3) 車次查詢 => 整車
+    function getTrainUsageRate(trainNumber) {
+      let train= trainSchedule[trainNumber];
+      return calculateUtilizationRate(train);
+    }
+
     /*****************************
       工具函式
     *****************************/
@@ -536,29 +737,22 @@
     }
     // 彩色顯示車種
     function getTrainTypeWithColor(trainType) {
-  // 檢查目前是否為「暗色模式」(範例用法：若您有其他夜間模式檢測方式，請自行替換)
-  const isDarkMode = document.body.classList.contains('dark-mode');
-
-  let color = '#333'; // 預設
-
-  switch (trainType) {
-    case '新自強': color = '#8600FF'; break;
-    case '普悠瑪': color = '#FF1493'; break;
-    case '自強號': color = 'red';     break;
-    case '莒光號': color = 'orange';  break;
-    case '區間快': color = 'green';   break;
-    case '復興號': color = '#0080FF'; break;
-    case '區間車': 
-      // 若為暗色模式，改成白色；否則用黑色
-      color = isDarkMode ? '#fff' : 'black'; 
-      break;
-    case '自強號(新)': color = 'brown'; break;
-    case '加班車':      color = 'teal';  break;
-    default:            color = '#333';  break;
-  }
-
-  return `<span style="color: ${color};">${trainType}</span>`;
-}
+      const isDarkMode = document.body.classList.contains('dark-mode');
+      let color = '#333'; 
+      switch (trainType) {
+        case '新自強': color = '#8600FF'; break;
+        case '普悠瑪': color = '#FF1493'; break;
+        case '自強號': color = 'red';     break;
+        case '莒光號': color = 'orange';  break;
+        case '區間快': color = 'green';   break;
+        case '復興號': color = '#0080FF'; break;
+        case '區間車': color = isDarkMode ? '#fff' : 'black'; break;
+        case '自強號(新)': color = 'brown'; break;
+        case '加班車': color = 'teal'; break;
+        default: color = '#333'; break;
+      }
+      return `<span style="color: ${color};">${trainType}</span>`;
+    }
 
     // Modal: 沿途停靠站
     function showTrainDetails(trainNumber) {
@@ -584,12 +778,13 @@
         modal.style.display = 'none';
       }
     };
+
     // 假判斷方向 (偶數:北上, 奇數:南下)
     function getDirection(trainNumber) {
       return trainNumber % 2 === 0 ? 'northbound' : 'southbound';
     }
 
-    // 車種複選
+    // 車種複選 (Start-End or Station)
     function toggleTrainTypeFilter(context, trainType) {
       var arr = context==='start-end' ? selectedTrainTypesStartEnd : selectedTrainTypesStation;
       var idx = arr.indexOf(trainType);
@@ -604,7 +799,7 @@
     }
 
     /*****************************
-      1) 出發站 & 抵達站
+      1) 出發站 & 抵達站 查詢
     *****************************/
     function filterTrainScheduleByStation() {
       var startStation = document.getElementById('startStationInput').value.trim();
@@ -629,6 +824,9 @@
           var endTime = stTimes[endIndex][1] || '';
           var travelTime = calculateTimeDifference(startTime, endTime);
 
+          // ★★★ 區段運用率
+          var usageRate = getSegmentUsageRate(trainNumberKey, startStation, endStation);
+
           result.push({
             trainNumber: trainNumberKey,
             typeColored: getTrainTypeWithColor(trainType),
@@ -636,7 +834,8 @@
             startTime,
             endTime,
             travelTime,
-            transferStations: stTimes.slice(startIndex+1, endIndex).map(s=>s[0])
+            transferStations: stTimes.slice(startIndex+1, endIndex).map(s=>s[0]),
+            usageRate
           });
         }
       }
@@ -652,14 +851,14 @@
         var row = tableBody.insertRow();
         row.insertCell(0).innerHTML = item.trainNumber;
         row.insertCell(1).innerHTML = `${item.typeColored} (${item.fullRange})`;
-        // 只顯示時間
         row.insertCell(2).innerHTML = highlightPeakHour(item.startTime);
         row.insertCell(3).innerHTML = highlightPeakHour(item.endTime);
         row.insertCell(4).innerHTML = item.travelTime;
-        // 讓「沿途停靠站」以逗號分隔、可自動換行
         var cell = row.insertCell(5);
         cell.classList.add('transfer-stations');
         cell.innerHTML = item.transferStations.join(', ');
+        // 運用率
+        row.insertCell(6).innerHTML = item.usageRate;
 
         row.onclick = () => showTrainDetails(item.trainNumber);
       });
@@ -698,6 +897,11 @@
             row.insertCell(1).innerHTML = `${getTrainTypeWithColor(train['車種'])} (${firstStop} ➝ ${lastStop})`;
             var depTime = stTimes[idx][1] || '--';
             row.insertCell(2).innerHTML = highlightPeakHour(depTime);
+
+            // ★★★ 單一車站運用率
+            var usage = getStationUsageRate(trainNumber, stationName);
+            row.insertCell(3).innerHTML = usage;
+
             row.onclick = () => showTrainDetails(trainNumber);
           }
         }
@@ -749,6 +953,11 @@
         var firstStop = stTimes?.[0]?.[0] || '';
         var lastStop = stTimes?.[stTimes.length-1]?.[0] || '';
         row.insertCell(1).innerHTML = `${getTrainTypeWithColor(train['車種'])} (${firstStop} ➝ ${lastStop})`;
+
+        // ★★★ 整車運用率
+        var usage = getTrainUsageRate(trainNumber);
+        row.insertCell(2).innerHTML = usage;
+
         row.onclick = () => showTrainDetails(trainNumber);
       }
     }
