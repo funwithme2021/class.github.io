@@ -2,16 +2,14 @@
 <html lang="zh-Hant">
 <head>
   <meta charset="UTF-8"/>
-  <title>BINGO BINGO - 綜合分析(統計/週期/回歸/連續開獎) + WalkForwardRolling</title>
+  <title>BINGO BINGO - 綜合分析(統計/週期/回歸/連續開獎)，無bestWindowSize</title>
   <style>
     body {
       margin:0; padding:0;
       font-family:"Microsoft JhengHei",sans-serif;
       background:#f4f4f4; color:#333;
     }
-    .container {
-      margin:1rem;
-    }
+    .container { margin:1rem; }
     .ball {
       width:40px; height:40px; border-radius:50%;
       background:#ddd; color:#333;
@@ -31,8 +29,12 @@
       vertical-align:middle;
     }
     .badge-final { background:#d9534f; }
-    table { border-collapse:collapse; width:100%; margin-bottom:1rem; }
-    th, td { border:1px solid #ddd; padding:0.4rem; font-size:0.8rem; }
+    table {
+      border-collapse:collapse; width:100%; margin-bottom:1rem;
+    }
+    th, td {
+      border:1px solid #ddd; padding:0.4rem; font-size:0.8rem;
+    }
     .hit { background:#c8e6c9; }
     .hit.super { background:#b39ddb; color:#000; }
     .delete-btn { background:#d9534f !important; }
@@ -40,11 +42,11 @@
 </head>
 <body>
 <div class="container">
-  <h1>綜合分析：統計/週期/回歸/連續開獎 + WalkForwardRolling</h1>
+  <h1>綜合分析(統計/週期/回歸/連續開獎)，無回測與bestWindowSize</h1>
 
-  <!-- (A) 選 80顆球 -->
+  <!-- (A) 選號 (80顆球) -->
   <div style="background:#fff; padding:1rem; border-radius:6px; margin-bottom:1rem;">
-    <h2>選擇20顆(含1 super)</h2>
+    <h2>選擇20顆(最後1顆為super)</h2>
     <div id="numberGrid" style="display:grid; grid-template-columns:repeat(10,1fr); gap:0.5rem; width:420px;"></div>
     <button class="btn" id="addDrawBtn">新增開獎紀錄</button>
     <button class="btn" id="exportBtn">匯出</button>
@@ -52,10 +54,10 @@
     <button class="btn" id="importBtn">匯入</button>
   </div>
 
-  <!-- (B) 分析區塊: star + futureCount -->
+  <!-- (B) 分析區(無bestWindowSize) -->
   <div style="background:#fff; padding:1rem; border-radius:6px; margin-bottom:1rem;">
-    <h2>分析與預測</h2>
-    <label>星別:</label>
+    <h2>分析與預測 (不含回測)</h2>
+    <label>星別(1~10):</label>
     <select id="starSelect">
       <option value="1">1星</option>
       <option value="2">2星</option>
@@ -67,12 +69,6 @@
       <option value="8">8星</option>
       <option value="9">9星</option>
       <option value="10" selected>10星</option>
-    </select>
-    <label>購買期數:</label>
-    <select id="futureSelect">
-      <option value="1">1期</option>
-      <option value="5">5期</option>
-      <option value="10" selected>10期</option>
     </select>
     <button class="btn" id="analyzeBtn">開始分析</button>
     <div id="analysisOutput"></div>
@@ -89,13 +85,12 @@
 </div>
 
 <script>
-// 全域
-let draws=[]; // { index, normal:[...19], superNum, date?(optional) }
+let draws=[]; 
 
-/* ================= 1) 建立80顆球 =============== */
+/* ========== 建80顆球 ========== */
 const numberGrid=document.getElementById("numberGrid");
 for(let i=1;i<=80;i++){
-  let ball=document.createElement("div");
+  const ball=document.createElement("div");
   ball.classList.add("ball");
   ball.textContent=(i<10?("0"+i):(""+i));
   ball.dataset.num=i;
@@ -104,7 +99,7 @@ for(let i=1;i<=80;i++){
 }
 function toggleBall(ball){
   let selected=document.querySelectorAll(".ball.selected,.ball.super");
-  if(ball.classList.contains("selected")||ball.classList.contains("super")){
+  if(ball.classList.contains("selected")|| ball.classList.contains("super")){
     ball.classList.remove("selected","super");
   } else {
     if(selected.length>=20){
@@ -121,7 +116,7 @@ function toggleBall(ball){
   }
 }
 
-/* ================ 2) 新增紀錄 ============== */
+/* ========== 新增紀錄 ========== */
 const addDrawBtn=document.getElementById("addDrawBtn");
 addDrawBtn.addEventListener("click",()=>{
   let selected=document.querySelectorAll(".ball.selected,.ball.super");
@@ -131,11 +126,11 @@ addDrawBtn.addEventListener("click",()=>{
   }
   let superBall=[...selected].find(b=> b.classList.contains("super"));
   if(!superBall){
-    alert("無superBall");
+    alert("找不到superBall");
     return;
   }
   let superNum= parseInt(superBall.dataset.num,10);
-  let normalBalls=[...selected].filter(b=> b!==superBall);
+  let normalBalls=[...selected].filter(b=>b!==superBall);
   let normalNums= normalBalls.map(b=> parseInt(b.dataset.num,10)).sort((a,b)=>a-b);
 
   draws.push({
@@ -147,7 +142,7 @@ addDrawBtn.addEventListener("click",()=>{
   renderDistributionTable();
 });
 
-/* ================ 3) 分布表(可刪除) ============== */
+/* ========== 分布表 + 刪除 ========== */
 const distTableHead=document.getElementById("distTableHead");
 const distTableBody=document.getElementById("distTableBody");
 
@@ -168,7 +163,6 @@ function renderDistributionTable(){
   let thDel=document.createElement("th");
   thDel.textContent="刪除";
   headRow.appendChild(thDel);
-
   distTableHead.appendChild(headRow);
 
   draws.forEach((d,idx)=>{
@@ -176,6 +170,7 @@ function renderDistributionTable(){
     let tdIssue=document.createElement("td");
     tdIssue.textContent=d.index;
     tr.appendChild(tdIssue);
+
     for(let n=1;n<=80;n++){
       let td=document.createElement("td");
       if(d.normal.includes(n)|| d.superNum===n){
@@ -198,12 +193,11 @@ function renderDistributionTable(){
     });
     tdBtn.appendChild(btnDel);
     tr.appendChild(tdBtn);
-
     distTableBody.appendChild(tr);
   });
 }
 
-/* ================ 4) 分析按鈕 => Walk-Forward => bestWs => final picks ============== */
+/* ========== 分析(無bestWindowSize) ========== */
 const analyzeBtn=document.getElementById("analyzeBtn");
 const analysisOutput=document.getElementById("analysisOutput");
 
@@ -213,35 +207,30 @@ analyzeBtn.addEventListener("click",()=>{
     return;
   }
   let star= parseInt(document.getElementById("starSelect").value,10);
-  let futureCount= parseInt(document.getElementById("futureSelect").value,10);
 
-  // 1) walkForward => bestWs
-  let bestWs= determineBestWindowSize(star, futureCount);
-
-  // 2) 用 draws "最後 bestWs" (rolling) or 全部 => 這裡示範 rolling
-  let startIdx= Math.max(0, draws.length- bestWs);
-  let trainData= draws.slice(startIdx);
-
+  // 不使用 bestWindowSize => 直接用全部 draws
+  // (或您想只用 "最近100筆" => draws.slice(-100))
+  let trainData= draws;  
   let {picks,freq}= analyzeAndPredict(trainData, star);
 
-  // 連號(2..star) => 取前5
+  // 連號(2..star) => 前5
   let lines= findAllConsecutive2star(picks, star);
-  lines.forEach(l=> l.score=0); // 省略line回測
-  lines.sort((a,b)=> b.score-a.score);
+  lines.forEach(l=>l.score=0); // (若要對連號再做回測,自行擴充)
+  lines.sort((a,b)=>b.score-a.score);
   let topLines= lines.slice(0,5);
 
-  // 最旺區 => freq>0 => 排序 => 取前5
+  // 最旺區 => freq>0 => 前5
   let zoneHTML= findHighFreqZoneTop5(freq);
 
   // 顯示
-  let html= `<div style="background:#fafafa; padding:0.8rem; border:1px solid #ddd; border-radius:6px;">
-    <h3>bestWindowSize=${bestWs}, 星別=${star}, 購買期數=${futureCount}</h3>
+  let html=`<div style="background:#fafafa; padding:0.8rem; border:1px solid #ddd; border-radius:6px;">
+    <h3>分析結果(無回測), star=${star}</h3>
     <p>最終 picks: ${
       picks.map(n=>`<span class="badge badge-final">${fmt(n)}</span>`).join(" ")
     }</p>
-    <h4>連號(2..${star},前5)</h4>`;
+    <h4>連號(2..${star},前5):</h4>`;
   if(topLines.length===0){
-    html+= `<p>無可顯示連號</p>`;
+    html+= `<p>無連號可顯示</p>`;
   } else {
     topLines.forEach((ln,i)=>{
       let arr= ln.nums.map(x=>fmt(x)).join(",");
@@ -249,79 +238,18 @@ analyzeBtn.addEventListener("click",()=>{
     });
   }
   html+= `<h4>最旺區(前5):</h4>${zoneHTML}</div>`;
-
   analysisOutput.innerHTML= html;
 });
 
 /*
-============================
-=== 4.1) 回測(1~10期) + starRequirement
-============================
-*/
-function determineBestWindowSize(star, futureCount){
-  let candidates=[];
-  for(let w=5; w<=draws.length; w++){
-    candidates.push(w);
-  }
-  if(candidates.length===0) return draws.length;
-
-  let performance={};
-  for(let ws of candidates){
-    let totalWin=0; 
-    let testCount=0;
-
-    for(let i=0; i< draws.length - ws; i++){
-      // train= draws[i..i+ws-1]
-      let trainData= draws.slice(i,i+ws);
-      let {picks}= analyzeAndPredict(trainData, star);
-
-      let sumWin=0; 
-      let period=0;
-      for(let offset=0; offset< futureCount; offset++){
-        let fi= i+ws+offset;
-        if(fi>=draws.length) break;
-        let actual= draws[fi];
-        let hits= calcHits(picks, actual);
-        if(hits>= starRequirement(star)){
-          sumWin++;
-        }
-        period++;
-      }
-      if(period>0){
-        totalWin += (sumWin/period);
-        testCount++;
-      }
-    }
-    let avgScore= (testCount===0)? 0:( totalWin/testCount );
-    performance[ws]= avgScore;
-  }
-
-  let bestWs=5; 
-  let bestScore= (performance[5] || 0);
-  for(let ws of Object.keys(performance)){
-    if(performance[ws]> bestScore){
-      bestScore= performance[ws];
-      bestWs= parseInt(ws,10);
-    }
-  }
-  return bestWs;
-}
-function starRequirement(star){
-  if(star===10)return 5;
-  if(star===9||star===8)return 4;
-  if(star===7||star===6||star===5)return 3;
-  if(star===4||star===3)return 2;
-  if(star===2||star===1)return 1;
-  return 1;
-}
-
-/*
-============================
-=== 4.2) 加權預測(整合:統計,週期,回歸,連續開獎,mod週期)
-============================
+==========================
+=== analyzeAndPredict + doExtendedAnalysis
+=== (統計/週期/回歸/連續開獎),
+=== 不使用 hits/bestWindowSize
+==========================
 */
 function analyzeAndPredict(trainData, star){
-  // A) 基本 freq => freq[n], scores[n]
+  // 1) freq => scores
   let freq=new Array(81).fill(0);
   trainData.forEach(d=>{
     d.normal.forEach(n=> freq[n]++);
@@ -333,54 +261,40 @@ function analyzeAndPredict(trainData, star){
     scores[n]= freq[n]* freqWeight;
   }
 
-  // B) 擴展分析
+  // 2) doExtendedAnalysis => pairs synergy, 週期(近期 vs 整體), 回歸(上一期->下期), 連續/未開
   doExtendedAnalysis(trainData, scores);
 
-  // C) 排序 => picks
+  // 3) sort => picks
   let arr=[];
   for(let n=1;n<=80;n++){
     arr.push({num:n, score:scores[n]});
   }
-  arr.sort((a,b)=> b.score-a.score);
-  let picks= arr.slice(0,star).map(o=> o.num);
+  arr.sort((a,b)=> b.score - a.score);
+  let picks= arr.slice(0, star).map(o=> o.num);
 
   return {picks, freq};
 }
 
-/*
-============================
-=== doExtendedAnalysis: 
-    1) pair synergy (所有pairs)
-    2) 近期 vs. 整體 (週期/趨勢)
-    3) 回歸: (上一期 => 下期)
-    4) 連續(3,4,5,6) / 未開
-    5) mod週期(7), ...
-============================
-*/
 function doExtendedAnalysis(trainData, scores){
-  if(trainData.length<10){
-    // 資料少 => 不做
-    return;
-  }
+  if(trainData.length<10) return;
 
-  // 1) pair synergy
+  // A) pairs synergy(所有 pair)
   let pairCount={};
   trainData.forEach(d=>{
     let allNums=[...d.normal, d.superNum].sort((a,b)=>a-b);
-    for(let i=0;i< allNums.length;i++){
-      for(let j=i+1;j< allNums.length;j++){
-        let x=allNums[i],y=allNums[j];
+    for(let i=0;i<allNums.length;i++){
+      for(let j=i+1;j<allNums.length;j++){
+        let x= allNums[i], y= allNums[j];
         let key=x+"-"+y;
         if(!pairCount[key]) pairCount[key]=0;
         pairCount[key]++;
       }
     }
   });
-  // pairCount[x-y] => synergy
+  // ex: val≥10 =>+3,≥6=>+2,≥3=>+1
   for(let k in pairCount){
     let val= pairCount[k];
-    let [x,y]=k.split("-").map(z=> parseInt(z,10));
-    // ex: val≥10 => +3 each, val≥6 => +2, val≥3 => +1
+    let [x,y]=k.split("-").map(z=>parseInt(z,10));
     if(val>=10){
       scores[x]+=3; scores[y]+=3;
     } else if(val>=6){
@@ -390,8 +304,7 @@ function doExtendedAnalysis(trainData, scores){
     }
   }
 
-  // 2) 週期/趨勢 => 近期 vs 整體
-  //   ex:最近 7 期 freq vs. overall => ratio≥2 => +2
+  // B) 週期/趨勢 => ex: 最近7期 vs. 整體
   let lastN=7;
   let lastPart= trainData.slice(Math.max(0,trainData.length-lastN));
   let freqRecent=new Array(81).fill(0);
@@ -401,15 +314,15 @@ function doExtendedAnalysis(trainData, scores){
   });
   let totalCount=trainData.length;
   for(let n=1;n<=80;n++){
-    let baseRatio= scores[n]/ (10*totalCount); 
+    let baseRatio= scores[n]/(10* totalCount);
     let recRatio= freqRecent[n]/ lastN;
     if(recRatio> baseRatio*2){
       scores[n]+=2;
     }
   }
 
-  // 3) 回歸(上一期 => 下期)
-  let pairNextCount={}; 
+  // C) 回歸(上一期=>下期)
+  let pairNextCount={};
   let appearX={};
   for(let i=0; i< trainData.length-1; i++){
     let now= trainData[i];
@@ -428,13 +341,11 @@ function doExtendedAnalysis(trainData, scores){
     });
   }
   for(let x in pairNextCount){
-    let xTotal= appearX[x];
+    let xTotal=appearX[x];
     for(let y in pairNextCount[x]){
       let c= pairNextCount[x][y];
       if(xTotal>0){
-        let ratio= c/ xTotal;
-        // ratio≥0.4 => synergy => x+0.5, y+1
-        // ratio≥0.6 => x+1, y+2 ...
+        let ratio=c/xTotal;
         if(ratio>=0.6){
           scores[x]+=1;
           scores[y]+=2;
@@ -446,42 +357,30 @@ function doExtendedAnalysis(trainData, scores){
     }
   }
 
-  // 4) 連續 or 未開
+  // D) 連續 or 未開
   let cMap= checkConsecutiveCount(trainData);
   for(let n=1;n<=80;n++){
     let c= cMap[n]||0;
     if(c>0){
-      // c=3 => -0.3, c=4 => -0.5, c=5 => -0.8, c≥6 => -1.5
-      if(c===3) scores[n]-=0.3;
-      else if(c===4) scores[n]-=0.5;
-      else if(c===5) scores[n]-=0.8;
+      if(c===3) scores[n]-=0.5;
+      else if(c===4) scores[n]-=0.8;
+      else if(c===5) scores[n]-=0.9;
       else if(c>=6) scores[n]-=1.5;
     } else if(c<0){
       let abs=Math.abs(c);
-      if(abs===3) scores[n]+=0.2;
-      else if(abs===4) scores[n]+=0.4;
-      else if(abs>=5) scores[n]+=0.8;
+      if(abs===3) scores[n]+=0.5;
+      else if(abs===4) scores[n]+=0.55;
+      else if(abs>=5) scores[n]+=0.6;
+      else if(abs>=6) scores[n]+=0.8;
+      else if(abs>=7) scores[n]+=0.85;
+      else if(abs>=8) scores[n]+=0.9;
+      else if(abs>=9) scores[n]+=0.93;
+      else if(abs>=10) scores[n]+=0.99;
     }
   }
 
-  // 5) mod週期(7) => ex: i % 7 => 觀察某號碼
-  //   這裡示範: 若 "mod7= i" => 該號碼 freq≥ some => +?
-  //   (簡化) => 先建 i%7 => 觀察
-  let mod7Count= new Array(7).fill(0);
-  trainData.forEach((d,i)=>{
-    // i => 期數(0-based), mod7 => x
-    // increment for each normal/super
-    let mod= i%7;
-    d.normal.forEach(n=> mod7Count[mod]++);
-    mod7Count[mod]++;
-  });
-  // 其實這只是統計 mod7 => 沒直接對號碼
-  // 如果您想對 "mod7=0 => x,y,z 出現" 做特別加分 => 需做更進階統計(略)
-  // (示範: skip)
-
+  // E) mod週期(7) => 若要 => advanced logic
 }
-
-/* ========== checkConsecutiveCount(連續/未開) ========== */
 function checkConsecutiveCount(trainData){
   let maxCheck=6;
   let map={};
@@ -489,32 +388,20 @@ function checkConsecutiveCount(trainData){
     map[n]=0;
   }
   for(let offset=0; offset<maxCheck; offset++){
-    let idx= trainData.length-1-offset;
+    let idx= trainData.length-1- offset;
     if(idx<0) break;
     let d= trainData[idx];
     let setA=new Set([...d.normal,d.superNum]);
     for(let n=1;n<=80;n++){
       if(setA.has(n)){
-        // 連續
         if(map[n]>=0) map[n]++;
       } else {
-        // 未開
-        if(map[n]===0) map[n]= -1;
+        if(map[n]===0) map[n]=-1;
         else if(map[n]<0) map[n]--;
       }
     }
   }
   return map;
-}
-
-/* ========== hits計算 ========== */
-function calcHits(picks, actual){
-  let setA=new Set([...actual.normal, actual.superNum]);
-  let c=0;
-  for(let p of picks){
-    if(setA.has(p)) c++;
-  }
-  return c;
 }
 
 /* ========== 連號(2..star) ========== */
@@ -534,11 +421,11 @@ function findAllConsecutiveInPicks(picks){
   return result;
 }
 function findAllConsecutive2star(picks, star){
-  let groups= findAllConsecutiveInPicks(picks);
+  let groups=findAllConsecutiveInPicks(picks);
   let out=[];
   groups.forEach(g=>{
     if(g.length> star){
-      g= g.slice(0,star);
+      g=g.slice(0, star);
     }
     out.push({nums:g, score:0});
   });
@@ -553,22 +440,22 @@ function findHighFreqZoneTop5(freq){
     zoneCount[z]+= freq[n];
   }
   let maxZ=0;
-  for(let z=1; z<8; z++){
+  for(let z=1;z<8; z++){
     if(zoneCount[z]> zoneCount[maxZ]){
       maxZ=z;
     }
   }
   let start=maxZ*10+1;
-  let end= start+9;
-  if(end>80) end=80;
+  let end= start+9; if(end>80)end=80;
   let arr=[];
-  for(let x=start; x<=end; x++){
+  for(let x=start; x<=end;x++){
     if(freq[x]>0){
-      arr.push({num:x, f:freq[x]});
+      arr.push({num:x,f:freq[x]});
     }
   }
-  arr.sort((a,b)=>b.f-a.f);
+  arr.sort((a,b)=> b.f-a.f);
   let top5= arr.slice(0,5);
+
   let html=`<p>最旺區: #${maxZ+1} (${start}~${end}, sum=${zoneCount[maxZ]})</p>`;
   if(top5.length===0){
     html+= `<p>此區無號碼</p>`;
@@ -585,12 +472,12 @@ function findHighFreqZoneTop5(freq){
   return html;
 }
 
-/* ========== 小函式 ========== */
+/* ========== 補0 ========== */
 function fmt(n){
   return (n<10?("0"+n):(""+n));
 }
 
-/* ========== 匯出/匯入 ========== */
+/* ========== 匯出 / 匯入 ========== */
 const exportBtn=document.getElementById("exportBtn");
 const importBtn=document.getElementById("importBtn");
 const importFile=document.getElementById("importFile");
@@ -600,7 +487,7 @@ exportBtn.addEventListener("click",()=>{
     alert("無資料可匯出");
     return;
   }
-  let dataStr=JSON.stringify(draws,null,2);
+  let dataStr= JSON.stringify(draws,null,2);
   let blob=new Blob([dataStr],{type:"application/json"});
   let url=URL.createObjectURL(blob);
   let a=document.createElement("a");
@@ -620,7 +507,7 @@ importFile.addEventListener("change",()=>{
     try{
       let arr= JSON.parse(e.target.result);
       if(!Array.isArray(arr)){
-        alert("匯入格式錯誤(須 array)");
+        alert("匯入格式錯誤(需 array)");
         return;
       }
       draws=arr;
