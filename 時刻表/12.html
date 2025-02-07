@@ -5,83 +5,212 @@
   <title>539 高度優化版 (GA + 回測 + 多重回歸/區域分析)</title>
   <style>
     body {
-      margin:0; padding:0;
-      font-family:"Microsoft JhengHei", sans-serif;
-      background:#f4f4f4; color:#333;
-    }
-    .container { margin:1rem; }
-    /* 球樣式 */
-    .ball {
-      width:40px; height:40px; border-radius:50%;
-      background:#ddd; color:#333;
-      display:flex; align-items:center; justify-content:center;
-      cursor:pointer; font-weight:bold; user-select:none;
-    }
-    .ball.selected { background:#ffa726; color:#fff; }
-    /* 按鈕樣式 */
-    .btn {
-      background:#3A6073; color:#fff; border:none;
-      padding:0.6rem 1.2rem; border-radius:4px;
-      cursor:pointer; margin:0.2rem;
-    }
-    .delete-btn { background:#d9534f !important; }
-    /* 表格 */
-    table {
-      border-collapse: collapse;
-      width:100%;
-      margin-bottom:1rem;
-    }
-    th, td {
-      border:1px solid #ddd;
-      padding:0.4rem;
-      text-align:center;
-      font-size:0.9rem;
-    }
-    /* 中獎與命中樣式 */
-    .hit { background:#c8e6c9; }       /* 實際開獎用綠色 */
-    .matched { background:#ffd54f; }   /* 命中號碼用黃色 */
-    .badge {
-      display:inline-block; padding:0.3rem 0.5rem;
-      margin:2px; border-radius:4px; color:#fff; font-size:0.8rem;
-      background:#d9534f;
-    }
-    .badge.odd { background:#5bc0de; }
-    .badge.even { background:#5cb85c; }
+  margin: 0;
+  padding: 0;
+  font-family: "Microsoft JhengHei", sans-serif;
+  background: #f4f4f4;
+  color: #333;
+  
+}
+
+/* 主容器 */
+.container { margin:1rem; }
+
+/* 標題 */
+h1 {
+  text-align: center;
+  color: #2c3e50;
+  font-size: 1.8rem;
+  font-weight: bold;
+  margin-bottom: 1rem;
+}
+
+h2 {
+  color: #34495e;
+  font-size: 1.4rem;
+  margin-bottom: 0.5rem;
+}
+
+/* 卡片區塊 */
+.card {
+  background: #fff;
+  padding: 1.2rem;
+  border-radius: 10px;
+  margin-bottom: 1rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+/* 按鈕設計 */
+.btn {
+  background: linear-gradient(to right, #3a6073, #3fada8);
+  color: #fff;
+  border: none;
+  padding: 0.7rem 1.4rem;
+  border-radius: 6px;
+  cursor: pointer;
+  margin: 0.3rem;
+  font-size: 1rem;
+  transition: all 0.2s ease-in-out;
+}
+
+.btn:hover {
+  background: linear-gradient(to right, #3fada8, #3a6073);
+  transform: scale(1.05);
+}
+
+.delete-btn {
+  background: #d9534f !important;
+}
+
+/* 球樣式 */
+#numberGrid {
+  display: grid;
+  grid-template-columns: repeat(10, 1fr);
+  gap: 0.5rem;
+  width: 100%;
+  max-width: 420px;
+  margin: auto;
+}
+
+.ball {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  background: #e0e0e0;
+  color: #333;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-weight: bold;
+  font-size: 1rem;
+  transition: all 0.2s;
+  user-select: none;
+}
+
+.ball:hover {
+  background: #ffa726;
+  color: white;
+}
+
+.ball.selected {
+  background: linear-gradient(135deg, #ff9800, #f57c00);
+  color: white;
+  box-shadow: 0 0 8px rgba(255, 152, 0, 0.8);
+  transform: scale(1.1);
+}
+
+/* 表格樣式 */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 1rem;
+}
+
+th, td {
+  padding: 0.6rem;
+  text-align: center;
+  border: 1px solid #ddd;
+  font-size: 0.95rem;
+}
+
+th {
+  background: #3fada8;
+  color: white;
+}
+
+td {
+  background: #fff;
+}
+
+/* 命中與中獎顯示 */
+.hit {
+  background: #c8e6c9;
+}
+
+.matched {
+  background: #ffd54f;
+}
+
+/* 標籤樣式 */
+.badge {
+  display: inline-block;
+  padding: 0.4rem 0.6rem;
+  margin: 3px;
+  border-radius: 6px;
+  color: white;
+  font-size: 0.85rem;
+  background: #d9534f;
+}
+
+.badge.odd {
+  background: #5bc0de;
+}
+
+.badge.even {
+  background: #5cb85c;
+}
+/* 命中號碼特殊標記 (加粗 & 紅色外框) */
+.highlighted-hit {
+  border: 2px solid red;
+  font-weight: bold;
+  padding: 0.4rem;
+  background: #ffeb3b !important; /* 讓命中號碼更明顯 */
+  color: black !important;
+}
+
+/* ✅ 完全命中的號碼 */
+.matched {
+  background: #ffeb3b;
+  border: 2px solid red;
+  font-weight: bold;
+  color: black !important;
+}
+
+
+
+.hit {
+  background: #ffeb3b;
+  border: 2px solid red;
+  font-weight: bold;
+  color: black !important;
+}
+
   </style>
 </head>
 <body>
-<div class="container">
-  <h1>539 高度優化版 (GA + 回測 + 多重回歸/區域分析)</h1>
+    <div class="container">
+        <h1>539 高度優化版 (GA + 回測 + 多重回歸/區域分析)</h1>
+      
+        <!-- (A) 新增/匯入歷史紀錄 -->
+        <div class="card">
+          <h2>選 5 號，新增「539」開獎紀錄</h2>
+          <div id="numberGrid"></div>
+          <button class="btn" id="addDrawBtn">新增開獎紀錄</button>
+          <button class="btn" id="exportBtn">匯出</button>
+          <input type="file" id="importFile" style="display:none" accept=".json"/>
+          <button class="btn" id="importBtn">匯入</button>
+        </div>
+      
+        <!-- (C) 分析與預測 -->
+        <div class="card">
+          <h2>分析與預測</h2>
+          <button class="btn" id="analyzeBtn">開始分析並預測</button>
+          <div id="analysisOutput"></div>
+        </div>
+      
+        <!-- (D) 歷史紀錄分布表 -->
+        <div class="card">
+          <h2>歷史紀錄分布表</h2>
+          <table>
+            <thead id="distTableHead"></thead>
+            <tbody id="distTableBody"></tbody>
+          </table>
+        </div>
+      </div>
+      <div id="analysisStatus" style="font-size:1.2rem; color:#888; margin-bottom:1rem;"></div>
+<div id="analysisOutput"></div>
 
-  <!-- (A) 新增/匯入歷史紀錄 -->
-  <div style="background:#fff; padding:1rem; border-radius:6px; margin-bottom:1rem;">
-    <h2>選 5 號，新增一筆「539」開獎紀錄</h2>
-    <div id="numberGrid" style="display:grid; grid-template-columns:repeat(10,1fr); gap:0.5rem; width:420px;"></div>
-    <button class="btn" id="addDrawBtn">新增開獎紀錄</button>
-    <button class="btn" id="exportBtn">匯出</button>
-    <input type="file" id="importFile" style="display:none" accept=".json"/>
-    <button class="btn" id="importBtn">匯入</button>
-  </div>
-
-
-
-  <!-- (C) 分析與預測 -->
-  <div style="background:#fff; padding:1rem; border-radius:6px; margin-bottom:1rem;">
-    <h2>分析與預測</h2>
-    <!-- 族群大小與迭代代數將根據回測結果自動調整，不再讓使用者手動輸入 -->
-    <button class="btn" id="analyzeBtn">開始分析並預測</button>
-    <div id="analysisOutput"></div>
-  </div>
-
-  <!-- (D) 歷史紀錄分布表 -->
-  <div style="background:#fff; padding:1rem; border-radius:6px;">
-    <h2>歷史紀錄分布表</h2>
-    <table>
-      <thead id="distTableHead"></thead>
-      <tbody id="distTableBody"></tbody>
-    </table>
-  </div>
-</div>
 
 <script>
 /* =====================================
@@ -117,11 +246,35 @@ let WEIGHT = {
 };
 
 /* GA 參數（將根據回測結果自動調整，此處示範固定數值，可依實測動態調整） */
-let GA_PARAMS = {
-  popSize: 200,
-  generations: 50,
-  elitismRate: 0.05   // 前5%的族群保留
-};
+let GA_PARAMS = { popSize: 200, generations: 50, elitismRate: 0.05 };
+function someFunction() {
+  console.log(GA_PARAMS.popSize); // 正常使用
+}
+function dynamicAdjustGAParams(currentScore, previousBestScore, elapsedTime, currentGeneration, totalGenerations) {
+  // 調整族群大小和代數
+  if (currentScore > previousBestScore) {
+    GA_PARAMS.popSize = Math.max(100, GA_PARAMS.popSize - 50);
+    GA_PARAMS.generations = Math.max(20, GA_PARAMS.generations - 10);
+  } else {
+    GA_PARAMS.popSize = Math.min(500, GA_PARAMS.popSize + 50);
+    GA_PARAMS.generations = Math.min(100, GA_PARAMS.generations + 10);
+  }
+
+  // 調整菁英比例
+  if (currentScore > 0.8 * previousBestScore) {
+    GA_PARAMS.elitismRate = Math.min(0.1, GA_PARAMS.elitismRate + 0.01);
+  } else {
+    GA_PARAMS.elitismRate = Math.max(0.03, GA_PARAMS.elitismRate - 0.01);
+  }
+
+
+  // 代數後期調整
+  if (currentGeneration > totalGenerations * 0.5) {
+    GA_PARAMS.popSize = Math.max(100, GA_PARAMS.popSize - 10);
+  }
+
+  console.log(`🔧 調整後參數: popSize=${GA_PARAMS.popSize}, generations=${GA_PARAMS.generations}, elitismRate=${GA_PARAMS.elitismRate}`);
+}
 
 /* =====================================
    固定種子亂數（確保結果穩定）
@@ -160,7 +313,7 @@ function toggleBall(ball) {
   } else {
     let sel = document.querySelectorAll(".ball.selected");
     if (sel.length >= 5) {
-      alert("一次只能選 5 號");
+      alert("一次只能選 5 個球號");
       return;
     }
     ball.classList.add("selected");
@@ -174,7 +327,7 @@ function toggleBall(ball) {
 document.getElementById("addDrawBtn").addEventListener("click", () => {
   let selected = [...document.querySelectorAll(".ball.selected")];
   if (selected.length !== 5) {
-    alert("需選 5 號");
+    alert("需選 5 個球號");
     return;
   }
   let nums = selected.map(b => parseInt(b.dataset.num, 10)).sort((a, b) => a - b);
@@ -244,6 +397,7 @@ function renderDistributionTable() {
   });
 }
 
+
 /* =====================================
    匯出 & 匯入
 ===================================== */
@@ -256,14 +410,25 @@ document.getElementById("exportBtn").addEventListener("click", () => {
   let blob = new Blob([dataStr], { type: "application/json" });
   let url = URL.createObjectURL(blob);
   let a = document.createElement("a");
+
+  // 取得當前日期
+  let today = new Date();
+  let yyyy = today.getFullYear();
+  let mm = String(today.getMonth() + 1).padStart(2, '0'); // 月份補0
+  let dd = String(today.getDate()).padStart(2, '0'); // 日期補0
+  let formattedDate = `${yyyy}${mm}${dd}`;
+
+  // 設定下載檔案名稱
   a.href = url;
-  a.download = "539_draws.json";
+  a.download = `539_draws_${formattedDate}.json`; 
   a.click();
   URL.revokeObjectURL(url);
 });
+
 document.getElementById("importBtn").addEventListener("click", () => {
   document.getElementById("importFile").click();
 });
+
 document.getElementById("importFile").addEventListener("change", (e) => {
   let file = e.target.files[0];
   if (!file) return;
@@ -292,37 +457,103 @@ document.getElementById("importFile").addEventListener("change", (e) => {
    每次新增一筆資料後自動呼叫，不顯示結果
    此處示範利用簡單候選族群搜索部分權重（例如 freqWeight 與 missing10Bonus）
 ===================================== */
-function internalBacktestAndOptimize() {
-  if (draws.length < 30) return; // 資料太少不調整
-  const CANDIDATE_COUNT = 20;
+async function runOptimization(candidateCount) {
+  if (draws.length < 5) return null; // 資料太少不調整
+
   let weightCandidates = [];
-  for (let i = 0; i < CANDIDATE_COUNT; i++) {
+  for (let i = 0; i < candidateCount; i++) {
     weightCandidates.push({
-      freqWeight: 3 + seededRandom() * 6,        // 3 ~ 9
-      missing10Bonus: 1 + seededRandom() * 4       // 1 ~ 5
+      freqWeight: 3 + seededRandom() * 6, // 3 ~ 9
+      missing10Bonus: 1 + seededRandom() * 4 // 1 ~ 5
     });
   }
+
   let bestScore = -Infinity;
   let bestCandidate = null;
-  for (let candidate of weightCandidates) {
-    WEIGHT.freqWeight = candidate.freqWeight;
-    WEIGHT.missing10Bonus = candidate.missing10Bonus;
-    let score = testAccuracySimple(draws);
-    candidate.score = score;
-    if (score > bestScore) {
-      bestScore = score;
+
+  // 使用 Promise.all 讓測試並行，提高效能
+  const results = await Promise.all(
+    weightCandidates.map(async (candidate) => {
+      WEIGHT.freqWeight = candidate.freqWeight;
+      WEIGHT.missing10Bonus = candidate.missing10Bonus;
+      let score = await testAccuracySimple(draws); // 測試準確率
+      return { ...candidate, score };
+    })
+  );
+
+  for (let candidate of results) {
+    if (candidate.score > bestScore) {
+      bestScore = candidate.score;
       bestCandidate = candidate;
     }
   }
-  // 採用最佳候選參數
-  WEIGHT.freqWeight = bestCandidate.freqWeight;
-  WEIGHT.missing10Bonus = bestCandidate.missing10Bonus;
-  // 此處可延伸搜尋其他參數，也可根據回測結果自動調整 GA 參數
-  // 例如：
-  GA_PARAMS.popSize = 500;
-  GA_PARAMS.generations = 100;
-  // 回測結果不顯示在介面上
+
+  return { bestCandidate, bestScore };
 }
+
+// **選擇最佳 CANDIDATE_COUNT**
+async function runOptimization(candidateCount) {
+  if (draws.length < 5) return null;
+
+  let weightCandidates = [];
+  for (let i = 0; i < candidateCount; i++) {
+    weightCandidates.push({
+      freqWeight: 3 + seededRandom() * 6,
+      missing10Bonus: 1 + seededRandom() * 4,
+    });
+  }
+
+  let bestScore = -Infinity;
+  let bestCandidate = null;
+
+  const results = await Promise.all(
+    weightCandidates.map(async candidate => {
+      WEIGHT.freqWeight = candidate.freqWeight;
+      WEIGHT.missing10Bonus = candidate.missing10Bonus;
+      const score = testAccuracySimple(draws);
+      return { ...candidate, score };
+    })
+  );
+
+  results.forEach(candidate => {
+    if (candidate.score > bestScore) {
+      bestScore = candidate.score;
+      bestCandidate = candidate;
+    }
+  });
+
+  return { bestCandidate, bestScore };
+}
+
+async function findBestCandidateCount() {
+  let bestCandidate = null;
+  let bestScore = -Infinity;
+  let bestCount = 0;
+
+  for (let count = 40; count <= 100; count += 20) {
+    const { bestCandidate: candidate, bestScore: score } = (await runOptimization(count)) || {};
+    if (candidate && score > bestScore) {
+      bestScore = score;
+      bestCandidate = candidate;
+      bestCount = count;
+    }
+    console.log(`CANDIDATE_COUNT = ${count}, Best Score = ${score}`);
+  }
+
+  if (bestCandidate) {
+    WEIGHT.freqWeight = bestCandidate.freqWeight;
+    WEIGHT.missing10Bonus = bestCandidate.missing10Bonus;
+    console.log(`最佳參數：CANDIDATE_COUNT = ${bestCount}, Score = ${bestScore}`);
+  } else {
+    console.error("未找到最佳參數");
+  }
+}
+
+function internalBacktestAndOptimize() {
+  findBestCandidateCount();
+}
+
+
 function testAccuracySimple(data) {
   let N = 10;
   if (data.length < N) N = data.length;
@@ -354,28 +585,55 @@ function testAccuracySimple(data) {
    (C) 分析與預測
    系統自動根據內部調整後的權重進行預測
 ===================================== */
-document.getElementById("analyzeBtn").addEventListener("click", () => {
+async function findBestRange() {
+  let bestRange = 50;
+  let bestScore = -Infinity;
+  let testedRanges = [];
+
+  console.log("🚀 測試不同擷取範圍中...");
+
+  for (let range = 5; range <= 290; range += 1) {  // 測試 50~100，每次增加 10
+    let startIndex = Math.max(0, draws.length - range);
+    let recentData = draws.slice(startIndex);
+
+    let score = await testAccuracySimple(recentData); // 測試準確率
+
+    console.log(`擷取範圍: ${range}，測試準確率: ${score}`);
+    testedRanges.push({ range, score });
+
+    if (score > bestScore) {
+      bestScore = score;
+      bestRange = range;
+    }
+  }
+
+  console.log(`✅ 最佳範圍: ${bestRange}，最佳準確率: ${bestScore}`);
+  return bestRange;
+}
+
+// **執行分析**
+document.getElementById("analyzeBtn").addEventListener("click", async () => {
   if (draws.length < 5) {
     alert("資料不足(至少 5 筆)");
     return;
   }
-  // 擷取最近 50~100 筆作為近期分析資料
-  let startIndex = Math.max(0, draws.length - 100);
-  if (draws.length > 50 && draws.length - 50 > startIndex) {
-    startIndex = Math.max(startIndex, draws.length - 50);
-  }
+
+  // **等待 findBestRange() 找出最佳範圍**
+  let bestRange = await findBestRange();
+
+  // **確保 startIndex 已經定義**
+  let startIndex = Math.max(0, draws.length - bestRange);
   let recentData = draws.slice(startIndex);
-  // 計算單號分數
+  
+  console.log(`🔄 依據測試結果，選擇範圍 ${bestRange} 來擷取數據`);
+  
+  // **後續進行數據分析**
   let sScores = calcNumberScores(recentData);
-  // 回歸分析：一階馬可夫、pair 與 triple
   doRegressionAnalysis(recentData, sScores);
-  // 量子概率：以四號組合示範
   doQuantumProbability(recentData, sScores);
-  // 與更早期資料比對
   comparePatterns(draws.slice(0, 50), recentData, sScores);
-  // 區域與尾數分析
   doRegionalTailAnalysis(recentData, sScores);
-  // 從單號分數中挑出「最高機率的 10 個號碼」供參考
+
   let singleArr = [];
   for (let n = 1; n <= 39; n++) {
     if (sScores[n] > -9999) {
@@ -383,8 +641,8 @@ document.getElementById("analyzeBtn").addEventListener("click", () => {
     }
   }
   singleArr.sort((a, b) => b.sc - a.sc);
-  let top10Numbers = singleArr.slice(0, 15).map(x => x.num);
-  // 用 GA 產生最佳 5 號組合
+  let top10Numbers = singleArr.slice(0, 10).map(x => x.num);
+
   let bestSets = generateCandidatesByGA(sScores, {
     avoidAdjacent: true,
     sumRange: [60, 130],
@@ -393,11 +651,10 @@ document.getElementById("analyzeBtn").addEventListener("click", () => {
     popSize: GA_PARAMS.popSize,
     generations: GA_PARAMS.generations
   });
-  // 取前三組
+
   let top3 = bestSets.slice(0, 3);
-  // 可能尾數
   let tailNums = calcPossibleTails(recentData);
-  // 記錄預測結果（包含 top10Numbers）
+
   let nextIndex = draws.length + 1;
   predictionHistory.push({
     drawIndex: nextIndex,
@@ -405,10 +662,115 @@ document.getElementById("analyzeBtn").addEventListener("click", () => {
     tailNums: tailNums,
     top10Numbers: top10Numbers
   });
-  // 顯示預測結果與命中狀況
+
   renderAnalysisOutput(top3, tailNums, top10Numbers, nextIndex);
   renderHitDisplay();
 });
+
+
+// **執行分析**
+document.getElementById("analyzeBtn").addEventListener("click", async () => {
+    if (draws.length < 5) {
+      alert("資料不足(至少 5 筆)");
+      return;
+    }
+  
+    // **等待 findBestRange() 找出最佳範圍**
+    let bestRange = await findBestRange();
+  
+    // **確保 startIndex 已經定義**
+    let startIndex = Math.max(0, draws.length - bestRange);
+    let recentData = draws.slice(startIndex);
+    
+    console.log(`🔄 依據測試結果，選擇範圍 ${bestRange} 來擷取數據`);
+    
+    // **後續進行數據分析**
+    let sScores = calcNumberScores(recentData);
+    doRegressionAnalysis(recentData, sScores);
+    doQuantumProbability(recentData, sScores);
+    comparePatterns(draws.slice(0, 50), recentData, sScores);
+    doRegionalTailAnalysis(recentData, sScores);
+  
+    let singleArr = [];
+    for (let n = 1; n <= 39; n++) {
+      if (sScores[n] > -9999) {
+        singleArr.push({ num: n, sc: sScores[n] });
+      }
+    }
+    singleArr.sort((a, b) => b.sc - a.sc);
+    let top10Numbers = singleArr.slice(0, 10).map(x => x.num);
+  
+    let bestSets = generateCandidatesByGA(sScores, {
+      avoidAdjacent: true,
+      sumRange: [60, 130],
+      oddEvenBalance: true,
+      maxConsecutiveLen: 3,
+      popSize: GA_PARAMS.popSize,
+      generations: GA_PARAMS.generations
+    });
+  
+    let top3 = bestSets.slice(0, 3);
+    let tailNums = calcPossibleTails(recentData);
+  
+    let nextIndex = draws.length + 1;
+    predictionHistory.push({
+      drawIndex: nextIndex,
+      bestSets: top3,
+      tailNums: tailNums,
+      top10Numbers: top10Numbers
+    });
+  
+    renderAnalysisOutput(top3, tailNums, top10Numbers, nextIndex);
+    renderHitDisplay();
+    });
+  
+    let recentData = draws.slice(startIndex);
+    // 計算單號分數
+    let sScores = calcNumberScores(recentData);
+    // 回歸分析：一階馬可夫、pair 與 triple
+    doRegressionAnalysis(recentData, sScores);
+    // 量子概率：以四號組合示範
+    doQuantumProbability(recentData, sScores);
+    // 與更早期資料比對
+    comparePatterns(draws.slice(0, 50), recentData, sScores);
+    // 區域與尾數分析
+    doRegionalTailAnalysis(recentData, sScores);
+    // 從單號分數中挑出「最高機率的 10 個號碼」供參考
+    let singleArr = [];
+    for (let n = 1; n <= 39; n++) {
+      if (sScores[n] > -9999) {
+        singleArr.push({ num: n, sc: sScores[n] });
+      }
+    }
+    singleArr.sort((a, b) => b.sc - a.sc);
+    let top10Numbers = singleArr.slice(0, 15).map(x => x.num);
+    // 用 GA 產生最佳 5 號組合
+  
+  
+    let bestSets = generateCandidatesByGA(sScores, {
+      avoidAdjacent: true,
+      sumRange: [60, 130],
+      oddEvenBalance: true,
+      maxConsecutiveLen: 2,
+      popSize: GA_PARAMS.popSize,
+      generations: GA_PARAMS.generations
+    });
+    // 取前三組
+    let top3 = bestSets.slice(0, 3);
+    // 可能尾數
+    let tailNums = calcPossibleTails(recentData);
+    // 記錄預測結果（包含 top10Numbers）
+    let nextIndex = draws.length + 1;
+    predictionHistory.push({
+      drawIndex: nextIndex,
+      bestSets: top2,
+      tailNums: tailNums,
+      top10Numbers: top10Numbers
+    });
+    // 顯示預測結果與命中狀況
+    renderAnalysisOutput(top3, tailNums, top10Numbers, nextIndex);
+    renderHitDisplay();
+  ;
 
 /* =====================================
    (C1) calcNumberScores() - 加權計算
@@ -535,7 +897,10 @@ function doRegressionAnalysis(data, scores) {
     }
   }
   // 一階馬可夫：若上一期出現則下期重現
-  let appearCount = {};
+  // 計算整體的平均重現率，作為新的門檻
+// 計算總出現次數 & 下一期的出現次數
+// 一階馬可夫：若上一期出現則下期重現
+let appearCount = {};
   let appearNextCount = {};
   for (let i = 0; i < total - 1; i++) {
     let setA = new Set(data[i].nums);
@@ -555,6 +920,8 @@ function doRegressionAnalysis(data, scores) {
       }
     }
   }
+
+
   // 三號組合
   let tripleCount = {};
   data.forEach(d => {
@@ -691,38 +1058,54 @@ function calcPossibleTails(data) {
    (C7) GA 產生最佳組合（多點交配與菁英保留）
 ===================================== */
 function generateCandidatesByGA(scores, opts) {
-  let popSize = opts.popSize || 200;
-  let generations = opts.generations || 50;
+  // ✅ 讓 GA 參數動態調整，避免變數未定義問題
+  let GA_PARAMS = {
+    popSize: Math.min(500, draws.length * 10), // 族群大小根據資料數量變化
+    generations: Math.min(100, Math.floor(draws.length / 2)), // 進化代數根據資料數量變化
+    elitismRate: 0.05 // 菁英保留
+  };
+
   let pool = [];
   for (let n = 1; n <= 39; n++) {
     if (scores[n] > -9999) pool.push(n);
   }
+
+  // **✅ 正確使用 GA_PARAMS.popSize**
   let population = [];
-  for (let i = 0; i < popSize; i++) {
+  for (let i = 0; i < GA_PARAMS.popSize; i++) {
     population.push(genRandomChromosome(pool));
   }
-  let eliteCount = Math.floor(popSize * GA_PARAMS.elitismRate);
-  for (let g = 0; g < generations; g++) {
+
+  let eliteCount = Math.floor(GA_PARAMS.popSize * GA_PARAMS.elitismRate);
+
+  // **✅ 修正 generations 變數**
+  for (let g = 0; g < GA_PARAMS.generations; g++) {
     population.forEach(ch => {
       ch.fitness = scoreCandidateSet(ch.genes, scores, opts);
     });
+
     population.sort((a, b) => b.fitness - a.fitness);
     let elites = population.slice(0, eliteCount);
-    let newPop = population.slice(0, Math.floor(popSize / 2));
-    while (newPop.length < popSize - eliteCount) {
-      let p1 = randomChoice(population.slice(0, Math.floor(popSize / 2)));
-      let p2 = randomChoice(population.slice(0, Math.floor(popSize / 2)));
+
+    let newPop = population.slice(0, Math.floor(GA_PARAMS.popSize / 2));
+    while (newPop.length < GA_PARAMS.popSize - eliteCount) {
+      let p1 = randomChoice(population.slice(0, Math.floor(GA_PARAMS.popSize / 2)));
+      let p2 = randomChoice(population.slice(0, Math.floor(GA_PARAMS.popSize / 2)));
       let child = crossover(p1, p2, pool, scores, opts);
       mutate(child, pool, scores, 0.1);
       child.fitness = scoreCandidateSet(child.genes, scores, opts);
       newPop.push(child);
     }
+
     population = elites.concat(newPop);
   }
+
   population.forEach(ch => {
     ch.fitness = scoreCandidateSet(ch.genes, scores, opts);
   });
+
   population.sort((a, b) => b.fitness - a.fitness);
+
   let results = [];
   let usedKey = new Set();
   for (let i = 0; i < population.length; i++) {
@@ -736,6 +1119,7 @@ function generateCandidatesByGA(scores, opts) {
   }
   return results;
 }
+
 function genRandomChromosome(pool) {
   let copy = pool.slice();
   shuffle(copy);
@@ -851,46 +1235,96 @@ function renderAnalysisOutput(top3, tailNums, top10Numbers, nextIndex) {
   let out = document.getElementById("analysisOutput");
   out.innerHTML = "";
   let html = `<h3>第 ${nextIndex} 期 預測結果</h3>`;
+
+  // ✅ 排序 `top3` 內的組合
   top3.forEach((group, i) => {
     let label = ["第一組", "第二組", "第三組"][i] || ("組合" + (i + 1));
+    let sortedGroup = [...group].sort((a, b) => a - b);
     html += `<p>${label}： `;
-    group.forEach(n => {
+    sortedGroup.forEach(n => {
       html += `<span class="badge">${(n < 10 ? "0" + n : n)}</span>`;
     });
     html += `</p>`;
   });
+
+  // ✅ 排序並顯示「可能尾數」
+  let sortedTailNums = [...tailNums].sort((a, b) => a - b);
   html += `<p>可能尾數：`;
-  tailNums.forEach(t => {
-    html += `<span class="badge">${t}</span>`;
+  sortedTailNums.forEach(t => {
+    html += `<span class="badge predicted-tail">${t}</span>`;
   });
   html += `</p>`;
+
+  // ✅ 排序並顯示「最高機率 10 個號碼」
+  let sortedTop10Numbers = [...top10Numbers].sort((a, b) => a - b);
   html += `<p>最高機率 10 個號碼： `;
-  top10Numbers.forEach(n => {
+  sortedTop10Numbers.forEach(n => {
     html += `<span class="badge">${(n < 10 ? "0" + n : n)}</span> `;
   });
   html += `</p>`;
+
+  // 顯示前一期的分析和命中情況
   let lastIndex = draws.length;
   if (lastIndex > 1) {
     let ph = predictionHistory.find(x => x.drawIndex === lastIndex);
     if (ph) {
       let realSet = new Set(draws[lastIndex - 1].nums);
+      let realTailSet = new Set(draws[lastIndex - 1].nums.map(n => n % 10)); // ✅ 開獎尾數集合
+      let matchedTailNums = [];
+
       html += `<h4>上期 (第 ${lastIndex} 期) 實際開獎 vs. 第 ${lastIndex - 1} 期預測</h4>`;
+
       ph.bestSets.forEach((g, idx) => {
         let label = ["第一組", "第二組", "第三組"][idx] || ("組合" + (idx + 1));
         let matchedNums = [];
         let line = "";
-        g.forEach(num => {
+
+        // ✅ 排序預測組合
+        let sortedG = [...g].sort((a, b) => a - b);
+        sortedG.forEach(num => {
+          let numTail = num % 10; // 取得尾數
           if (realSet.has(num)) {
             matchedNums.push(num);
-            line += `<span class="badge matched">${(num < 10 ? "0" + num : num)}</span> `;
+            line += `<span class="badge matched highlighted-hit">${(num < 10 ? "0" + num : num)}</span> `;
+          } else if (realTailSet.has(numTail)) {
+            // ✅ 尾數命中
+            line += `<span class="badge tail-hit">${(num < 10 ? "0" + num : num)}</span> `;
           } else {
             line += `<span class="badge">${(num < 10 ? "0" + num : num)}</span> `;
           }
         });
+
         html += `<p>${label}：${line} => 命中號碼: [${matchedNums.join(", ")}]</p>`;
       });
+
+      // ✅ 計算「可能尾數」命中情況
+      sortedTailNums.forEach(tail => {
+        if (realTailSet.has(tail)) {
+          matchedTailNums.push(tail);
+        }
+      });
+
+      // ✅ 顯示「可能尾數命中」
+      html += `<p>可能尾數：${sortedTailNums.join("")} => 命中號碼: [${matchedTailNums.join(", ")}]</p>`;
+
+      // ✅ 顯示前一期最高機率 10 個號碼
+      let previousTop10Numbers = ph.top10Numbers || [];
+      let matchedPrevTop10Numbers = previousTop10Numbers.filter(n => realSet.has(n));
+
+      html += `<p>前一期最高機率 10 個號碼： `;
+      previousTop10Numbers.sort((a, b) => a - b).forEach(n => {
+        if (realSet.has(n)) {
+          html += `<span class="badge matched">${(n < 10 ? "0" + n : n)}</span> `;
+        } else {
+          html += `<span class="badge">${(n < 10 ? "0" + n : n)}</span> `;
+        }
+      });
+      html += `=> 命中號碼: [${matchedPrevTop10Numbers.join(", ")}]</p>`;
+
+      // ✅ 顯示實際開獎
       html += `<p>實際開獎： `;
-      draws[lastIndex - 1].nums.forEach(x => {
+      let sortedRealDraws = [...draws[lastIndex - 1].nums].sort((a, b) => a - b);
+      sortedRealDraws.forEach(x => {
         html += `<span class="badge hit">${(x < 10 ? "0" + x : x)}</span> `;
       });
       html += `</p>`;
@@ -898,6 +1332,7 @@ function renderAnalysisOutput(top3, tailNums, top10Numbers, nextIndex) {
   }
   out.innerHTML = html;
 }
+
 
 /* =====================================
    (E) 命中顯示區：列出所有預測紀錄與實際開獎對照
