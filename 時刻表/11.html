@@ -2,7 +2,7 @@
 <html lang="zh-Hant">
 <head>
   <meta charset="UTF-8"/>
-  <title>539 - 最終優化版 (動態GA參數 + 回測 + ARIMA/LSTM接口 + 多權重搜尋)</title>
+  <title>539 高度優化版 (GA + 回測 + 多重回歸/區域分析)</title>
   <style>
     body {
       margin:0; padding:0;
@@ -10,7 +10,7 @@
       background:#f4f4f4; color:#333;
     }
     .container { margin:1rem; }
-
+    /* 球樣式 */
     .ball {
       width:40px; height:40px; border-radius:50%;
       background:#ddd; color:#333;
@@ -18,14 +18,14 @@
       cursor:pointer; font-weight:bold; user-select:none;
     }
     .ball.selected { background:#ffa726; color:#fff; }
-
+    /* 按鈕樣式 */
     .btn {
       background:#3A6073; color:#fff; border:none;
       padding:0.6rem 1.2rem; border-radius:4px;
       cursor:pointer; margin:0.2rem;
     }
     .delete-btn { background:#d9534f !important; }
-
+    /* 表格 */
     table {
       border-collapse: collapse;
       width:100%;
@@ -37,9 +37,9 @@
       text-align:center;
       font-size:0.9rem;
     }
-    .hit { background:#c8e6c9; }      /* 實際中獎 (綠底) */
-    .matched { background:#ffd54f; }  /* 命中 (黃底) */
-
+    /* 中獎與命中樣式 */
+    .hit { background:#c8e6c9; }       /* 實際開獎用綠色 */
+    .matched { background:#ffd54f; }   /* 命中號碼用黃色 */
     .badge {
       display:inline-block; padding:0.3rem 0.5rem;
       margin:2px; border-radius:4px; color:#fff; font-size:0.8rem;
@@ -51,9 +51,9 @@
 </head>
 <body>
 <div class="container">
-  <h1>539 - 最終優化版</h1>
+  <h1>539 高度優化版 (GA + 回測 + 多重回歸/區域分析)</h1>
 
-  <!-- (A) 新增歷史紀錄 -->
+  <!-- (A) 新增/匯入歷史紀錄 -->
   <div style="background:#fff; padding:1rem; border-radius:6px; margin-bottom:1rem;">
     <h2>選 5 號，新增一筆「539」開獎紀錄</h2>
     <div id="numberGrid" style="display:grid; grid-template-columns:repeat(10,1fr); gap:0.5rem; width:420px;"></div>
@@ -63,76 +63,37 @@
     <button class="btn" id="importBtn">匯入</button>
   </div>
 
-  <!-- (B) 回測 + 權重搜尋 + GA參數搜尋 -->
-  <div style="background:#fff; padding:1rem; border-radius:6px; margin-bottom:1rem;">
-    <h2>回測 & 權重搜尋 & GA參數搜尋</h2>
-    <p>
-      <button class="btn" id="weightSearchBtn">多權重搜尋</button>
-      <button class="btn" id="gaParamSearchBtn">GA參數搜尋</button>
-    </p>
-    <div id="searchResult"></div>
-  </div>
 
-  <!-- (C) 分析與預測 (帶ARIMA/LSTM/XGBoost介面示範) -->
+
+  <!-- (C) 分析與預測 -->
   <div style="background:#fff; padding:1rem; border-radius:6px; margin-bottom:1rem;">
-    <h2>分析與預測 (GA + 先行 ML/AI分析)</h2>
-    <p>
-      <label>是否重新執行 ARIMA/LSTM 時序模型: 
-        <input type="checkbox" id="enableTimeSeries" checked/>
-      </label><br/>
-      <label>是否重新執行 GA 分析(若不勾選且資料沒變，沿用上次最佳結果):
-        <input type="checkbox" id="enableGA" checked/>
-      </label>
-    </p>
-    <p>
-      <button class="btn" id="analyzeBtn">開始分析</button>
-    </p>
+    <h2>分析與預測</h2>
+    <!-- 族群大小與迭代代數將根據回測結果自動調整，不再讓使用者手動輸入 -->
+    <button class="btn" id="analyzeBtn">開始分析並預測</button>
     <div id="analysisOutput"></div>
   </div>
 
   <!-- (D) 歷史紀錄分布表 -->
-  <div style="background:#fff; padding:1rem; border-radius:6px; margin-bottom:1rem;">
+  <div style="background:#fff; padding:1rem; border-radius:6px;">
     <h2>歷史紀錄分布表</h2>
     <table>
       <thead id="distTableHead"></thead>
       <tbody id="distTableBody"></tbody>
     </table>
   </div>
-
-  <!-- (E) 回測(所有期) & 命中顯示 -->
-  <div style="background:#fff; padding:1rem; border-radius:6px;">
-    <h2>全期回測 & 命中顯示</h2>
-    <p>
-      <button class="btn" id="fullBacktestBtn">對所有期做 GA 預測 (耗時)</button>
-    </p>
-    <div id="hitDisplay"></div>
-  </div>
 </div>
 
 <script>
-/* ==============================
-   全域資料 & 結構
-============================== */
+/* =====================================
+   全域資料與參數設定
+===================================== */
+// 歷史紀錄，每筆格式： { index, nums:[五個號碼] }
 let draws = [];
+// 預測紀錄，存放每次預測結果
 let predictionHistory = [];
 
-/**
- * GA / ML 參數、以及動態權重
- * - realGAParam: 實際用於 GA 的 {popSize, generations, elitismRate, ...} 
- * - WeightedParams: 各分析加權
- */
-let realGAParam = {
-  popSize: 200,
-  generations: 50,
-  elitismRate: 0.1,  // 菁英保留
-  crossoverType: "twopoint", // 可 "single" or "twopoint"
-  mutationRate: 0.1,
-  sumRange: [60,130],
-  avoidAdjacent: true,
-  oddEvenBalance: true,
-  maxConsecutiveLen: 2
-};
-let WeightedParams = {
+/* 動態權重參數（可由回測調整） */
+let WEIGHT = {
   freqWeight: 5,
   extremePenalty: 2,
   missing10Bonus: 3,
@@ -146,38 +107,59 @@ let WeightedParams = {
   appearNextBonus: 1,
   tripleCountThreshold: 4,
   tripleBonus: 2,
+  quadBonus: 0.5,         // 四號組合加分
   comparePatternBonus: 1,
   sumOutOfRangePenalty: 50,
   tooManyAdjPenalty: 5,
   unbalancedOddEvenPenalty: 10,
-  markovChainBonus: 0.5,
-  zoneAnalysisBonus: 1,
-  tailDistributionBonus: 0.5
+  maxConsecutivePenalty: 5, // 每超出最大連號長度扣分
+  regionBonus: 1          // 區域熱門加分
 };
 
-// 記錄上一次的「dataSize」(draws 長度) 及 GA 結果，用於避免重複運算
-let lastAnalyzeDataSize = 0;
-let lastAnalyzeResult = null; // { top3, topTailNums, top10Numbers, gaPool, bestPop }
+/* GA 參數（將根據回測結果自動調整，此處示範固定數值，可依實測動態調整） */
+let GA_PARAMS = {
+  popSize: 200,
+  generations: 50,
+  elitismRate: 0.05   // 前5%的族群保留
+};
 
+/* =====================================
+   固定種子亂數（確保結果穩定）
+   使用簡單線性同餘法（LCG）
+===================================== */
+let seed = 123456789;
+function seededRandom() {
+  seed = (seed * 9301 + 49297) % 233280;
+  return seed / 233280;
+}
+function randomChoice(arr) {
+  return arr[Math.floor(seededRandom() * arr.length)];
+}
+function shuffle(arr) {
+  for (let i = arr.length - 1; i > 0; i--) {
+    let j = Math.floor(seededRandom() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+}
 
-/* ==============================
+/* =====================================
    產生 1~39 號球
-============================== */
+===================================== */
 const numberGrid = document.getElementById("numberGrid");
-for(let i=1; i<=39; i++){
-  let ball=document.createElement("div");
+for (let i = 1; i <= 39; i++) {
+  let ball = document.createElement("div");
   ball.classList.add("ball");
-  ball.textContent=(i<10?"0"+i:i);
-  ball.dataset.num=i;
-  ball.addEventListener("click",()=> toggleBall(ball));
+  ball.textContent = (i < 10 ? "0" + i : "" + i);
+  ball.dataset.num = i;
+  ball.addEventListener("click", () => toggleBall(ball));
   numberGrid.appendChild(ball);
 }
-function toggleBall(ball){
-  if(ball.classList.contains("selected")){
+function toggleBall(ball) {
+  if (ball.classList.contains("selected")) {
     ball.classList.remove("selected");
   } else {
-    let sel=document.querySelectorAll(".ball.selected");
-    if(sel.length>=5){
+    let sel = document.querySelectorAll(".ball.selected");
+    if (sel.length >= 5) {
       alert("一次只能選 5 號");
       return;
     }
@@ -185,80 +167,72 @@ function toggleBall(ball){
   }
 }
 
-
-/* ==============================
-   新增歷史紀錄
-============================== */
-document.getElementById("addDrawBtn").addEventListener("click",()=>{
-  let selected=[...document.querySelectorAll(".ball.selected")];
-  if(selected.length!==5){
-    alert("需選5號");
+/* =====================================
+   新增 & 刪除歷史紀錄
+   每次新增資料後自動執行內部回測與權重優化（不顯示）
+===================================== */
+document.getElementById("addDrawBtn").addEventListener("click", () => {
+  let selected = [...document.querySelectorAll(".ball.selected")];
+  if (selected.length !== 5) {
+    alert("需選 5 號");
     return;
   }
-  let nums= selected.map(b=> parseInt(b.dataset.num,10)).sort((a,b)=>a-b);
+  let nums = selected.map(b => parseInt(b.dataset.num, 10)).sort((a, b) => a - b);
   draws.push({
-    index: draws.length+1,
+    index: draws.length + 1,
     nums
   });
-  selected.forEach(b=> b.classList.remove("selected"));
+  selected.forEach(b => b.classList.remove("selected"));
   renderDistributionTable();
-  // 只要資料變動，就清空上次分析結果
-  lastAnalyzeDataSize = 0;
-  lastAnalyzeResult = null;
+  // 自動執行內部回測與權重優化（不顯示結果）
+  internalBacktestAndOptimize();
 });
 
-
-/* ==============================
-   分布表
-============================== */
-const distTableHead=document.getElementById("distTableHead");
-const distTableBody=document.getElementById("distTableBody");
-
-function renderDistributionTable(){
-  distTableHead.innerHTML="";
-  distTableBody.innerHTML="";
-  if(draws.length===0){
-    distTableHead.innerHTML="<tr><th>尚無資料</th></tr>";
+/* =====================================
+   渲染歷史紀錄分布表
+===================================== */
+const distTableHead = document.getElementById("distTableHead");
+const distTableBody = document.getElementById("distTableBody");
+function renderDistributionTable() {
+  distTableHead.innerHTML = "";
+  distTableBody.innerHTML = "";
+  if (draws.length === 0) {
+    distTableHead.innerHTML = "<tr><th>尚無資料</th></tr>";
     return;
   }
-
-  let trH=document.createElement("tr");
-  trH.innerHTML="<th>期數</th>";
-  for(let i=1; i<=39; i++){
-    let th=document.createElement("th");
-    th.textContent=(i<10?("0"+i):(""+i));
+  let trH = document.createElement("tr");
+  trH.innerHTML = "<th>期數</th>";
+  for (let i = 1; i <= 39; i++) {
+    let th = document.createElement("th");
+    th.textContent = (i < 10 ? "0" + i : "" + i);
     trH.appendChild(th);
   }
-  trH.innerHTML+="<th>刪除</th>";
+  trH.innerHTML += "<th>刪除</th>";
   distTableHead.appendChild(trH);
-
-  draws.forEach((d,idx)=>{
-    let tr=document.createElement("tr");
-    let tdIndex=document.createElement("td");
-    tdIndex.textContent=d.index;
-    tr.appendChild(tdIndex);
-
-    let setNums=new Set(d.nums);
-    for(let i=1; i<=39; i++){
-      let td=document.createElement("td");
-      if(setNums.has(i)){
-        td.textContent=(i<10?"0"+i:i);
+  draws.forEach((d, idx) => {
+    let tr = document.createElement("tr");
+    let tdI = document.createElement("td");
+    tdI.textContent = d.index;
+    tr.appendChild(tdI);
+    let setNums = new Set(d.nums);
+    for (let i = 1; i <= 39; i++) {
+      let td = document.createElement("td");
+      if (setNums.has(i)) {
+        td.textContent = (i < 10 ? "0" + i : i);
         td.classList.add("hit");
       } else {
-        td.textContent="";
+        td.textContent = "";
       }
       tr.appendChild(td);
     }
-    let tdDel=document.createElement("td");
-    let btn=document.createElement("button");
-    btn.classList.add("btn","delete-btn");
-    btn.textContent="刪除";
-    btn.addEventListener("click",()=>{
-      draws.splice(idx,1);
-      draws.forEach((x,i2)=> x.index=i2+1);
+    let tdDel = document.createElement("td");
+    let btn = document.createElement("button");
+    btn.classList.add("btn", "delete-btn");
+    btn.textContent = "刪除";
+    btn.addEventListener("click", () => {
+      draws.splice(idx, 1);
+      draws.forEach((x, i2) => x.index = i2 + 1);
       renderDistributionTable();
-      lastAnalyzeDataSize = 0;
-      lastAnalyzeResult = null;
     });
     tdDel.appendChild(btn);
     tr.appendChild(tdDel);
@@ -266,891 +240,691 @@ function renderDistributionTable(){
   });
 }
 
-
-/* ==============================
+/* =====================================
    匯出 & 匯入
-============================== */
-document.getElementById("exportBtn").addEventListener("click",()=>{
-  if(draws.length===0){
+===================================== */
+document.getElementById("exportBtn").addEventListener("click", () => {
+  if (draws.length === 0) {
     alert("無資料可匯出");
     return;
   }
-  let dataStr=JSON.stringify(draws,null,2);
-  let blob=new Blob([dataStr],{type:"application/json"});
-  let url=URL.createObjectURL(blob);
-  let a=document.createElement("a");
-  a.href=url;
-  a.download="lottery539_draws.json";
+  let dataStr = JSON.stringify(draws, null, 2);
+  let blob = new Blob([dataStr], { type: "application/json" });
+  let url = URL.createObjectURL(blob);
+  let a = document.createElement("a");
+  a.href = url;
+  a.download = "539_draws.json";
   a.click();
   URL.revokeObjectURL(url);
 });
-document.getElementById("importBtn").addEventListener("click",()=>{
+document.getElementById("importBtn").addEventListener("click", () => {
   document.getElementById("importFile").click();
 });
-document.getElementById("importFile").addEventListener("change",(e)=>{
-  let file=e.target.files[0];
-  if(!file)return;
-  let reader=new FileReader();
-  reader.onload=(evt)=>{
-    try{
-      let arr= JSON.parse(evt.target.result);
-      if(!Array.isArray(arr)){
+document.getElementById("importFile").addEventListener("change", (e) => {
+  let file = e.target.files[0];
+  if (!file) return;
+  let reader = new FileReader();
+  reader.onload = (evt) => {
+    try {
+      let arr = JSON.parse(evt.target.result);
+      if (!Array.isArray(arr)) {
         alert("匯入格式錯誤");
         return;
       }
-      draws=arr;
-      draws.forEach((d,i)=> d.index=i+1);
+      draws = arr;
+      draws.forEach((x, i) => x.index = i + 1);
       renderDistributionTable();
       alert("匯入成功!");
-      lastAnalyzeDataSize = 0;
-      lastAnalyzeResult = null;
-    }catch(err){
-      alert("解析JSON失敗:"+err);
+    } catch (err) {
+      alert("解析 JSON 失敗:" + err);
     }
   };
   reader.readAsText(file);
-  e.target.value="";
+  e.target.value = "";
 });
-
-
-/* ==============================
-   (B1) 多權重搜尋
-   - 以 GA 或簡易 BFS/DFS 搜尋 WeightedParams
-   - 這裡示範 BFS / subset (簡化)
-============================== */
-document.getElementById("weightSearchBtn").addEventListener("click", ()=>{
-  let out=document.getElementById("searchResult");
-  if(draws.length<30){
-    out.innerHTML="<p>資料不足(≥30)才具意義</p>";
-    return;
-  }
-  let msg="開始多權重搜尋... (示範: freqWeight & missing10Bonus)";
-  
-  let bestScore=-9999;
-  let bestCombo={freqWeight: WeightedParams.freqWeight, missing10Bonus: WeightedParams.missing10Bonus};
-
-  for(let fw=3; fw<=7; fw++){
-    for(let mb=1; mb<=3; mb++){
-      WeightedParams.freqWeight= fw;
-      WeightedParams.missing10Bonus= mb;
-      // 做個簡易回測: testAccuracySimple => 10期
-      let sc=testAccuracySimple(draws);
-      if(sc> bestScore){
-        bestScore=sc;
-        bestCombo.freqWeight=fw;
-        bestCombo.missing10Bonus=mb;
-      }
-    }
-  }
-  WeightedParams.freqWeight= bestCombo.freqWeight;
-  WeightedParams.missing10Bonus= bestCombo.missing10Bonus;
-  msg+= `<br/>最佳: freqWeight=${bestCombo.freqWeight}, missing10Bonus=${bestCombo.missing10Bonus}, 命中合計=${bestScore}`;
-  out.innerHTML=msg;
-});
-
-
-/* ==============================
-   (B2) GA參數搜尋 (popSize, generations)
-   - 也可以用 GA 來搜尋 GA 參數(雙層GA)，這裡只示範簡化 BFS
-============================== */
-document.getElementById("gaParamSearchBtn").addEventListener("click", ()=>{
-  let out=document.getElementById("searchResult");
-  if(draws.length<30){
-    out.innerHTML="<p>資料不足(≥30)才具意義</p>";
-    return;
-  }
-  let popSizes=[100,150,200];
-  let gens=[30,50,80];
-  let bestScore=-9999;
-  let bestPop=200, bestGen=50;
-
-  for(let ps of popSizes){
-    for(let gn of gens){
-      realGAParam.popSize= ps;
-      realGAParam.generations= gn;
-      // 快速回測
-      let sc=testAccuracySimple(draws); 
-      if(sc>bestScore){
-        bestScore=sc;
-        bestPop=ps;
-        bestGen=gn;
-      }
-    }
-  }
-  realGAParam.popSize= bestPop;
-  realGAParam.generations= bestGen;
-  out.innerHTML=`<p>GA參數搜尋完畢: popSize=${bestPop}, generations=${bestGen}, 回測命中數=${bestScore}</p>`;
-});
-
 
 /* =====================================
-   testAccuracySimple():
-   簡易回測 => 對最後10期 each 期預測 + 計命中
+   (B) 內部回測與權重優化
+   每次新增一筆資料後自動呼叫，不顯示結果
+   此處示範利用簡單候選族群搜索部分權重（例如 freqWeight 與 missing10Bonus）
 ===================================== */
-function testAccuracySimple(data){
-  let N=10;
-  if(data.length<N) N=data.length;
-  let startIndex=data.length- N;
-  let hits=0;
-  for(let i=startIndex; i<data.length-1; i++){
-    // 預測 i+1 期
-    let subset=data.slice(0,i+1);
-    let singleScores= calcNumberScores(subset);
-    doRegressionAnalysis(subset, singleScores);
-    doQuantumProbability(subset, singleScores);
-    zoneAndTailAnalysis(subset, singleScores);
-    
-    // pick top5
-    let arr=[];
-    for(let n=1;n<=39;n++){
-      if(singleScores[n]>-9999){
-        arr.push({num:n, score: singleScores[n]});
-      }
-    }
-    arr.sort((a,b)=> b.score-a.score);
-    let picks= arr.slice(0,5).map(x=> x.num);
-
-    // check hits
-    let realSet=new Set(data[i+1].nums);
-    picks.forEach(n=>{
-      if(realSet.has(n)) hits++;
+function internalBacktestAndOptimize() {
+  if (draws.length < 30) return; // 資料太少不調整
+  const CANDIDATE_COUNT = 20;
+  let weightCandidates = [];
+  for (let i = 0; i < CANDIDATE_COUNT; i++) {
+    weightCandidates.push({
+      freqWeight: 3 + seededRandom() * 6,        // 3 ~ 9
+      missing10Bonus: 1 + seededRandom() * 4       // 1 ~ 5
     });
   }
-  return hits;
-}
-
-
-/* ==============================
-   (C) 分析與預測
-============================== */
-document.getElementById("analyzeBtn").addEventListener("click", async ()=>{
-  let out=document.getElementById("analysisOutput");
-  out.innerHTML="";
-
-  if(draws.length<5){
-    out.innerHTML="<p>資料不足(≥5)</p>";
-    return;
-  }
-
-  // 1) 若資料沒變 & 使用者沒要求 "enableGA" => 直接用上次結果
-  let dataSize=draws.length;
-  let reRunGA = document.getElementById("enableGA").checked;
-  let reRunML = document.getElementById("enableTimeSeries").checked;
-
-  if(!reRunGA && lastAnalyzeResult && lastAnalyzeDataSize===dataSize){
-    // 直接用 lastAnalyzeResult
-    out.innerHTML="<p>資料無變動，使用上次最佳結果</p>";
-    renderFinalResult(lastAnalyzeResult);
-    return;
-  }
-
-  // 2) (可選) 先執行 ARIMA/LSTM/XGBoost (後端 or WebAssembly)
-  if(reRunML){
-    out.innerHTML+="<p>執行外部 ML/AI(ARIMA/LSTM...) 中...</p>";
-    await runTimeSeriesModel(draws); 
-    // runTimeSeriesModel 可能調整 WeightedParams
-  }
-
-  // 3) 主要分析 => 取「最近 50~100」筆
-  let startIndex=Math.max(0, dataSize-100);
-  if(dataSize>50 && dataSize-50>startIndex){
-    startIndex=Math.max(startIndex, dataSize-50);
-  }
-  let recentData= draws.slice(startIndex);
-
-  // (a) 單號分數
-  let singleScores= calcNumberScores(recentData);
-  // (b) 回歸(Markov)
-  doRegressionAnalysis(recentData, singleScores);
-  // (c) 量子
-  doQuantumProbability(recentData, singleScores);
-  // (d) 分區 & 尾號分析
-  zoneAndTailAnalysis(recentData, singleScores);
-  // (e) 與舊資料 compare
-  comparePatterns(draws.slice(0,50), recentData, singleScores);
-
-  // (f) 產生 top10 單號
-  let singleArr=[];
-  for(let n=1; n<=39; n++){
-    if(singleScores[n]>-9999){
-      singleArr.push({num:n, sc:singleScores[n]});
+  let bestScore = -Infinity;
+  let bestCandidate = null;
+  for (let candidate of weightCandidates) {
+    WEIGHT.freqWeight = candidate.freqWeight;
+    WEIGHT.missing10Bonus = candidate.missing10Bonus;
+    let score = testAccuracySimple(draws);
+    candidate.score = score;
+    if (score > bestScore) {
+      bestScore = score;
+      bestCandidate = candidate;
     }
   }
-  singleArr.sort((a,b)=> b.sc-a.sc);
-  let top10= singleArr.slice(0,10).map(x=> x.num);
+  // 採用最佳候選參數
+  WEIGHT.freqWeight = bestCandidate.freqWeight;
+  WEIGHT.missing10Bonus = bestCandidate.missing10Bonus;
+  // 此處可延伸搜尋其他參數，也可根據回測結果自動調整 GA 參數
+  // 例如：
+  GA_PARAMS.popSize = 200;
+  GA_PARAMS.generations = 50;
+  // 回測結果不顯示在介面上
+}
+function testAccuracySimple(data) {
+  let N = 10;
+  if (data.length < N) N = data.length;
+  let startIndex = data.length - N;
+  let totalHits = 0;
+  for (let i = startIndex; i < data.length; i++) {
+    if (i === data.length - 1) break;
+    let subset = data.slice(0, i + 1);
+    let sScores = calcNumberScores(subset);
+    doRegressionAnalysis(subset, sScores);
+    doQuantumProbability(subset, sScores);
+    let arr = [];
+    for (let n = 1; n <= 39; n++) {
+      if (sScores[n] > -9999) arr.push({ num: n, sc: sScores[n] });
+    }
+    arr.sort((a, b) => b.sc - a.sc);
+    let picked = arr.slice(0, 5).map(x => x.num);
+    if (data[i + 1]) {
+      let realSet = new Set(data[i + 1].nums);
+      picked.forEach(n => {
+        if (realSet.has(n)) totalHits++;
+      });
+    }
+  }
+  return totalHits;
+}
 
-  // (g) 遺傳演算法 => 5 號組合
-  let {bestSets, population} = generateCandidatesByGA(singleScores, realGAParam);
-
-  let top3= bestSets.slice(0,3);
-  let tailNums= calcPossibleTails(recentData);
-
-  // 4) 記錄
-  let nextIndex= dataSize+1;
-  let finalObj={
+/* =====================================
+   (C) 分析與預測
+   系統自動根據內部調整後的權重進行預測
+===================================== */
+document.getElementById("analyzeBtn").addEventListener("click", () => {
+  if (draws.length < 5) {
+    alert("資料不足(至少 5 筆)");
+    return;
+  }
+  // 擷取最近 50~100 筆作為近期分析資料
+  let startIndex = Math.max(0, draws.length - 100);
+  if (draws.length > 50 && draws.length - 50 > startIndex) {
+    startIndex = Math.max(startIndex, draws.length - 50);
+  }
+  let recentData = draws.slice(startIndex);
+  // 計算單號分數
+  let sScores = calcNumberScores(recentData);
+  // 回歸分析：一階馬可夫、pair 與 triple
+  doRegressionAnalysis(recentData, sScores);
+  // 量子概率：以四號組合示範
+  doQuantumProbability(recentData, sScores);
+  // 與更早期資料比對
+  comparePatterns(draws.slice(0, 50), recentData, sScores);
+  // 區域與尾數分析
+  doRegionalTailAnalysis(recentData, sScores);
+  // 從單號分數中挑出「最高機率的 10 個號碼」供參考
+  let singleArr = [];
+  for (let n = 1; n <= 39; n++) {
+    if (sScores[n] > -9999) {
+      singleArr.push({ num: n, sc: sScores[n] });
+    }
+  }
+  singleArr.sort((a, b) => b.sc - a.sc);
+  let top10Numbers = singleArr.slice(0, 10).map(x => x.num);
+  // 用 GA 產生最佳 5 號組合
+  let bestSets = generateCandidatesByGA(sScores, {
+    avoidAdjacent: true,
+    sumRange: [60, 130],
+    oddEvenBalance: true,
+    maxConsecutiveLen: 2,
+    popSize: GA_PARAMS.popSize,
+    generations: GA_PARAMS.generations
+  });
+  // 取前三組
+  let top3 = bestSets.slice(0, 3);
+  // 可能尾數
+  let tailNums = calcPossibleTails(recentData);
+  // 記錄預測結果（包含 top10Numbers）
+  let nextIndex = draws.length + 1;
+  predictionHistory.push({
     drawIndex: nextIndex,
-    top3,
-    tailNums,
-    top10Numbers: top10,
-    // 可能想保留 GA population or 其它資訊
-  };
-  predictionHistory.push(finalObj);
-
-  // 5) 存到 lastAnalyzeResult
-  lastAnalyzeDataSize= dataSize;
-  lastAnalyzeResult= finalObj;
-
-  // 6) 顯示
-  renderFinalResult(finalObj);
+    bestSets: top3,
+    tailNums: tailNums,
+    top10Numbers: top10Numbers
+  });
+  // 顯示預測結果與命中狀況
+  renderAnalysisOutput(top3, tailNums, top10Numbers, nextIndex);
+  renderHitDisplay();
 });
 
-
-/* ==============================
-   (C1) runTimeSeriesModel
-   (模擬連接 ARIMA/LSTM/其他AI)
-============================== */
-async function runTimeSeriesModel(data){
-  // 在真實情境中，你可能:
-  // 1) 將 data 轉成適合的時序格式
-  // 2) 用 fetch() 或 WebSocket 把 data 傳到後端 Python/R
-  // 3) 從後端獲取分析結果, 例如對 WeightedParams 做調整
-
-  // 這裡做個"假的延遲"模擬
-  return new Promise((resolve)=>{
-    setTimeout(()=>{
-      // (假裝) 我們用 LSTM 分析得知: freqWeight 要提高1, consecutive2Penalty 降低1
-      WeightedParams.freqWeight+=1;
-      WeightedParams.consecutive2Penalty= Math.max(0, WeightedParams.consecutive2Penalty-1);
-      resolve();
-    }, 1000);
+/* =====================================
+   (C1) calcNumberScores() - 加權計算
+===================================== */
+function calcNumberScores(data) {
+  let freq = new Array(40).fill(0);
+  data.forEach(d => {
+    d.nums.forEach(n => freq[n]++);
   });
-}
-
-
-/* ==============================
-   (C2) 分區(Zone) & 尾號分散度
-============================== */
-function zoneAndTailAnalysis(data, scores){
-  // 區域: 1~13, 14~26, 27~39
-  let zoneFreq=[0,0,0];
-  data.forEach(d=>{
-    d.nums.forEach(n=>{
-      let z= getZone(n);
-      zoneFreq[z]++;
-    });
-  });
-  // 找出最大區
-  let maxZone=0;
-  for(let i=1;i<3;i++){
-    if(zoneFreq[i]> zoneFreq[maxZone]){
-      maxZone=i;
+  let scores = new Array(40).fill(0);
+  // 基本：出現次數 * freqWeight
+  for (let n = 1; n <= 39; n++) {
+    scores[n] = freq[n] * WEIGHT.freqWeight;
+  }
+  // 過濾極端值：例如 1 與 39
+  scores[1] -= WEIGHT.extremePenalty;
+  scores[39] -= WEIGHT.extremePenalty;
+  // 遺漏期
+  let missingMap = calcMissingCount(data);
+  for (let n = 1; n <= 39; n++) {
+    if (missingMap[n] >= 10) {
+      scores[n] += WEIGHT.missing10Bonus;
+    } else if (missingMap[n] >= 5) {
+      scores[n] += WEIGHT.missing5Bonus;
     }
   }
-  // 該區對應的號碼 => + WeightedParams.zoneAnalysisBonus
-  let [start,end]= zoneRange(maxZone);
-  for(let n=start; n<=end; n++){
-    scores[n]+= WeightedParams.zoneAnalysisBonus;
-  }
-
-  // 額外: 尾號分散 (可以跟calcPossibleTails整合)
-  let tailFreq=new Array(10).fill(0);
-  data.forEach(d=>{
-    d.nums.forEach(x=> tailFreq[x%10]++);
-  });
-  let maxTail=Math.max(...tailFreq);
-  for(let n=1; n<=39; n++){
-    if(tailFreq[n%10]===maxTail){
-      scores[n]+= WeightedParams.tailDistributionBonus;
+  // 連莊
+  let cMap = calcConsecutiveMap(data);
+  for (let n = 1; n <= 39; n++) {
+    if (cMap[n] >= 3) {
+      scores[n] -= WEIGHT.consecutive3Penalty;
+    } else if (cMap[n] === 2) {
+      scores[n] -= WEIGHT.consecutive2Penalty;
     }
   }
-}
-function getZone(n){
-  if(n<=13) return 0;
-  if(n<=26) return 1;
-  return 2;
-}
-function zoneRange(z){
-  if(z===0) return [1,13];
-  if(z===1) return [14,26];
-  return [27,39];
-}
-
-
-/* ==============================
-   (C3) GA 產生最佳組合
-   - 增加菁英保留 (elitismRate)
-   - 多點交配 (two-point)
-   - 若分數不再提升 => 提前停止
-============================== */
-function generateCandidatesByGA(scores, gaParam){
-  let popSize= gaParam.popSize;
-  let generations= gaParam.generations;
-  let elitismRate= gaParam.elitismRate||0;
-  let crossType= gaParam.crossoverType||"single";
-  let mutationRate= gaParam.mutationRate||0.1;
-
-  // 建立 pool
-  let pool=[];
-  for(let n=1; n<=39; n++){
-    if(scores[n]>-9999){
-      pool.push(n);
-    }
-  }
-
-  // 初始化族群
-  let population=[];
-  for(let i=0; i<popSize; i++){
-    population.push( genChromosome(pool) );
-  }
-  let bestFitness=-9999;
-
-  for(let gen=0; gen<generations; gen++){
-    // 評分
-    population.forEach(ch=>{
-      ch.fitness= scoreCandidateSet(ch.genes, scores, gaParam);
-    });
-    // 排序
-    population.sort((a,b)=> b.fitness- a.fitness);
-    // 檢查是否分數無明顯提升 => 可考慮提前停止
-    if(population[0].fitness> bestFitness){
-      bestFitness= population[0].fitness;
-    } else {
-      // 若連續多代都沒提升 => 可中斷 (示範: 若連續 3 代)
-      // 這裡省略
-    }
-    // 菁英保留
-    let nElites= Math.floor(popSize * elitismRate);
-    let newPop= population.slice(0, nElites);
-
-    // 交配 + 突變
-    while(newPop.length<popSize){
-      let p1= randomPick(population.slice(0, popSize/2));
-      let p2= randomPick(population.slice(0, popSize/2));
-      let child= (crossType==="twopoint")? crossoverTwoPoint(p1, p2, pool) : crossoverSinglePoint(p1,p2,pool);
-      mutate(child, pool, mutationRate);
-      newPop.push(child);
-    }
-    population=newPop;
-  }
-
-  // 最後評分一次
-  population.forEach(ch=>{
-    ch.fitness= scoreCandidateSet(ch.genes, scores, gaParam);
-  });
-  population.sort((a,b)=> b.fitness- a.fitness);
-
-  // 收集前若干組(避免重複)
-  let results=[];
-  let usedKey=new Set();
-  for(let i=0; i<population.length; i++){
-    let arr=[...population[i].genes].sort((x,y)=>x-y);
-    let key=arr.join("-");
-    if(!usedKey.has(key)){
-      usedKey.add(key);
-      results.push(arr);
-    }
-    if(results.length>=100) break;
-  }
-  return { bestSets: results, population };
-}
-function genChromosome(pool){
-  shuffle(pool);
-  let genes= pool.slice(0,5).sort((a,b)=>a-b);
-  return { genes, fitness:0 };
-}
-function crossoverSinglePoint(p1, p2, pool){
-  let cut=Math.floor(Math.random()*5);
-  let childGenes=[...p1.genes.slice(0,cut), ...p2.genes.slice(cut)];
-  return fixChromosome(childGenes, pool);
-}
-function crossoverTwoPoint(p1, p2, pool){
-  let c1=Math.floor(Math.random()*5);
-  let c2=Math.floor(Math.random()*5);
-  if(c2<c1) [c1,c2]=[c2,c1];
-  let childGenes=[
-    ...p1.genes.slice(0,c1),
-    ...p2.genes.slice(c1,c2),
-    ...p1.genes.slice(c2)
-  ];
-  return fixChromosome(childGenes, pool);
-}
-function fixChromosome(arr, pool){
-  // 去重 + 保證長度=5
-  let used=new Set();
-  let newGenes=[];
-  for(let x of arr){
-    if(!used.has(x)){
-      used.add(x);
-      newGenes.push(x);
-    }
-  }
-  // 若不足5 => 隨機補
-  shuffle(pool);
-  for(let x of pool){
-    if(newGenes.length>=5) break;
-    if(!used.has(x)){
-      used.add(x);
-      newGenes.push(x);
-    }
-  }
-  newGenes.sort((a,b)=>a-b);
-  return { genes:newGenes, fitness:0 };
-}
-function mutate(ch, pool, rate){
-  if(Math.random()> rate) return; 
-  // 突變: 隨機換1~2個基因
-  let count=Math.floor(Math.random()*2)+1;
-  for(let i=0; i<count; i++){
-    let idx=Math.floor(Math.random()* ch.genes.length);
-    let used=new Set(ch.genes);
-    used.delete(ch.genes[idx]);
-    shuffle(pool);
-    for(let x of pool){
-      if(!used.has(x)){
-        ch.genes[idx]=x;
-        used.add(x);
-        break;
-      }
-    }
-  }
-  ch.genes.sort((a,b)=>a-b);
-}
-function randomPick(arr){
-  return arr[Math.floor(Math.random()*arr.length)];
-}
-function shuffle(arr){
-  for(let i=arr.length-1; i>0; i--){
-    let j=Math.floor(Math.random()* (i+1));
-    [arr[i],arr[j]]=[arr[j],arr[i]];
-  }
-}
-
-
-/* ==============================
-   (C4) 單號分數 + 各種分析(原始)
-============================== */
-function calcNumberScores(data){
-  let freq=new Array(40).fill(0);
-  data.forEach(d=>{
-    d.nums.forEach(n=>{
-      freq[n]++;
-    });
-  });
-  let scores=new Array(40).fill(0);
-
-  // A. freqWeight
-  for(let n=1; n<=39; n++){
-    scores[n]= freq[n]* WeightedParams.freqWeight;
-  }
-  // B. 極端
-  scores[1]-= WeightedParams.extremePenalty;
-  scores[39]-= WeightedParams.extremePenalty;
-
-  // C. 遺漏
-  let missingMap=calcMissingCount(data);
-  for(let n=1; n<=39; n++){
-    if(missingMap[n]>=10){
-      scores[n]+= WeightedParams.missing10Bonus;
-    } else if(missingMap[n]>=5){
-      scores[n]+= WeightedParams.missing5Bonus;
-    }
-  }
-  // D. 連莊
-  let cMap=calcConsecutiveMap(data);
-  for(let n=1; n<=39; n++){
-    if(cMap[n]>=3){
-      scores[n]-= WeightedParams.consecutive3Penalty;
-    } else if(cMap[n]===2){
-      scores[n]-= WeightedParams.consecutive2Penalty;
-    }
-  }
-  // E. 奇偶平衡
+  // 奇偶平衡
   balanceOddEven(data, scores);
   return scores;
 }
-function calcMissingCount(data){
-  let lastAppear=new Array(40).fill(-1);
-  data.forEach((d,i)=>{
-    d.nums.forEach(n=> lastAppear[n]= i);
+function calcMissingCount(data) {
+  let lastAppear = new Array(40).fill(-1);
+  data.forEach((d, idx) => {
+    d.nums.forEach(n => lastAppear[n] = idx);
   });
-  let len=data.length;
-  let miss=new Array(40).fill(0);
-  for(let n=1; n<=39; n++){
-    if(lastAppear[n]<0){
-      miss[n]= len;
+  let len = data.length;
+  let missingCount = new Array(40).fill(0);
+  for (let n = 1; n <= 39; n++) {
+    if (lastAppear[n] < 0) {
+      missingCount[n] = len;
     } else {
-      miss[n]= len-1 - lastAppear[n];
+      missingCount[n] = len - 1 - lastAppear[n];
     }
   }
-  return miss;
+  return missingCount;
 }
-function calcConsecutiveMap(data){
-  let map={};
-  for(let n=1;n<=39;n++){
-    map[n]=0;
+function calcConsecutiveMap(data) {
+  let map = {};
+  for (let n = 1; n <= 39; n++) map[n] = 0;
+  if (data.length === 0) return map;
+  let lastSet = new Set(data[data.length - 1].nums);
+  for (let n = 1; n <= 39; n++) {
+    if (lastSet.has(n)) map[n] = 1;
   }
-  if(data.length===0) return map;
-  let lastSet=new Set(data[data.length-1].nums);
-  for(let n=1;n<=39;n++){
-    if(lastSet.has(n)) map[n]=1;
-  }
-  if(data.length>=2){
-    let set2=new Set(data[data.length-2].nums);
-    for(let n=1;n<=39;n++){
-      if(map[n]===1 && set2.has(n)){
-        map[n]=2;
+  if (data.length >= 2) {
+    let set2 = new Set(data[data.length - 2].nums);
+    for (let n = 1; n <= 39; n++) {
+      if (map[n] === 1 && set2.has(n)) {
+        map[n] = 2;
       }
     }
   }
-  if(data.length>=3){
-    let set3=new Set(data[data.length-3].nums);
-    for(let n=1;n<=39;n++){
-      if(map[n]===2 && set3.has(n)){
-        map[n]=3;
+  if (data.length >= 3) {
+    let set3 = new Set(data[data.length - 3].nums);
+    for (let n = 1; n <= 39; n++) {
+      if (map[n] === 2 && set3.has(n)) {
+        map[n] = 3;
       }
     }
   }
   return map;
 }
-function balanceOddEven(data, scores){
-  let odd=0, even=0;
-  data.forEach(d=>{
-    d.nums.forEach(x=>{
-      if(x%2===0) even++; else odd++;
+function balanceOddEven(data, scores) {
+  let odd = 0, even = 0;
+  data.forEach(d => {
+    d.nums.forEach(x => {
+      if (x % 2 === 0) even++; else odd++;
     });
   });
-  if(even>odd){
-    for(let n=2; n<=38; n+=2){
-      scores[n]+= WeightedParams.oddEvenBonus;
+  if (even > odd) {
+    for (let n = 2; n <= 38; n += 2) {
+      scores[n] += WEIGHT.oddEvenBonus;
     }
   } else {
-    for(let n=1; n<=39; n+=2){
-      scores[n]+= WeightedParams.oddEvenBonus;
+    for (let n = 1; n <= 39; n += 2) {
+      scores[n] += WEIGHT.oddEvenBonus;
     }
   }
 }
 
-
-/* ==============================
-   (C5) 回歸(含馬可夫)
-============================== */
-function doRegressionAnalysis(data, scores){
-  if(data.length<5) return;
-  let total=data.length;
-
-  // pair
-  let pairCount={};
-  data.forEach(d=>{
-    let arr=d.nums;
-    for(let i=0;i<arr.length;i++){
-      for(let j=i+1;j<arr.length;j++){
-        let key=(arr[i]<arr[j])?(arr[i]+"-"+arr[j]):(arr[j]+"-"+arr[i]);
-        pairCount[key]=(pairCount[key]||0)+1;
+/* =====================================
+   (C2) 回歸分析
+===================================== */
+function doRegressionAnalysis(data, scores) {
+  if (data.length < 5) return;
+  let total = data.length;
+  // Pair 同時出現
+  let pairCount = {};
+  data.forEach(d => {
+    let arr = d.nums;
+    for (let i = 0; i < arr.length; i++) {
+      for (let j = i + 1; j < arr.length; j++) {
+        let key = (arr[i] < arr[j]) ? (arr[i] + "-" + arr[j]) : (arr[j] + "-" + arr[i]);
+        pairCount[key] = (pairCount[key] || 0) + 1;
       }
     }
   });
-  for(let k in pairCount){
-    let c=pairCount[k];
-    let p=c/ total;
-    if(p> WeightedParams.pairHighThreshold){
-      let [x,y]= k.split("-").map(Number);
-      scores[x]+= WeightedParams.pairBonus;
-      scores[y]+= WeightedParams.pairBonus;
+  for (let k in pairCount) {
+    let c = pairCount[k];
+    let p = c / total;
+    if (p > WEIGHT.pairHighThreshold) {
+      let [x, y] = k.split("-").map(Number);
+      scores[x] += WEIGHT.pairBonus;
+      scores[y] += WEIGHT.pairBonus;
     }
   }
-
-  // appear next (1階馬可夫)
-  let appearCount={}, appearNextCount={};
-  for(let i=0; i<total-1; i++){
-    let setA=new Set(data[i].nums);
-    let setB=new Set(data[i+1].nums);
-    setA.forEach(num=>{
-      appearCount[num]=(appearCount[num]||0)+1;
-      if(setB.has(num)){
-        appearNextCount[num]=(appearNextCount[num]||0)+1;
+  // 一階馬可夫：若上一期出現則下期重現
+  let appearCount = {};
+  let appearNextCount = {};
+  for (let i = 0; i < total - 1; i++) {
+    let setA = new Set(data[i].nums);
+    let setB = new Set(data[i + 1].nums);
+    setA.forEach(num => {
+      appearCount[num] = (appearCount[num] || 0) + 1;
+      if (setB.has(num)) {
+        appearNextCount[num] = (appearNextCount[num] || 0) + 1;
       }
     });
   }
-  for(let n=1; n<=39; n++){
-    if(appearCount[n]>0){
-      let ratio=(appearNextCount[n]||0)/ appearCount[n];
-      if(ratio> WeightedParams.appearNextThreshold){
-        scores[n]+= WeightedParams.appearNextBonus;
+  for (let n = 1; n <= 39; n++) {
+    if (appearCount[n] > 0) {
+      let ratio = (appearNextCount[n] || 0) / appearCount[n];
+      if (ratio > WEIGHT.appearNextThreshold) {
+        scores[n] += WEIGHT.appearNextBonus;
       }
     }
   }
-
-  // triple
-  let tripleCount={};
-  data.forEach(d=>{
-    let arr=d.nums;
-    for(let i=0;i<arr.length-2;i++){
-      for(let j=i+1;j<arr.length-1;j++){
-        for(let k=j+1;k<arr.length;k++){
-          let arr3=[arr[i],arr[j],arr[k]].sort((a,b)=>a-b);
-          let key=arr3.join("-");
-          tripleCount[key]=(tripleCount[key]||0)+1;
+  // 三號組合
+  let tripleCount = {};
+  data.forEach(d => {
+    let arr = d.nums;
+    for (let i = 0; i < arr.length - 2; i++) {
+      for (let j = i + 1; j < arr.length - 1; j++) {
+        for (let k = j + 1; k < arr.length; k++) {
+          let arr3 = [arr[i], arr[j], arr[k]].sort((a, b) => a - b);
+          let key = arr3.join("-");
+          tripleCount[key] = (tripleCount[key] || 0) + 1;
         }
       }
     }
   });
-  for(let key in tripleCount){
-    let c=tripleCount[key];
-    if(c>= WeightedParams.tripleCountThreshold){
-      let [x,y,z]= key.split("-").map(Number);
-      scores[x]+= WeightedParams.tripleBonus;
-      scores[y]+= WeightedParams.tripleBonus;
-      scores[z]+= WeightedParams.tripleBonus;
+  for (let key in tripleCount) {
+    let cnt = tripleCount[key];
+    if (cnt >= WEIGHT.tripleCountThreshold) {
+      let [x, y, z] = key.split("-").map(Number);
+      scores[x] += WEIGHT.tripleBonus;
+      scores[y] += WEIGHT.tripleBonus;
+      scores[z] += WEIGHT.tripleBonus;
     }
   }
-  // 其它 4號、5號同時出 => 省略, 自行加
+  // 可延伸二階馬可夫、四號組合等
 }
 
-
-/* ==============================
-   (C6) 量子機率
-============================== */
-function doQuantumProbability(data, scores){
-  // 這裡範例: 4號組合 => + WeightedParams.markovChainBonus
-  let quadCount={};
-  data.forEach(d=>{
-    let arr=d.nums;
-    for(let i=0; i<arr.length-3; i++){
-      for(let j=i+1; j<arr.length-2; j++){
-        for(let k=j+1; k<arr.length-1; k++){
-          for(let m=k+1; m<arr.length; m++){
-            let arr4=[arr[i],arr[j],arr[k],arr[m]].sort((a,b)=>a-b);
-            let key=arr4.join("-");
-            quadCount[key]=(quadCount[key]||0)+1;
+/* =====================================
+   (C3) 量子概率：以四號組合示範
+===================================== */
+function doQuantumProbability(data, scores) {
+  let quadCount = {};
+  data.forEach(d => {
+    let arr = d.nums;
+    for (let i = 0; i < arr.length - 3; i++) {
+      for (let j = i + 1; j < arr.length - 2; j++) {
+        for (let k = j + 1; k < arr.length - 1; k++) {
+          for (let m = k + 1; m < arr.length; m++) {
+            let arr4 = [arr[i], arr[j], arr[k], arr[m]].sort((a, b) => a - b);
+            let key = arr4.join("-");
+            quadCount[key] = (quadCount[key] || 0) + 1;
           }
         }
       }
     }
   });
-  for(let key in quadCount){
-    let cnt=quadCount[key];
-    if(cnt>=2){
-      let nums= key.split("-").map(Number);
-      nums.forEach(n=>{
-        scores[n]+= WeightedParams.markovChainBonus;
+  for (let key in quadCount) {
+    let cnt = quadCount[key];
+    if (cnt >= 2) {
+      let parts = key.split("-").map(Number);
+      parts.forEach(n => {
+        scores[n] += WEIGHT.quadBonus;
       });
     }
   }
+  // 此外可計算熵值等
 }
 
-
-/* ==============================
-   (C7) 可能尾數
-============================== */
-function calcPossibleTails(data){
-  let tailFreq=new Array(10).fill(0);
-  data.forEach(d=>{
-    d.nums.forEach(x=>{
-      tailFreq[x%10]++;
-    });
-  });
-  let arr=[];
-  for(let t=0; t<10; t++){
-    arr.push({ t, f:tailFreq[t]});
+/* =====================================
+   (C4) 與更早期資料比對
+===================================== */
+function comparePatterns(oldData, recentData, scores) {
+  let freqOld = new Array(40).fill(0);
+  let freqRecent = new Array(40).fill(0);
+  oldData.forEach(d => d.nums.forEach(n => freqOld[n]++));
+  recentData.forEach(d => d.nums.forEach(n => freqRecent[n]++));
+  let sumXY = 0, sumX = 0, sumY = 0, sumX2 = 0, sumY2 = 0;
+  for (let n = 1; n <= 39; n++) {
+    let x = freqOld[n], y = freqRecent[n];
+    sumXY += x * y;
+    sumX += x;
+    sumY += y;
+    sumX2 += x * x;
+    sumY2 += y * y;
   }
-  arr.sort((a,b)=> b.f-a.f);
-  return arr.slice(0,3).map(o=>o.t);
-}
-
-
-/* ==============================
-   (C8) 分數計算(組合)
-============================== */
-function scoreCandidateSet(set5, scores, param){
-  let sum=0;
-  set5.forEach(n=> sum+= scores[n]);
-  // 相鄰
-  if(param.avoidAdjacent){
-    let adj=0;
-    for(let i=0; i<set5.length-1; i++){
-      if(set5[i+1]=== set5[i]+1){
-        adj++;
+  let numerator = (39 * sumXY) - (sumX * sumY);
+  let denominator = Math.sqrt(((39 * sumX2) - (sumX * sumX)) * ((39 * sumY2) - (sumY * sumY)));
+  let corr = (denominator === 0) ? 0 : (numerator / denominator);
+  if (corr > 0.5) {
+    for (let n = 1; n <= 39; n++) {
+      if (freqOld[n] >= (oldData.length * 0.3)) {
+        scores[n] += WEIGHT.comparePatternBonus;
       }
     }
-    if(adj>1){
-      sum-= (adj * WeightedParams.tooManyAdjPenalty);
-    }
   }
-  // sumRange
-  if(param.sumRange){
-    let s=set5.reduce((a,b)=>a+b,0);
-    if(s<param.sumRange[0]|| s>param.sumRange[1]){
-      sum-= WeightedParams.sumOutOfRangePenalty;
-    }
-  }
-  // oddEven
-  if(param.oddEvenBalance){
-    let oddCount= set5.filter(x=> x%2===1).length;
-    if(oddCount>3 || oddCount<2){
-      sum-= WeightedParams.unbalancedOddEvenPenalty;
-    }
-  }
-  // maxConsecutiveLen
-  if(param.maxConsecutiveLen){
-    let maxLen=1, cur=1;
-    for(let i=1;i<set5.length;i++){
-      if(set5[i]=== set5[i-1]+1) cur++;
-      else cur=1;
-      if(cur>maxLen) maxLen=cur;
-    }
-    if(maxLen> param.maxConsecutiveLen){
-      sum-= (maxLen- param.maxConsecutiveLen)*5;
-    }
-  }
-  return sum;
 }
 
-
-/* ==============================
-   (D) 顯示結果
-============================== */
-function renderFinalResult(obj){
-  let out=document.getElementById("analysisOutput");
-  let html=`<h3>第 ${obj.drawIndex} 期 - 預測結果</h3>`;
-  let top3=obj.top3||[];
-  top3.forEach((g,i)=>{
-    let label=["第一組","第二組","第三組"][i]||("組合"+(i+1));
-    html+= `<p>${label}： `;
-    g.forEach(n=>{
-      html+= `<span class="badge">${n<10?"0"+n:n}</span> `;
+/* =====================================
+   (C5) 區域與尾數分析：將 1～39 分成 4 個區域，並結合尾數分散度
+===================================== */
+function doRegionalTailAnalysis(data, scores) {
+  let regions = [
+    { start: 1, end: 10, total: 0 },
+    { start: 11, end: 20, total: 0 },
+    { start: 21, end: 30, total: 0 },
+    { start: 31, end: 39, total: 0 }
+  ];
+  data.forEach(d => {
+    d.nums.forEach(n => {
+      for (let reg of regions) {
+        if (n >= reg.start && n <= reg.end) {
+          reg.total++;
+          break;
+        }
+      }
     });
-    html+= `</p>`;
   });
-  html+= `<p>可能尾數: `;
-  (obj.tailNums||[]).forEach(t=>{
-    html+= `<span class="badge">${t}</span> `;
-  });
-  html+= `</p>`;
+  regions.sort((a, b) => b.total - a.total);
+  let bestRegion = regions[0];
+  for (let n = bestRegion.start; n <= bestRegion.end; n++) {
+    scores[n] += WEIGHT.regionBonus;
+  }
+  // 同時計算尾數熱門程度（可作進一步加分處理）
+}
 
-  html+= `<p>最高機率10個號碼: `;
-  (obj.top10Numbers||[]).forEach(n=>{
-    html+= `<span class="badge">${n<10?"0"+n:n}</span> `;
+/* =====================================
+   (C6) 可能尾數：取出最熱門的 3 個尾數
+===================================== */
+function calcPossibleTails(data) {
+  let tailFreq = new Array(10).fill(0);
+  data.forEach(d => {
+    d.nums.forEach(x => {
+      tailFreq[x % 10]++;
+    });
   });
-  html+= `</p>`;
+  let arr = [];
+  for (let t = 0; t < 10; t++) {
+    arr.push({ t, f: tailFreq[t] });
+  }
+  arr.sort((a, b) => b.f - a.f);
+  return arr.slice(0, 3).map(o => o.t);
+}
 
-  // 對照上一期預測
-  let lastIndex=draws.length; 
-  if(lastIndex>1){
-    let ph= predictionHistory.find(x=> x.drawIndex=== lastIndex);
-    if(ph){
-      let realSet=new Set(draws[lastIndex-1].nums);
-      html+= `<h4>上期(第 ${lastIndex} 期) vs 第 ${lastIndex-1} 期預測</h4>`;
-      ph.top3.forEach((arr,idx)=>{
-        let label=["第一組","第二組","第三組"][idx]||("組合"+(idx+1));
-        let matched=[];
-        let line="";
-        arr.forEach(num=>{
-          if(realSet.has(num)){
-            matched.push(num);
-            line+= `<span class="badge matched">${num<10?"0"+num:num}</span> `;
+/* =====================================
+   (C7) GA 產生最佳組合（多點交配與菁英保留）
+===================================== */
+function generateCandidatesByGA(scores, opts) {
+  let popSize = opts.popSize || 200;
+  let generations = opts.generations || 50;
+  let pool = [];
+  for (let n = 1; n <= 39; n++) {
+    if (scores[n] > -9999) pool.push(n);
+  }
+  let population = [];
+  for (let i = 0; i < popSize; i++) {
+    population.push(genRandomChromosome(pool));
+  }
+  let eliteCount = Math.floor(popSize * GA_PARAMS.elitismRate);
+  for (let g = 0; g < generations; g++) {
+    population.forEach(ch => {
+      ch.fitness = scoreCandidateSet(ch.genes, scores, opts);
+    });
+    population.sort((a, b) => b.fitness - a.fitness);
+    let elites = population.slice(0, eliteCount);
+    let newPop = population.slice(0, Math.floor(popSize / 2));
+    while (newPop.length < popSize - eliteCount) {
+      let p1 = randomChoice(population.slice(0, Math.floor(popSize / 2)));
+      let p2 = randomChoice(population.slice(0, Math.floor(popSize / 2)));
+      let child = crossover(p1, p2, pool, scores, opts);
+      mutate(child, pool, scores, 0.1);
+      child.fitness = scoreCandidateSet(child.genes, scores, opts);
+      newPop.push(child);
+    }
+    population = elites.concat(newPop);
+  }
+  population.forEach(ch => {
+    ch.fitness = scoreCandidateSet(ch.genes, scores, opts);
+  });
+  population.sort((a, b) => b.fitness - a.fitness);
+  let results = [];
+  let usedKey = new Set();
+  for (let i = 0; i < population.length; i++) {
+    let arr = [...population[i].genes].sort((a, b) => a - b);
+    let key = arr.join("-");
+    if (!usedKey.has(key)) {
+      usedKey.add(key);
+      results.push(arr);
+    }
+    if (results.length >= 100) break;
+  }
+  return results;
+}
+function genRandomChromosome(pool) {
+  let copy = pool.slice();
+  shuffle(copy);
+  let genes = copy.slice(0, 5).sort((a, b) => a - b);
+  return { genes, fitness: 0 };
+}
+function crossover(p1, p2, pool, scores, opts) {
+  let points = [];
+  let count = Math.floor(seededRandom() * 2) + 2; // 2~3個交叉點
+  for (let i = 0; i < count; i++) {
+    points.push(Math.floor(seededRandom() * 5));
+  }
+  points.sort((a, b) => a - b);
+  let childGenes = [];
+  let source = p1.genes;
+  for (let pos = 0; pos < 5; pos++) {
+    if (points.includes(pos)) {
+      source = (source === p1.genes) ? p2.genes : p1.genes;
+    }
+    childGenes.push(source[pos]);
+  }
+  childGenes = [...new Set(childGenes)];
+  while (childGenes.length < 5) {
+    shuffle(pool);
+    for (let x of pool) {
+      if (!childGenes.includes(x)) {
+        childGenes.push(x);
+        break;
+      }
+    }
+  }
+  childGenes.sort((a, b) => a - b);
+  return { genes: childGenes, fitness: 0 };
+}
+function mutate(ch, pool, scores, rate) {
+  if (seededRandom() > rate) return;
+  let count = Math.floor(seededRandom() * 2) + 1;
+  for (let c = 0; c < count; c++) {
+    let idx = Math.floor(seededRandom() * ch.genes.length);
+    let used = new Set(ch.genes);
+    used.delete(ch.genes[idx]);
+    shuffle(pool);
+    for (let x of pool) {
+      if (!used.has(x)) {
+        ch.genes[idx] = x;
+        used.add(x);
+        break;
+      }
+    }
+  }
+  ch.genes.sort((a, b) => a - b);
+}
+
+/* =====================================
+   (C8) 組合評分：檢查相鄰、總和、奇偶平衡、最大連號長度等
+===================================== */
+function scoreCandidateSet(set5, scores, opts) {
+  let sumScore = 0;
+  set5.forEach(n => {
+    sumScore += scores[n];
+  });
+  if (opts.avoidAdjacent) {
+    let adjCount = 0;
+    for (let i = 0; i < set5.length - 1; i++) {
+      if (set5[i + 1] === set5[i] + 1) {
+        adjCount++;
+      }
+    }
+    if (adjCount > 1) {
+      sumScore -= (adjCount * WEIGHT.tooManyAdjPenalty);
+    }
+  }
+  if (opts.sumRange) {
+    let s = set5.reduce((a, b) => a + b, 0);
+    if (s < opts.sumRange[0] || s > opts.sumRange[1]) {
+      sumScore -= WEIGHT.sumOutOfRangePenalty;
+    }
+  }
+  if (opts.oddEvenBalance) {
+    let oddCount = set5.filter(x => x % 2 === 1).length;
+    let evenCount = 5 - oddCount;
+    if (oddCount > 3 || evenCount > 3) {
+      sumScore -= WEIGHT.unbalancedOddEvenPenalty;
+    }
+  }
+  if (opts.maxConsecutiveLen) {
+    let maxLen = calcMaxConsecutiveLength(set5);
+    if (maxLen > opts.maxConsecutiveLen) {
+      sumScore -= (maxLen - opts.maxConsecutiveLen) * WEIGHT.maxConsecutivePenalty;
+    }
+  }
+  return sumScore;
+}
+function calcMaxConsecutiveLength(arr) {
+  let maxLen = 1, curLen = 1;
+  for (let i = 1; i < arr.length; i++) {
+    if (arr[i] === arr[i - 1] + 1) {
+      curLen++;
+      if (curLen > maxLen) maxLen = curLen;
+    } else {
+      curLen = 1;
+    }
+  }
+  return maxLen;
+}
+
+/* =====================================
+   (C9) 預測結果顯示：
+   包括前 3 組最佳組合、可能尾數、最高機率 10 個單號，
+   並顯示前一期預測 vs. 實際中獎
+===================================== */
+function renderAnalysisOutput(top3, tailNums, top10Numbers, nextIndex) {
+  let out = document.getElementById("analysisOutput");
+  out.innerHTML = "";
+  let html = `<h3>第 ${nextIndex} 期 預測結果</h3>`;
+  top3.forEach((group, i) => {
+    let label = ["第一組", "第二組", "第三組"][i] || ("組合" + (i + 1));
+    html += `<p>${label}： `;
+    group.forEach(n => {
+      html += `<span class="badge">${(n < 10 ? "0" + n : n)}</span>`;
+    });
+    html += `</p>`;
+  });
+  html += `<p>可能尾數：`;
+  tailNums.forEach(t => {
+    html += `<span class="badge">${t}</span>`;
+  });
+  html += `</p>`;
+  html += `<p>最高機率 10 個號碼： `;
+  top10Numbers.forEach(n => {
+    html += `<span class="badge">${(n < 10 ? "0" + n : n)}</span> `;
+  });
+  html += `</p>`;
+  let lastIndex = draws.length;
+  if (lastIndex > 1) {
+    let ph = predictionHistory.find(x => x.drawIndex === lastIndex);
+    if (ph) {
+      let realSet = new Set(draws[lastIndex - 1].nums);
+      html += `<h4>上期 (第 ${lastIndex} 期) 實際開獎 vs. 第 ${lastIndex - 1} 期預測</h4>`;
+      ph.bestSets.forEach((g, idx) => {
+        let label = ["第一組", "第二組", "第三組"][idx] || ("組合" + (idx + 1));
+        let matchedNums = [];
+        let line = "";
+        g.forEach(num => {
+          if (realSet.has(num)) {
+            matchedNums.push(num);
+            line += `<span class="badge matched">${(num < 10 ? "0" + num : num)}</span> `;
           } else {
-            line+= `<span class="badge">${num<10?"0"+num:num}</span> `;
+            line += `<span class="badge">${(num < 10 ? "0" + num : num)}</span> `;
           }
         });
-        html+=`<p>${label}: ${line} => 命中號碼=[${matched.join(", ")}]</p>`;
+        html += `<p>${label}：${line} => 命中號碼: [${matchedNums.join(", ")}]</p>`;
       });
-      // 實際
-      html+=`<p>實際開獎: `;
-      draws[lastIndex-1].nums.forEach(n=>{
-        html+= `<span class="badge hit">${n<10?"0"+n:n}</span> `;
+      html += `<p>實際開獎： `;
+      draws[lastIndex - 1].nums.forEach(x => {
+        html += `<span class="badge hit">${(x < 10 ? "0" + x : x)}</span> `;
       });
-      html+=`</p>`;
+      html += `</p>`;
     }
   }
-  out.innerHTML= html;
-  // 重新顯示命中
-  renderHitDisplay();
+  out.innerHTML = html;
 }
 
-
-/* ==============================
-   (E) 全期回測 & 命中顯示
-============================== */
-document.getElementById("fullBacktestBtn").addEventListener("click", ()=>{
-  if(draws.length<10){
-    alert("資料不足，至少 10 筆以上再做全期回測");
-    return;
-  }
-  // 注意: 全期回測 => 會對 1..(end-1) 每期都跑 GA => 計算量非常大
-  // 這裡做個簡化: 只跑後 N=15 期
-  let N=15;
-  if(draws.length<N) N= draws.length;
-  let start= draws.length- N;
-
-  let detail=[];
-  let totalHits=0;
-  let totalHit2=0, totalHit3=0, totalHit4=0, totalHit5=0;
-
-  for(let i=start; i<draws.length-1; i++){
-    let nextIndex= i+2; // i+1 = actual next draw
-    let trainData= draws.slice(0, i+1);
-    // 1) single score
-    let sc= calcNumberScores(trainData);
-    doRegressionAnalysis(trainData, sc);
-    doQuantumProbability(trainData, sc);
-    zoneAndTailAnalysis(trainData, sc);
-    comparePatterns(draws.slice(0,50), trainData, sc);
-
-    // 2) GA => 因為要快, popSize=100, gen=20
-    let paramClone={...realGAParam, popSize:100, generations:20};
-    let { bestSets } = generateCandidatesByGA(sc, paramClone);
-    let picks= bestSets[0]||[]; // 只拿第一組
-    // 3) hits
-    if(!draws[i+1]) break;
-    let realNums= new Set(draws[i+1].nums);
-    let matched= picks.filter(x=> realNums.has(x));
-    let count= matched.length;
-    totalHits+= count;
-    if(count===2) totalHit2++;
-    if(count===3) totalHit3++;
-    if(count===4) totalHit4++;
-    if(count===5) totalHit5++;
-    detail.push({
-      drawIndex: i+2,
-      picks,
-      matched,
-      real: draws[i+1].nums
-    });
-  }
-  let text=`<p>全期回測 (最近${N}期), 總命中數=${totalHits}</p>`;
-  text+=`<p>中2=${totalHit2}, 中3=${totalHit3}, 中4=${totalHit4}, 中5=${totalHit5}</p>`;
-  detail.forEach(d=>{
-    text+=`<p>預測第 ${d.drawIndex} 期 => picks=[${d.picks.join(", ")}], ` +
-          `matched=[${d.matched.join(", ")}], real=[${d.real.join(", ")}]</p>`;
-  });
-  document.getElementById("hitDisplay").innerHTML=text;
-});
-
-
-function renderHitDisplay(){
-  // 簡單: 列出 predictionHistory 中，若對應的實際 draw 有 => 顯示
-  let div=document.getElementById("hitDisplay");
-  let html="";
-  for(let ph of predictionHistory){
-    let real= draws.find(d=> d.index=== ph.drawIndex);
-    if(real){
-      let realSet=new Set(real.nums);
-      html+= `<div style="border:1px solid #ccc; margin:0.5rem; padding:0.5rem;">`;
-      html+= `<h4>第 ${ph.drawIndex} 期預測</h4>`;
-      ph.top3.forEach((g,idx)=>{
-        let matched=[];
-        g.forEach(x=>{ if(realSet.has(x)) matched.push(x); });
-        html+=`<p>組${idx+1}: [${g.join(", ")}], 命中=[${matched.join(", ")}]</p>`;
+/* =====================================
+   (E) 命中顯示區：列出所有預測紀錄與實際開獎對照
+===================================== */
+function renderHitDisplay() {
+  let div = document.getElementById("hitDisplay");
+  div.innerHTML = "";
+  let html = "";
+  for (let ph of predictionHistory) {
+    let realDraw = draws.find(d => d.index === ph.drawIndex);
+    if (realDraw) {
+      let realSet = new Set(realDraw.nums);
+      let matchedLine = "";
+      let groupIndex = 1;
+      ph.bestSets.forEach(g => {
+        let matchedNums = [];
+        g.forEach(n => {
+          if (realSet.has(n)) matchedNums.push(n);
+        });
+        matchedLine += `<p>第${groupIndex}組: [${g.join(", ")}], 命中 => [${matchedNums.join(", ")}]</p>`;
+        groupIndex++;
       });
-      html+= `<p>實際=[${real.nums.join(", ")}]</p>`;
-      html+= `<p>Top10=[${ph.top10Numbers.join(", ")}], 尾數=[${ph.tailNums.join(", ")}]</p>`;
-      html+= `</div>`;
+      html += `<div style="border:1px solid #ccc; margin:0.5rem; padding:0.5rem;">
+        <h4>第 ${ph.drawIndex} 期預測紀錄</h4>
+        ${matchedLine}
+        <p>實際開獎 => [${realDraw.nums.join(", ")}]</p>
+        <p>最高機率 10 個號碼 => [${ph.top10Numbers.join(", ")}]</p>
+      </div>`;
     }
   }
-  if(!html){
-    html="<p>尚無預測紀錄</p>";
-  }
-  div.innerHTML=html;
+  div.innerHTML = html || "<p>尚無預測紀錄</p>";
 }
 </script>
 </body>
