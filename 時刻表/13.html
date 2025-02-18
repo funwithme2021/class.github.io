@@ -1,0 +1,1290 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8"/>
+  <title>539 - 最終進階範例 (多重回歸/GA/LocalSearch/Top10 Frequency) - ≥2 hits</title>
+  <style>
+    body {
+      margin: 0; 
+      padding: 0;
+      font-family: "Microsoft JhengHei", sans-serif;
+      background: #f4f4f4; 
+      color: #333;
+    }
+    .container { margin: 1rem; }
+    h1 { text-align: center; font-size:1.8rem; font-weight:bold; margin-bottom:1rem; }
+    .card {
+      background:#fff; 
+      padding:1.2rem;
+      border-radius:10px; 
+      margin-bottom:1rem;
+      box-shadow:0 2px 8px rgba(0,0,0,0.08);
+    }
+    .btn {
+      background: linear-gradient(to right,#3a6073,#3fada8);
+      color:#fff; 
+      border:none; 
+      padding:0.7rem 1.4rem;
+      border-radius:6px; 
+      cursor:pointer; 
+      margin:0.3rem;
+      font-size:1rem; 
+      transition:all 0.2s ease-in-out;
+    }
+    .btn:hover {
+      background: linear-gradient(to right,#3fada8,#3a6073);
+      transform: scale(1.05);
+    }
+    .delete-btn { background:#d9534f !important; }
+
+    /* Grid + Ball for picking numbers 1..39 */
+    #numberGrid {
+      display:grid; 
+      grid-template-columns:repeat(10,1fr);
+      gap:0.5rem; 
+      width:100%; 
+      max-width:420px; 
+      margin:auto;
+    }
+    .ball {
+      width:40px; 
+      height:40px; 
+      border-radius:50%;
+      background:#e0e0e0; 
+      display:flex; 
+      align-items:center;
+      justify-content:center; 
+      font-weight:bold; 
+      font-size:1rem;
+      cursor:pointer; 
+      transition:all 0.2s; 
+      user-select:none;
+    }
+    .ball:hover {
+      background:#ffa726; 
+      color:#fff; 
+    }
+    .ball.selected {
+      background:#ff9800; 
+      color:#fff;
+      box-shadow:0 0 8px rgba(255,152,0,0.8);
+      transform:scale(1.1);
+    }
+    table {
+      width:100%; 
+      border-collapse: collapse; 
+      margin-top:1rem;
+    }
+    th, td {
+      padding:0.6rem; 
+      text-align:center;
+      border:1px solid #ddd; 
+      font-size:0.95rem;
+    }
+    th { 
+      background:#3fada8; 
+      color:#fff; 
+    }
+    td { 
+      background:#fff; 
+    }
+    .hit {
+      background:#ffeb3b;
+      border:2px solid red;
+      font-weight:bold;
+      color:black !important;
+    }
+    .matched {
+      background:#ffeb3b;
+      border:2px solid red;
+      font-weight:bold;
+      color:black !important;
+    }
+    .badge {
+      display:inline-block; 
+      padding:0.4rem 0.6rem;
+      margin:3px; 
+      border-radius:6px; 
+      color:white; 
+      font-size:0.85rem;
+      background:#d9534f;
+    }
+    .highlighted-hit {
+      border:2px solid red; 
+      font-weight:bold;
+      padding:0.4rem; 
+      background:#ffeb3b !important;
+      color:black !important;
+    }
+  </style>
+</head>
+<body>
+<div class="container">
+  <h1>539 - 多重回歸/GA/LocalSearch/Top10 Frequency (≥2 hits)</h1>
+
+  <!-- (A) 新增與匯入 -->
+  <div class="card">
+    <h2>選 5 號，新增「539」開獎紀錄</h2>
+    <div id="numberGrid"></div>
+    <button class="btn" id="addDrawBtn">新增</button>
+    <button class="btn" id="exportBtn">匯出</button>
+    <input type="file" id="importFile" style="display:none" accept=".json"/>
+    <button class="btn" id="importBtn">匯入</button>
+  </div>
+
+  <!-- (B) 分析與預測 -->
+  <div class="card">
+    <h2>分析與預測</h2>
+    <button class="btn" id="analyzeBtn">開始分析並預測</button>
+    <button class="btn" id="accuracyBtn">統計目前預測(三組)命中率</button>
+    <div id="analysisOutput"></div>
+  </div>
+
+  <!-- (C) 歷史紀錄分布表 -->
+  <div class="card">
+    <h2>歷史紀錄分布表</h2>
+    <table>
+      <thead id="distTableHead"></thead>
+      <tbody id="distTableBody"></tbody>
+    </table>
+  </div>
+
+  <!-- (D) 命中顯示 -->
+  <div id="hitDisplay" style="margin:1rem;"></div>
+</div>
+
+<script>
+/**********************************************
+ * 1. 全域資料 + 權重 + GA參數
+ **********************************************/
+let draws = []; // { index, nums:[5個] }
+let predictionHistory = [];
+
+// 權重(加入更多回歸/條件 => (1))
+let WEIGHT = {
+  freqWeight: 5,            // 基本頻率加成
+  extremePenalty: 2,        // 1或39的扣分
+  missing10Bonus: 3,        // 超過10期沒開 => +3
+  missing5Bonus: 1,         // 超過5期沒開 => +1
+  consecutive2Penalty: 2,   // 連莊2次 => 扣2
+  consecutive3Penalty: 9999,// 連莊3次 => 扣大量
+  oddEvenBonus: 1,          
+  pairHighThreshold: 0.2,   
+  pairBonus: 1,
+  appearNextThreshold: 0.3, 
+  appearNextBonus: 1,
+  tripleCountThreshold: 4,  
+  tripleBonus: 2,
+  quadBonus: 0.5,
+  comparePatternBonus: 1,
+  sumOutOfRangePenalty: 50,
+  tooManyAdjPenalty: 5,
+  unbalancedOddEvenPenalty: 10,
+  maxConsecutivePenalty: 5,
+  regionBonus: 1,
+
+  // 二階馬可夫 => appearNext2Threshold, appearNext2Bonus
+  appearNext2Threshold: 0.2,
+  appearNext2Bonus: 1,
+
+  // 週期性 => ex:7期 => cycle7Bonus
+  cycle7Bonus: 1,
+};
+
+/* GA 參數 + LocalSearch: 會動態調整 */
+let GA_PARAMS = {
+  popSize: 200,
+  generations: 50,
+  elitismRate: 0.05
+};
+
+/**********************************************
+ * 2. 固定亂數
+ **********************************************/
+let globalSeed = 123456789;
+function seededRandom() {
+  globalSeed = (globalSeed * 9301 + 49297) % 233280;
+  return globalSeed / 233280;
+}
+function setSeed(s){ globalSeed = s; }
+function getSeed(){ return globalSeed; }
+function randomChoice(arr){
+  return arr[Math.floor(seededRandom() * arr.length)];
+}
+function shuffle(arr){
+  for(let i=arr.length-1;i>0;i--){
+    let j= Math.floor(seededRandom()*(i+1));
+    [arr[i], arr[j]]=[arr[j], arr[i]];
+  }
+}
+
+/**********************************************
+ * 3. 建 1~39 號球
+ **********************************************/
+const numberGrid=document.getElementById("numberGrid");
+for(let i=1;i<=39;i++){
+  let ball=document.createElement("div");
+  ball.classList.add("ball");
+  ball.textContent=(i<10?"0"+i:String(i));
+  ball.addEventListener("click",()=> toggleBall(ball));
+  numberGrid.appendChild(ball);
+}
+function toggleBall(ball){
+  if(ball.classList.contains("selected")){
+    ball.classList.remove("selected");
+  } else {
+    let selCount=document.querySelectorAll(".ball.selected").length;
+    if(selCount>=5){
+      alert("已選5號!");
+      return;
+    }
+    ball.classList.add("selected");
+  }
+}
+
+/**********************************************
+ * 4. 新增/刪除/匯出/匯入
+ **********************************************/
+document.getElementById("addDrawBtn").addEventListener("click",()=>{
+  let selected=[...document.querySelectorAll(".ball.selected")];
+  if(selected.length!==5){
+    alert("需選5號");
+    return;
+  }
+  let nums= selected.map(b=> parseInt(b.textContent,10)).sort((a,b)=>a-b);
+  draws.push({ index: draws.length+1, nums });
+  selected.forEach(b=> b.classList.remove("selected"));
+  renderDistributionTable();
+  internalBacktestAndOptimize();
+});
+const distTableHead=document.getElementById("distTableHead");
+const distTableBody=document.getElementById("distTableBody");
+function renderDistributionTable(){
+  distTableHead.innerHTML="";
+  distTableBody.innerHTML="";
+  if(draws.length===0){
+    distTableHead.innerHTML="<tr><th>尚無資料</th></tr>";
+    return;
+  }
+  let trH=document.createElement("tr");
+  trH.innerHTML="<th>期數</th>";
+  for(let i=1;i<=39;i++){
+    let th=document.createElement("th");
+    th.textContent=(i<10?"0"+i:i);
+    trH.appendChild(th);
+  }
+  trH.innerHTML+="<th>刪除</th>";
+  distTableHead.appendChild(trH);
+
+  // 讓最新資料顯示在最上方
+  draws.slice().reverse().forEach(d=>{
+    let tr=document.createElement("tr");
+    let tdI=document.createElement("td");
+    tdI.textContent=d.index;
+    tr.appendChild(tdI);
+
+    let setN=new Set(d.nums);
+    for(let i=1;i<=39;i++){
+      let td=document.createElement("td");
+      if(setN.has(i)){
+        td.textContent=(i<10?"0"+i:String(i));
+        td.classList.add("hit");
+      } else {
+        td.textContent="";
+      }
+      tr.appendChild(td);
+    }
+    let tdDel=document.createElement("td");
+    let btn=document.createElement("button");
+    btn.classList.add("btn","delete-btn");
+    btn.textContent="刪除";
+    btn.addEventListener("click",()=>{
+      let idx=draws.findIndex(x=> x.index=== d.index);
+      draws.splice(idx,1);
+      draws.forEach((x,i2)=> x.index=i2+1);
+      renderDistributionTable();
+    });
+    tdDel.appendChild(btn);
+    tr.appendChild(tdDel);
+    distTableBody.appendChild(tr);
+  });
+}
+
+// 匯出
+document.getElementById("exportBtn").addEventListener("click",()=>{
+  if(draws.length===0){
+    alert("無資料可匯出");
+    return;
+  }
+  let dataStr= JSON.stringify(draws,null,2);
+  let blob=new Blob([dataStr], { type:"application/json" });
+  let url=URL.createObjectURL(blob);
+  let a=document.createElement("a");
+  a.href=url;
+  let t=new Date();
+  let y=t.getFullYear(), m=("0"+(t.getMonth()+1)).slice(-2), d=("0"+t.getDate()).slice(-2);
+  a.download= `539draws_${y}${m}${d}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+});
+// 匯入
+document.getElementById("importBtn").addEventListener("click",()=>{
+  document.getElementById("importFile").click();
+});
+document.getElementById("importFile").addEventListener("change",(evt)=>{
+  let file=evt.target.files[0];
+  if(!file)return;
+  let reader=new FileReader();
+  reader.onload=(e)=>{
+    try{
+      let arr= JSON.parse(e.target.result);
+      if(!Array.isArray(arr)){
+        alert("匯入格式錯誤(須為 array)");
+        return;
+      }
+      draws=arr;
+      draws.forEach((x,i)=> x.index=i+1);
+      renderDistributionTable();
+      alert("匯入成功!");
+    }catch(err){
+      alert("解析JSON失敗:"+ err);
+    }
+  };
+  reader.readAsText(file);
+  evt.target.value="";
+});
+
+/**********************************************
+ * 5. 動態搜尋 => localSearch
+ **********************************************/
+async function internalBacktestAndOptimize(){
+  if(draws.length<5) return;
+  let oldScore= testAccuracy3Groups(draws);
+  let oldW={...WEIGHT};
+  let oldGA={...GA_PARAMS};
+
+  let candidateCount=20;
+  let bestScore= oldScore;
+  let bestCandidate=null;
+
+  let candidates=[];
+  for(let i=0;i<candidateCount;i++){
+    candidates.push(createLocalCandidateForAll(oldW, oldGA));
+  }
+  for(let c of candidates){
+    let backupW={...WEIGHT}, backupGA={...GA_PARAMS};
+    applyCandidate(c.weight, c.ga);
+    let sc= testAccuracy3Groups(draws);
+    WEIGHT={...backupW};
+    GA_PARAMS={...backupGA};
+    if(sc> bestScore){
+      bestScore=sc;
+      bestCandidate=c;
+    }
+  }
+  if(bestCandidate){
+    applyCandidate(bestCandidate.weight, bestCandidate.ga);
+    console.log("✅ 動態搜尋後 =>", bestCandidate, " => newScore=", bestScore);
+  } else {
+    WEIGHT={...oldW};
+    GA_PARAMS={...oldGA};
+  }
+}
+
+// 產生localCandidate
+function createLocalCandidateForAll(baseW, baseGA){
+  function localFloat(x, ratio=0.3){
+    let delta=(seededRandom()-0.5)*2; 
+    return x + x* delta* ratio;
+  }
+  function localInt(x, ratio=0.3){
+    let nf= localFloat(x, ratio);
+    if(nf<0) nf=0;
+    return Math.floor(nf);
+  }
+  function clamp(v,minV,maxV){
+    if(v<minV) return minV;
+    if(v>maxV) return maxV;
+    return v;
+  }
+
+  let w={
+    freqWeight: clamp(localFloat(baseW.freqWeight,0.3),1,100),
+    extremePenalty: clamp(localFloat(baseW.extremePenalty,0.3),0,50),
+    missing10Bonus: clamp(localFloat(baseW.missing10Bonus,0.3),0,50),
+    missing5Bonus: clamp(localFloat(baseW.missing5Bonus,0.3),0,30),
+    consecutive2Penalty: clamp(localFloat(baseW.consecutive2Penalty,0.3),0,50),
+    consecutive3Penalty: clamp(localFloat(baseW.consecutive3Penalty,0.3),1,9999),
+    oddEvenBonus: clamp(localFloat(baseW.oddEvenBonus,0.3),0,50),
+    pairHighThreshold: clamp(localFloat(baseW.pairHighThreshold,0.2),0.01,0.9),
+    pairBonus: clamp(localFloat(baseW.pairBonus,0.3),0,50),
+    appearNextThreshold: clamp(localFloat(baseW.appearNextThreshold,0.2),0.01,0.9),
+    appearNextBonus: clamp(localFloat(baseW.appearNextBonus,0.3),0,50),
+    tripleCountThreshold: clamp(localInt(baseW.tripleCountThreshold,0.3),1,30),
+    tripleBonus: clamp(localFloat(baseW.tripleBonus,0.3),0,50),
+    quadBonus: clamp(localFloat(baseW.quadBonus,0.3),0,50),
+    comparePatternBonus: clamp(localFloat(baseW.comparePatternBonus,0.3),0,50),
+    sumOutOfRangePenalty: clamp(localFloat(baseW.sumOutOfRangePenalty,0.3),0,9999),
+    tooManyAdjPenalty: clamp(localFloat(baseW.tooManyAdjPenalty,0.3),0,9999),
+    unbalancedOddEvenPenalty: clamp(localFloat(baseW.unbalancedOddEvenPenalty,0.3),0,9999),
+    maxConsecutivePenalty: clamp(localFloat(baseW.maxConsecutivePenalty,0.3),0,9999),
+    regionBonus: clamp(localFloat(baseW.regionBonus,0.3),0,50),
+
+    appearNext2Threshold: clamp(localFloat(baseW.appearNext2Threshold,0.2),0.01,0.9),
+    appearNext2Bonus: clamp(localFloat(baseW.appearNext2Bonus,0.3),0,50),
+    cycle7Bonus: clamp(localFloat(baseW.cycle7Bonus,0.3),0,50),
+  };
+  let g={
+    popSize: clamp(localInt(baseGA.popSize,0.3),50,1000),
+    generations: clamp(localInt(baseGA.generations,0.3),5,200),
+    elitismRate: clamp(localFloat(baseGA.elitismRate,0.3),0.01,0.3)
+  };
+
+  return { weight:w, ga:g };
+}
+function applyCandidate(w, g){
+  for(let k in w){
+    WEIGHT[k]= w[k];
+  }
+  GA_PARAMS.popSize= g.popSize;
+  GA_PARAMS.generations= g.generations;
+  GA_PARAMS.elitismRate= g.elitismRate;
+}
+
+/**********************************************
+ * 6. 回測 => testAccuracy3Groups
+ *    ==> 改為「若三組中任一組 hits≥2 => successCount++」
+ **********************************************/
+function testAccuracy3Groups(data){
+  let N=10; // 回測最近10期
+  if(data.length<N) N=data.length;
+  let startIndex= data.length-N;
+
+  let successCount=0; // 「≥2 hits」成功期數
+  let totalPeriods=0;
+  let oldSeed= getSeed();
+
+  for(let i=startIndex; i< data.length-1; i++){
+    let subset= data.slice(0, i+1);
+    setSeed(999999);
+
+    // 計分+回歸+量子+二階馬可夫+週期
+    let sScores= calcNumberScores(subset);
+    doRegressionAnalysis(subset, sScores);
+    doQuantumProbability(subset, sScores);
+    doSecondOrderMarkov(subset, sScores);
+    doCycle7Analysis(subset, sScores);
+
+    // 用 GA => bestSets(3組)
+    let bestSets= generateCandidatesByGA(sScores,{
+      avoidAdjacent:true,
+      sumRange:[60,130],
+      oddEvenBalance:true,
+      maxConsecutiveLen:3
+    });
+    let top3= bestSets.slice(0,3);
+
+    let next= data[i+1];
+    if(!next) continue;
+    let rs=new Set(next.nums);
+
+    // 「≥2 hits => success」
+    let isSuccess=false;
+    for(let group of top3){
+      let hits=0;
+      for(let x of group){
+        if(rs.has(x)) hits++;
+      }
+      if(hits>=2){
+        isSuccess=true;
+        break;
+      }
+    }
+    if(isSuccess) successCount++;
+    totalPeriods++;
+  }
+  setSeed(oldSeed);
+
+  // 可回傳「成功期數」(或 successCount/totalPeriods)
+  return successCount;
+}
+
+/**********************************************
+ * 7. analyzeBtn
+ **********************************************/
+document.getElementById("analyzeBtn").addEventListener("click", async ()=>{
+  if(draws.length<5){
+    alert("資料不足(≥5)");
+    return;
+  }
+  let bestRange= await findBestRange(5,100,5);
+  let startIndex= Math.max(0, draws.length- bestRange);
+  let recentData= draws.slice(startIndex);
+
+  let oldSeed= getSeed();
+
+  let sScores= calcNumberScores(recentData);
+  doRegressionAnalysis(recentData, sScores);
+  doQuantumProbability(recentData, sScores);
+  doSecondOrderMarkov(recentData, sScores);
+  doCycle7Analysis(recentData, sScores);
+  doRegionalTailAnalysis(recentData, sScores);
+
+  let allScores= combineRecentAndOverall(sScores, draws);
+
+  // top10Numbers => 先用靜態分數
+  let singleArr=[];
+  for(let n=1;n<=39;n++){
+    if(allScores[n]> -9999){
+      singleArr.push({ num:n, sc:allScores[n]});
+    }
+  }
+  singleArr.sort((a,b)=> b.sc - a.sc);
+  let top10Numbers_static= singleArr.slice(0,10).map(x=> x.num);
+
+  // GA => bestSets(3組)
+  let bestSets= generateCandidatesByGA(allScores,{
+    avoidAdjacent:true, sumRange:[60,130],
+    oddEvenBalance:true, maxConsecutiveLen:3
+  });
+  let top3= bestSets.slice(0,3);
+
+  // (2) GA population => top10 freq
+  let top10Numbers_ga= findTop10FromGAPopulation();
+
+  let tailNums= calcPossibleTails(recentData);
+  let nextIndex= draws.length+1;
+
+  // GA fitness => probability
+  let sumF=0;
+  top3.forEach(g=>{
+    let f= scoreCandidateSet(g, allScores,{
+      avoidAdjacent:true, sumRange:[60,130],
+      oddEvenBalance:true, maxConsecutiveLen:3
+    });
+    sumF+= f;
+  });
+  let setsWithProb= top3.map(g=>{
+    let f= scoreCandidateSet(g, allScores,{
+      avoidAdjacent:true, sumRange:[60,130],
+      oddEvenBalance:true, maxConsecutiveLen:3
+    });
+    let prob=(sumF===0?0:(f/sumF));
+    return { set:g, prob };
+  });
+
+  // 紀錄
+  predictionHistory.push({
+    drawIndex: nextIndex,
+    bestSets: top3,
+    tailNums: tailNums,
+    top10Numbers_static,
+    top10Numbers_ga
+  });
+
+  renderAnalysisOutput(setsWithProb, tailNums, top10Numbers_static, top10Numbers_ga, nextIndex);
+  renderHitDisplay();
+});
+
+/**********************************************
+ * (3) 混合 => combineRecentAndOverall
+ **********************************************/
+function combineRecentAndOverall(scores, data){
+  let newScore=[...scores];
+  let lastN=10;
+  if(data.length< lastN) lastN=data.length;
+  let subset= data.slice(data.length- lastN);
+
+  let freq=new Array(40).fill(0);
+  subset.forEach(d=>{
+    d.nums.forEach(x=> freq[x]++);
+  });
+  let recentScore=new Array(40).fill(0);
+  for(let n=1;n<=39;n++){
+    recentScore[n]= freq[n]*3;
+  }
+  for(let n=1;n<=39;n++){
+    newScore[n]= scores[n]*0.7 + recentScore[n]*0.3;
+  }
+  return newScore;
+}
+
+/**********************************************
+ * (2) GA population => top10 freq (示範空函式)
+ **********************************************/
+function findTop10FromGAPopulation(){
+  // 此處若要拿 GA 最終population => 統計出現率 => 取 top10
+  // 本範例示範 => 空回傳
+  return [];
+}
+
+/**********************************************
+ * 8. findBestRange
+ **********************************************/
+async function findBestRange(minR,maxR,step){
+  let bestRange=50;
+  let bestScore=-Infinity;
+  for(let r=minR; r<=maxR; r+=step){
+    if(r> draws.length) break;
+    let sub= draws.slice(draws.length- r);
+    let sc= testAccuracySimple(sub);
+    if(sc> bestScore){
+      bestScore=sc;
+      bestRange=r;
+    }
+  }
+  return bestRange;
+}
+
+// testAccuracySimple => 單組
+function testAccuracySimple(data){
+  let N=10;
+  if(data.length<N) N=data.length;
+  let startIndex= data.length- N;
+  let totalHits=0;
+  let oldSeed=getSeed();
+
+  for(let i=startIndex;i<data.length-1;i++){
+    let subset=data.slice(0,i+1);
+    setSeed(999999);
+    let sScores= calcNumberScores(subset);
+    doRegressionAnalysis(subset, sScores);
+    doQuantumProbability(subset, sScores);
+
+    let arr=[];
+    for(let n=1;n<=39;n++){
+      if(sScores[n]> -9999){
+        arr.push({ num:n, sc:sScores[n]});
+      }
+    }
+    arr.sort((a,b)=> b.sc-a.sc);
+    let picked= arr.slice(0,5).map(o=> o.num);
+
+    let next=data[i+1];
+    if(next){
+      let rs=new Set(next.nums);
+      picked.forEach(n=>{
+        if(rs.has(n)) totalHits++;
+      });
+    }
+  }
+  setSeed(oldSeed);
+  return totalHits;
+}
+
+/**********************************************
+ * 9. 分析邏輯
+ **********************************************/
+function calcNumberScores(data){
+  let freq=new Array(40).fill(0);
+  data.forEach(d=>{
+    d.nums.forEach(n=> freq[n]++);
+  });
+  let scores=new Array(40).fill(0);
+  for(let n=1;n<=39;n++){
+    scores[n]= freq[n]* WEIGHT.freqWeight;
+  }
+  // 極端值
+  scores[1]-= WEIGHT.extremePenalty;
+  scores[39]-= WEIGHT.extremePenalty;
+
+  // 遺漏期
+  let missingCount= getMissingCount(data);
+  for(let n=1;n<=39;n++){
+    if(missingCount[n]>=10) scores[n]+= WEIGHT.missing10Bonus;
+    else if(missingCount[n]>=5) scores[n]+= WEIGHT.missing5Bonus;
+  }
+
+  // 連莊
+  let cMap= getConsecutiveMap(data);
+  for(let n=1;n<=39;n++){
+    if(cMap[n]>=3) scores[n]-= WEIGHT.consecutive3Penalty;
+    else if(cMap[n]===2) scores[n]-= WEIGHT.consecutive2Penalty;
+  }
+  doOddEvenBalance(data, scores);
+  return scores;
+}
+function getMissingCount(data){
+  let lastAppear=new Array(40).fill(-1);
+  data.forEach((d, idx)=>{
+    d.nums.forEach(n=> lastAppear[n]= idx);
+  });
+  let len=data.length;
+  let out=new Array(40).fill(0);
+  for(let n=1;n<=39;n++){
+    if(lastAppear[n]<0){
+      out[n]= len;
+    } else {
+      out[n]= len-1- lastAppear[n];
+    }
+  }
+  return out;
+}
+function getConsecutiveMap(data){
+  let out={};
+  for(let n=1;n<=39;n++){
+    out[n]=0;
+  }
+  if(data.length===0) return out;
+  let lastSet=new Set(data[data.length-1].nums);
+  for(let n=1;n<=39;n++){
+    if(lastSet.has(n)) out[n]=1;
+  }
+  if(data.length>=2){
+    let set2=new Set(data[data.length-2].nums);
+    for(let n=1;n<=39;n++){
+      if(out[n]===1 && set2.has(n)){
+        out[n]=2;
+      }
+    }
+  }
+  if(data.length>=3){
+    let set3=new Set(data[data.length-3].nums);
+    for(let n=1;n<=39;n++){
+      if(out[n]===2 && set3.has(n)){
+        out[n]=3;
+      }
+    }
+  }
+  return out;
+}
+function doOddEvenBalance(data, scores){
+  let odd=0, even=0;
+  data.forEach(d=>{
+    d.nums.forEach(x=>{
+      if(x%2===0) even++;
+      else odd++;
+    });
+  });
+  if(even>odd){
+    for(let n=2;n<=38;n+=2){
+      scores[n]+= WEIGHT.oddEvenBonus;
+    }
+  } else {
+    for(let n=1;n<=39;n+=2){
+      scores[n]+= WEIGHT.oddEvenBonus;
+    }
+  }
+}
+function doRegressionAnalysis(data, scores){
+  if(data.length<5)return;
+  let total=data.length;
+
+  // Pair synergy
+  let pairCount={};
+  data.forEach(d=>{
+    let arr=d.nums;
+    for(let i=0;i<arr.length;i++){
+      for(let j=i+1;j<arr.length;j++){
+        let key=(arr[i]<arr[j])?(arr[i]+"-"+arr[j]):(arr[j]+"-"+arr[i]);
+        pairCount[key]=(pairCount[key]||0)+1;
+      }
+    }
+  });
+  for(let k in pairCount){
+    let c=pairCount[k];
+    let p=c/total;
+    if(p> WEIGHT.pairHighThreshold){
+      let [x,y]= k.split("-").map(Number);
+      scores[x]+= WEIGHT.pairBonus;
+      scores[y]+= WEIGHT.pairBonus;
+    }
+  }
+
+  // 一階馬可夫
+  let appearCount={}, appearNextCount={};
+  for(let i=0;i<total-1;i++){
+    let setA=new Set(data[i].nums);
+    let setB=new Set(data[i+1].nums);
+    setA.forEach(num=>{
+      appearCount[num]=(appearCount[num]||0)+1;
+      if(setB.has(num)){
+        appearNextCount[num]=(appearNextCount[num]||0)+1;
+      }
+    });
+  }
+  for(let n=1;n<=39;n++){
+    if(appearCount[n]>0){
+      let ratio=(appearNextCount[n]||0)/ appearCount[n];
+      if(ratio>WEIGHT.appearNextThreshold){
+        scores[n]+=WEIGHT.appearNextBonus;
+      }
+    }
+  }
+
+  // 三號組合
+  let tripleCount={};
+  data.forEach(d=>{
+    let arr=d.nums;
+    for(let i=0;i<arr.length-2;i++){
+      for(let j=i+1;j<arr.length-1;j++){
+        for(let k=j+1;k<arr.length;k++){
+          let arr3=[arr[i],arr[j],arr[k]].sort((a,b)=>a-b);
+          let key=arr3.join("-");
+          tripleCount[key]=(tripleCount[key]||0)+1;
+        }
+      }
+    }
+  });
+  for(let key in tripleCount){
+    let cnt= tripleCount[key];
+    if(cnt>= WEIGHT.tripleCountThreshold){
+      let [x,y,z]= key.split("-").map(Number);
+      scores[x]+= WEIGHT.tripleBonus;
+      scores[y]+= WEIGHT.tripleBonus;
+      scores[z]+= WEIGHT.tripleBonus;
+    }
+  }
+}
+function doQuantumProbability(data, scores){
+  let quadCount={};
+  data.forEach(d=>{
+    let arr=d.nums;
+    for(let i=0;i<arr.length-3;i++){
+      for(let j=i+1;j<arr.length-2;j++){
+        for(let k=j+1;k<arr.length-1;k++){
+          for(let m=k+1;m<arr.length;m++){
+            let arr4=[arr[i],arr[j],arr[k],arr[m]].sort((a,b)=>a-b);
+            let key=arr4.join("-");
+            quadCount[key]=(quadCount[key]||0)+1;
+          }
+        }
+      }
+    }
+  });
+  for(let key in quadCount){
+    let cnt= quadCount[key];
+    if(cnt>=2){
+      let parts= key.split("-").map(Number);
+      parts.forEach(n=>{
+        scores[n]+= WEIGHT.quadBonus;
+      });
+    }
+  }
+}
+function doSecondOrderMarkov(data, scores){
+  if(data.length<3)return;
+  let appearCount2={}, appearCountX={};
+  for(let i=0;i<data.length-2;i++){
+    let setNow=new Set(data[i].nums);
+    let setNext=new Set(data[i+2].nums); // 跳過1期 => 2階
+    setNow.forEach(x=>{
+      appearCountX[x]=(appearCountX[x]||0)+1;
+      setNext.forEach(y=>{
+        if(!appearCount2[x]) appearCount2[x]={};
+        appearCount2[x][y]=(appearCount2[x][y]||0)+1;
+      });
+    });
+  }
+  for(let x in appearCount2){
+    let xTotal= appearCountX[x];
+    for(let y in appearCount2[x]){
+      let c= appearCount2[x][y];
+      if(xTotal>0){
+        let ratio=c/xTotal;
+        if(ratio> WEIGHT.appearNext2Threshold){
+          scores[y]+= WEIGHT.appearNext2Bonus;
+        }
+      }
+    }
+  }
+}
+function doCycle7Analysis(data, scores){
+  let cycle=7;
+  data.forEach((d,idx)=>{
+    if((data.length-1- idx)% cycle===0){
+      d.nums.forEach(n=>{
+        scores[n]+= WEIGHT.cycle7Bonus;
+      });
+    }
+  });
+}
+function doRegionalTailAnalysis(data, scores){
+  let regions = [
+    { start:1,  end:10, total:0 },
+    { start:11, end:20, total:0 },
+    { start:21, end:30, total:0 },
+    { start:31, end:39, total:0 }
+  ];
+  data.forEach(d=>{
+    d.nums.forEach(n=>{
+      for(let reg of regions){
+        if(n>=reg.start && n<=reg.end){
+          reg.total++;
+          break;
+        }
+      }
+    });
+  });
+  regions.sort((a,b)=> b.total - a.total);
+  let bestRegion=regions[0];
+  for(let n=bestRegion.start; n<= bestRegion.end;n++){
+    scores[n]+= WEIGHT.regionBonus;
+  }
+}
+function calcPossibleTails(data){
+  let tailFreq=new Array(10).fill(0);
+  data.forEach(d=>{
+    d.nums.forEach(x=>{
+      tailFreq[x%10]++;
+    });
+  });
+  let arr=[];
+  for(let t=0;t<10;t++){
+    arr.push({t, f: tailFreq[t]});
+  }
+  arr.sort((a,b)=> b.f-a.f);
+  return arr.slice(0,3).map(o=> o.t);
+}
+
+/**********************************************
+ * 10. GA 產生組合
+ **********************************************/
+function generateCandidatesByGA(scores, opts){
+  let population=[];
+  let pool=[];
+  for(let n=1;n<=39;n++){
+    if(scores[n]>-9999) pool.push(n);
+  }
+  for(let i=0;i<GA_PARAMS.popSize;i++){
+    population.push(genRandomChromosome(pool));
+  }
+  let eliteCount=Math.floor(GA_PARAMS.popSize* GA_PARAMS.elitismRate);
+
+  for(let g=0; g< GA_PARAMS.generations; g++){
+    population.forEach(ch=>{
+      ch.fitness= scoreCandidateSet(ch.genes, scores, opts);
+    });
+    population.sort((a,b)=> b.fitness-a.fitness);
+
+    let elites= population.slice(0, eliteCount);
+    let newPop= population.slice(0, Math.floor(GA_PARAMS.popSize/2));
+    while(newPop.length< GA_PARAMS.popSize- eliteCount){
+      let p1= randomChoice(population.slice(0, Math.floor(GA_PARAMS.popSize/2)));
+      let p2= randomChoice(population.slice(0, Math.floor(GA_PARAMS.popSize/2)));
+      let child= crossover(p1,p2,pool,scores,opts);
+      mutate(child,pool,scores,0.1);
+      child.fitness= scoreCandidateSet(child.genes, scores, opts);
+      newPop.push(child);
+    }
+    population= elites.concat(newPop);
+  }
+  population.forEach(ch=>{
+    ch.fitness= scoreCandidateSet(ch.genes, scores, opts);
+  });
+  population.sort((a,b)=> b.fitness-a.fitness);
+
+  let results=[];
+  let usedKey=new Set();
+  for(let i=0;i<population.length;i++){
+    let arr=[...population[i].genes].sort((a,b)=> a-b);
+    let key= arr.join("-");
+    if(!usedKey.has(key)){
+      usedKey.add(key);
+      results.push(arr);
+    }
+    if(results.length>=100) break;
+  }
+  return results;
+}
+function genRandomChromosome(pool){
+  let copy=[...pool];
+  shuffle(copy);
+  let genes= copy.slice(0,5).sort((a,b)=>a-b);
+  return { genes, fitness:0 };
+}
+function crossover(p1,p2,pool,scores,opts){
+  let points=[];
+  let cnt= Math.floor(seededRandom()*2)+2; // 2~3 交叉點
+  for(let i=0;i<cnt;i++){
+    points.push(Math.floor(seededRandom()*5));
+  }
+  points.sort((a,b)=>a-b);
+  let childGenes=[];
+  let source=p1.genes;
+  for(let pos=0; pos<5; pos++){
+    if(points.includes(pos)){
+      source= (source===p1.genes)? p2.genes: p1.genes;
+    }
+    childGenes.push(source[pos]);
+  }
+  childGenes=[...new Set(childGenes)];
+  while(childGenes.length<5){
+    shuffle(pool);
+    for(let x of pool){
+      if(!childGenes.includes(x)){
+        childGenes.push(x);
+        break;
+      }
+    }
+  }
+  childGenes.sort((a,b)=>a-b);
+  return { genes:childGenes, fitness:0 };
+}
+function mutate(ch,pool,scores,rate){
+  if(seededRandom()>rate)return;
+  let count= Math.floor(seededRandom()*2)+1;
+  for(let c=0;c<count;c++){
+    let idx= Math.floor(seededRandom()* ch.genes.length);
+    let used=new Set(ch.genes);
+    used.delete(ch.genes[idx]);
+    shuffle(pool);
+    for(let x of pool){
+      if(!used.has(x)){
+        ch.genes[idx]= x;
+        used.add(x);
+        break;
+      }
+    }
+  }
+  ch.genes.sort((a,b)=>a-b);
+}
+
+/**********************************************
+ * 11. 組合評分
+ **********************************************/
+function scoreCandidateSet(set5, scores, opts){
+  let sumScore=0;
+  set5.forEach(n=>{
+    sumScore+= scores[n];
+  });
+  if(opts.avoidAdjacent){
+    let adjCount=0;
+    for(let i=0;i<set5.length-1;i++){
+      if(set5[i+1]=== set5[i]+1){
+        adjCount++;
+      }
+    }
+    if(adjCount>1){
+      sumScore-= (adjCount* WEIGHT.tooManyAdjPenalty);
+    }
+  }
+  if(opts.sumRange){
+    let s=set5.reduce((a,b)=>a+b,0);
+    if(s< opts.sumRange[0]|| s> opts.sumRange[1]){
+      sumScore-= WEIGHT.sumOutOfRangePenalty;
+    }
+  }
+  if(opts.oddEvenBalance){
+    let oddCount= set5.filter(x=> x%2===1).length;
+    let evenCount= 5- oddCount;
+    if(oddCount>3 || evenCount>3){
+      sumScore-= WEIGHT.unbalancedOddEvenPenalty;
+    }
+  }
+  if(opts.maxConsecutiveLen){
+    let maxLen= calcMaxConsecutiveLength(set5);
+    if(maxLen> opts.maxConsecutiveLen){
+      sumScore-= (maxLen - opts.maxConsecutiveLen)* WEIGHT.maxConsecutivePenalty;
+    }
+  }
+  return sumScore;
+}
+function calcMaxConsecutiveLength(arr){
+  let maxLen=1, curLen=1;
+  for(let i=1;i<arr.length;i++){
+    if(arr[i]=== arr[i-1]+1){
+      curLen++;
+      if(curLen>maxLen) maxLen=curLen;
+    } else {
+      curLen=1;
+    }
+  }
+  return maxLen;
+}
+
+/**********************************************
+ * 12. 顯示預測結果
+ **********************************************/
+document.getElementById("accuracyBtn").addEventListener("click", ()=>{
+  renderPredictionAccuracy();
+});
+function renderAnalysisOutput(setsWithProb, tailNums, top10Numbers_static, top10Numbers_ga, nextIndex){
+  let out=document.getElementById("analysisOutput");
+  out.innerHTML="";
+  let html=`<h3>第 ${nextIndex} 期 預測結果</h3>`;
+
+  // 三組 + 機率
+  setsWithProb.forEach((obj,i)=>{
+    let label=["第一組","第二組","第三組"][i]||(`組合${i+1}`);
+    let sorted=[...obj.set].sort((a,b)=>a-b);
+    let p=(obj.prob*100).toFixed(2);
+    html+= `<p>${label}: `;
+    sorted.forEach(n=>{
+      html+= `<span class="badge">${n<10?"0"+n:n}</span> `;
+    });
+    html+= ` <span>(預測機率:${p}%)</span></p>`;
+  });
+
+  // 可能尾數
+  let sortedTail=[...tailNums].sort((a,b)=>a-b);
+  html+= `<p>可能尾數: `;
+  sortedTail.forEach(t=>{
+    html+= `<span class="badge">${t}</span> `;
+  });
+  html+= `</p>`;
+
+  // 最高機率10(靜態)
+  html+= `<p>最高機率10(靜態): `;
+  let st=[...top10Numbers_static].sort((a,b)=>a-b);
+  st.forEach(n=>{
+    html+= `<span class="badge">${n<10?"0"+n:n}</span> `;
+  });
+  html+= `</p>`;
+
+  // 最高機率10(GA頻率)
+  if(top10Numbers_ga && top10Numbers_ga.length>0){
+    let gaList=[...top10Numbers_ga].sort((a,b)=>a-b);
+    html+= `<p>最高機率10(GA頻率): `;
+    gaList.forEach(n=>{
+      html+= `<span class="badge">${n<10?"0"+n:n}</span> `;
+    });
+    html+= `</p>`;
+  }
+
+  // 前一期 vs 第 N-1期
+  let lastIndex= draws.length;
+  if(lastIndex>1){
+    let ph= predictionHistory.find(x=> x.drawIndex=== lastIndex);
+    if(ph){
+      let realSet= new Set(draws[lastIndex-1].nums);
+      let realTail= new Set(draws[lastIndex-1].nums.map(n=> n%10));
+      html+= `<h4>上期 (第 ${lastIndex} 期) vs. 第 ${lastIndex-1} 期預測</h4>`;
+      ph.bestSets.forEach((g,idx)=>{
+        let label=["第一組","第二組","第三組"][idx]||(`組合${idx+1}`);
+        let matchedNums=[];
+        let line="";
+        let sortedG=[...g].sort((a,b)=>a-b);
+        sortedG.forEach(num=>{
+          let t=num%10;
+          if(realSet.has(num)){
+            matchedNums.push(num);
+            line+= `<span class="badge matched highlighted-hit">${num<10?"0"+num:num}</span> `;
+          } else if(realTail.has(t)){
+            line+= `<span class="badge">${num<10?"0"+num:num}</span> `;
+          } else {
+            line+= `<span class="badge">${num<10?"0"+num:num}</span> `;
+          }
+        });
+        html+= `<p>${label}: ${line} => 命中 [${matchedNums.join(", ")}]</p>`;
+      });
+
+      // 尾數
+      let matchedTail=[];
+      ph.tailNums.forEach(t=>{
+        if(realTail.has(t)) matchedTail.push(t);
+      });
+      html+= `<p>預測尾數: ${ph.tailNums.join(",")} => 命中: [${matchedTail.join(", ")}]</p>`;
+
+      // 靜態Top10
+      if(ph.top10Numbers_static){
+        let matched10=[];
+        ph.top10Numbers_static.forEach(n=>{
+          if(realSet.has(n)) matched10.push(n);
+        });
+        html+= `<p>前一期最高機率10(靜態): `;
+        [...ph.top10Numbers_static].sort((a,b)=>a-b).forEach(n=>{
+          if(realSet.has(n)){
+            html+= `<span class="badge matched">${n<10?"0"+n:n}</span> `;
+          } else {
+            html+= `<span class="badge">${n<10?"0"+n:n}</span> `;
+          }
+        });
+        html+= `=> 命中 [${matched10.join(", ")}]</p>`;
+      }
+
+      // GA 頻率
+      if(ph.top10Numbers_ga && ph.top10Numbers_ga.length>0){
+        let matchedGA=[];
+        ph.top10Numbers_ga.forEach(n=>{
+          if(realSet.has(n)) matchedGA.push(n);
+        });
+        html+= `<p>前一期最高機率10(GA): `;
+        [...ph.top10Numbers_ga].sort((a,b)=>a-b).forEach(n=>{
+          if(realSet.has(n)){
+            html+= `<span class="badge matched">${n<10?"0"+n:n}</span> `;
+          } else {
+            html+= `<span class="badge">${n<10?"0"+n:n}</span> `;
+          }
+        });
+        html+= `=> 命中 [${matchedGA.join(", ")}]</p>`;
+      }
+
+      // 實際
+      let sortedReal=[...draws[lastIndex-1].nums].sort((a,b)=>a-b);
+      html+= `<p>實際開獎: `;
+      sortedReal.forEach(n=>{
+        html+= `<span class="badge hit">${n<10?"0"+n:n}</span> `;
+      });
+      html+= `</p>`;
+    }
+  }
+
+  out.innerHTML= html;
+}
+
+/**********************************************
+ * 13. 顯示預測紀錄 & 命中率
+ **********************************************/
+function renderHitDisplay(){
+  let div=document.getElementById("hitDisplay");
+  div.innerHTML="";
+  let html="";
+  for(let ph of predictionHistory){
+    let realDraw= draws.find(d=> d.index=== ph.drawIndex);
+    if(realDraw){
+      let rs=new Set(realDraw.nums);
+      let line="";
+      let idx=1;
+      ph.bestSets.forEach(g=>{
+        let matchedNums=[];
+        g.forEach(n=>{
+          if(rs.has(n)) matchedNums.push(n);
+        });
+        line+= `<p>第${idx}組: [${g.join(", ")}], 命中=> [${matchedNums.join(", ")}]</p>`;
+        idx++;
+      });
+      html+= `<div style="border:1px solid #ccc;margin:0.5rem; padding:0.5rem;">
+        <h4>第 ${ph.drawIndex} 期預測</h4>
+        ${line}
+        <p>尾數 => [${ph.tailNums.join(", ")}]</p>
+        <p>最高機率10(靜態) => [${(ph.top10Numbers_static||[]).join(", ")}]</p>
+        <p>最高機率10(GA) => [${(ph.top10Numbers_ga||[]).join(", ")}]</p>
+        <p>實際 => [${realDraw.nums.join(", ")}]</p>
+      </div>`;
+    }
+  }
+  div.innerHTML= html || "<p>尚無預測紀錄</p>";
+}
+
+// 原先的整體命中率 (以 hits/picks 計算) => 若需顯示「≥2 hits成功期數」，可再改
+function renderPredictionAccuracy(){
+  let totalPred=0, totalHits=0;
+  let detail="";
+  for(let ph of predictionHistory){
+    let realDraw= draws.find(d=> d.index=== ph.drawIndex);
+    if(realDraw){
+      let rs=new Set(realDraw.nums);
+      let localHits=0;
+      let localTotal=0;
+      if(ph.bestSets){
+        ph.bestSets.forEach(g=>{
+          localTotal+= g.length; // 3組×5=15
+          g.forEach(n=>{
+            if(rs.has(n)) localHits++;
+          });
+        });
+      }
+      totalPred+= localTotal;
+      totalHits+= localHits;
+      detail+= `<p>第 ${ph.drawIndex} 期: 預測(三組共${localTotal}號), 命中=> ${localHits}, 實際=[${realDraw.nums.join(", ")}]</p>`;
+    }
+  }
+  let ratio= (totalPred===0?0:(totalHits/ totalPred));
+  let msg=`<h3>三組整體命中率 => ${(ratio*100).toFixed(2)}%</h3>`;
+  msg+= detail;
+  document.getElementById("analysisOutput").innerHTML= msg;
+}
+</script>
+</body>
+</html>

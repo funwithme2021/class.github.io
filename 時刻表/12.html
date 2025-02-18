@@ -280,6 +280,7 @@ function dynamicAdjustGAParams(currentScore, previousBestScore, elapsedTime, cur
    固定種子亂數（確保結果穩定）
    使用簡單線性同餘法（LCG）
 ===================================== */
+// ✅ **固定種子，確保每次執行結果一致**
 let seed = 123456789;
 function seededRandom() {
   seed = (seed * 9301 + 49297) % 233280;
@@ -294,6 +295,14 @@ function shuffle(arr) {
     [arr[i], arr[j]] = [arr[j], arr[i]];
   }
 }
+
+function genRandomChromosome(pool) {
+  let copy = pool.slice();
+  shuffle(copy);
+  let genes = copy.slice(0, 5).sort((a, b) => a - b);
+  return { genes, fitness: 0 };
+}
+
 
 /* =====================================
    產生 1~39 號球
@@ -530,7 +539,7 @@ async function findBestCandidateCount() {
   let bestScore = -Infinity;
   let bestCount = 0;
 
-  for (let count = 40; count <= 100; count += 20) {
+  for (let count = 40; count <= 60; count += 2) {
     const { bestCandidate: candidate, bestScore: score } = (await runOptimization(count)) || {};
     if (candidate && score > bestScore) {
       bestScore = score;
@@ -592,7 +601,7 @@ async function findBestRange() {
 
   console.log("🚀 測試不同擷取範圍中...");
 
-  for (let range = 5; range <= 290; range += 1) {  // 測試 50~100，每次增加 10
+  for (let range = 1; range <= 290; range += 1) {  // 測試 50~100，每次增加 10
     let startIndex = Math.max(0, draws.length - range);
     let recentData = draws.slice(startIndex);
 
@@ -1122,10 +1131,11 @@ function generateCandidatesByGA(scores, opts) {
 
 function genRandomChromosome(pool) {
   let copy = pool.slice();
-  shuffle(copy);
+  shuffle(copy); // ✅ 確保 shuffle 存在
   let genes = copy.slice(0, 5).sort((a, b) => a - b);
   return { genes, fitness: 0 };
 }
+
 function crossover(p1, p2, pool, scores, opts) {
   let points = [];
   let count = Math.floor(seededRandom() * 2) + 2; // 2~3個交叉點
