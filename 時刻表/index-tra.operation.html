@@ -364,7 +364,7 @@ function drawSection(canvasId, stationListId, stationArr) {
       ctx.lineWidth=2;
 
       // 車次標籤半透明 => 不會完全擋到其他線
-      ctx.globalAlpha=0.9; // 畫線仍維持 0.9
+      ctx.globalAlpha=1.0; // 畫線仍維持 0.9
 
       // 移動至首站
       let p0 = subPoints[0];
@@ -391,9 +391,9 @@ function drawSection(canvasId, stationListId, stationArr) {
       let midY= (y0 + y1)/2;
 
       // 文字更淡一點
-      ctx.globalAlpha=0.5; 
+      ctx.globalAlpha=1.0; 
       ctx.fillStyle=color;
-      ctx.font="12px sans-serif";
+      ctx.font="14px sans-serif";
       ctx.fillText(tn, midX+5, midY-5);
 
       ctx.restore();
