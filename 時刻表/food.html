@@ -1,0 +1,416 @@
+<!-- food.html -->
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8"/>
+  <title>美食評分網站 - 排名首頁</title>
+  <link rel="stylesheet" href="food-style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link 
+    href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" 
+    rel="stylesheet"
+  >
+</head>
+<body>
+
+<header>
+  <h1>美食評分 - 排名首頁</h1>
+  <p>查看店家評分、篩選、排序、分頁(每頁10家)</p>
+</header>
+
+<!-- NAVBAR -->
+<div class="navbar">
+  <a href="food.html">首頁(排名)</a>
+  <a href="food-info.html">說明</a>
+  <a href="food-chart.html">統計圖表</a>
+  <a href="food-map.html">地圖</a>
+</div>
+
+<div class="container">
+  <!-- Google 翻譯 (多語) -->
+  <div class="translate-bar" id="google_translate_element"></div>
+
+  <!-- 篩選與排序 -->
+  <div style="background:#fff; border-radius:8px; padding:20px; box-shadow:0 2px 5px rgba(0,0,0,0.15); margin-bottom:20px;">
+    <h2>篩選 & 排序</h2>
+    <!-- 篩選條件 -->
+    <div class="row" style="margin-bottom:8px;">
+      <label for="citySelect">縣市：</label>
+      <select id="citySelect"></select>
+
+      <label for="districtSelect">區域：</label>
+      <select id="districtSelect"></select>
+
+      <label for="gradeSelect">等第：</label>
+      <select id="gradeSelect"></select>
+
+      <label for="categorySelect">類別：</label>
+      <select id="categorySelect"></select>
+
+      <label for="priceSelect">價位：</label>
+      <select id="priceSelect"></select>
+    </div>
+    <!-- 排序 + 分制 -->
+    <div class="row">
+      <label for="sortSelect">排序：</label>
+      <select id="sortSelect">
+        <option value="desc" selected>由高到低</option>
+        <option value="asc">由低到高</option>
+      </select>
+
+      <label for="scoreScaleSelect">分制：</label>
+      <select id="scoreScaleSelect">
+        <option value="100" selected>100 分制</option>
+        <option value="5">5 分制</option>
+      </select>
+    </div>
+
+    <div class="row">
+      <button id="searchBtn">查詢</button>
+      <button id="resetBtn">重置</button>
+    </div>
+  </div>
+
+  <!-- 表格 + 分頁 -->
+  <div class="table-container">
+    <table>
+      <thead>
+        <tr>
+          <th class="text-center">排名</th>
+          <th>店家</th>
+          <th class="text-center">平均分</th>
+          <th class="text-center">等第</th>
+          <th>縣市(區域)</th>
+          <th>類別</th>
+          <th>價位</th>
+          <th>評分時間</th>
+        </tr>
+      </thead>
+      <tbody id="resultTbody"></tbody>
+    </table>
+  </div>
+
+  <div style="text-align:center;">
+    <button id="prevPageBtn">&laquo; 上一頁</button>
+    <span id="pageInfo" style="margin:0 10px;"></span>
+    <button id="nextPageBtn">下一頁 &raquo;</button>
+  </div>
+
+  <!-- 點擊「平均分」 -> 細項評分等第 (彈窗) -->
+  <div id="detailPopup" class="detail-popup">
+    <h4>細項評分等第</h4>
+    <ul class="detail-list" id="detailList"></ul>
+    <button class="close-popup" id="closePopupBtn">關閉</button>
+  </div>
+
+</div>
+
+<footer>
+  <p>美食評分 - 排名首頁</p>
+</footer>
+
+<!-- 載入資料檔 -->
+<script src="food.js"></script>
+<script>
+/* ================== 權重 & 分數計算 ================== */
+const WEIGHTS = {
+  taste: 0.15, freshness: 0.10, texture: 0.15, appearance: 0.10, smell: 0.10,
+  portion: 0.10, uniqueness: 0.05, price: 0.10, environment: 0.05, attitude: 0.05, others: 0.05
+};
+function computeSingleScore(d){
+  return (
+    d.taste*WEIGHTS.taste + d.freshness*WEIGHTS.freshness + 
+    d.texture*WEIGHTS.texture + d.appearance*WEIGHTS.appearance + 
+    d.smell*WEIGHTS.smell + d.portion*WEIGHTS.portion + d.uniqueness*WEIGHTS.uniqueness + 
+    d.price*WEIGHTS.price + d.environment*WEIGHTS.environment + 
+    d.attitude*WEIGHTS.attitude + d.others*WEIGHTS.others
+  );
+}
+
+// 建立「店家 -> 平均分」快取
+const storeAverageMap = {};
+foodData.forEach(d=>{
+  const st = d.storeName;
+  if(!storeAverageMap[st]) {
+    storeAverageMap[st] = { sum:0, count:0 };
+  }
+  storeAverageMap[st].sum += computeSingleScore(d);
+  storeAverageMap[st].count++;
+});
+for(let s in storeAverageMap){
+  storeAverageMap[s].avg = storeAverageMap[s].sum / storeAverageMap[s].count;  // 0~100
+}
+
+// 分數 -> 等第
+function getFinalGrade(score){
+  if(score>=93)   return "A++";
+  if(score>=90)   return "A+";
+  if(score>=86)   return "A";
+  if(score>=83.5) return "B++";
+  if(score>=77)   return "B+";
+  if(score>=70)   return "B";
+  if(score>=60)   return "C";
+  return "F";
+}
+function getGradeColorClass(grade){
+  switch(grade){
+    case "A++": return "grade-color-App";
+    case "A+":  return "grade-color-Ap";
+    case "A":   return "grade-color-A";
+    case "B++": return "grade-color-Bpp";
+    case "B+":  return "grade-color-Bp";
+    case "B":   return "grade-color-B";
+    case "C":   return "grade-color-C";
+    default:    return "grade-color-F";
+  }
+}
+
+// 細項(0~100) -> A++/A+...
+function getItemLetter(score){
+  if(score>=94) return "A++";
+  if(score>=88) return "A+";
+  if(score>=80) return "A";
+  if(score>=70) return "B++";
+  if(score>=60) return "B+";
+  if(score>=45) return "B";
+  if(score>=25) return "C";
+  return "F";
+}
+
+/* ================== 下拉選單 & 篩選 ================== */
+function distinct(arr,key){
+  return [...new Set(arr.map(d=>d[key]).filter(Boolean))];
+}
+function distinctGrades(){
+  const set = new Set();
+  for(let st in storeAverageMap){
+    set.add(getFinalGrade(storeAverageMap[st].avg));
+  }
+  return [...set];
+}
+function initSelectOptions(){
+  populate(document.getElementById("citySelect"), distinct(foodData,"city"), "全部");
+  populate(document.getElementById("districtSelect"), distinct(foodData,"district"), "全部");
+  populate(document.getElementById("categorySelect"), distinct(foodData,"category"), "全部");
+  populate(document.getElementById("priceSelect"), distinct(foodData,"priceLevel"), "全部");
+  populate(document.getElementById("gradeSelect"), distinctGrades(), "全部");
+}
+function populate(sel, arr, defText){
+  sel.innerHTML="";
+  const op = document.createElement("option");
+  op.value="";
+  op.textContent= defText;
+  sel.appendChild(op);
+  arr.forEach(v=>{
+    const o = document.createElement("option");
+    o.value= v;
+    o.textContent= v;
+    sel.appendChild(o);
+  });
+}
+
+// 篩選
+function filterData(){
+  const city = document.getElementById("citySelect").value;
+  const dist = document.getElementById("districtSelect").value;
+  const cat  = document.getElementById("categorySelect").value;
+  const pri  = document.getElementById("priceSelect").value;
+  const grd  = document.getElementById("gradeSelect").value;
+
+  return foodData.filter(d=>{
+    if(city && d.city!== city) return false;
+    if(dist && d.district!== dist) return false;
+    if(cat && d.category!== cat) return false;
+    if(pri && d.priceLevel!== pri) return false;
+    if(grd){
+      const avg = storeAverageMap[d.storeName]?.avg || 0;
+      if(getFinalGrade(avg)!== grd) return false;
+    }
+    return true;
+  });
+}
+
+/* ================== 排序 + 分頁 ================== */
+let currentPage = 1;
+const pageSize = 10;
+let filteredSortedData = [];
+
+function performSearch(){
+  // 1) 先做篩選
+  let arr = filterData();
+  
+  // 2) 依排序 sort
+  const sortMode = document.getElementById("sortSelect").value; // asc/desc
+  arr.sort((a,b)=>{
+    const avgA= storeAverageMap[a.storeName]?.avg || 0;
+    const avgB= storeAverageMap[b.storeName]?.avg || 0;
+    return (sortMode==="asc") ? (avgA - avgB) : (avgB - avgA);
+  });
+
+  filteredSortedData = arr;  // 存全域
+  currentPage=1;
+  renderTablePage();
+}
+
+function renderTablePage(){
+  const scaleMode = document.getElementById("scoreScaleSelect").value; // 100/5
+
+  // 分頁切割
+  const start= (currentPage-1)*pageSize;
+  const end= currentPage*pageSize;
+  const slice= filteredSortedData.slice(start,end);
+
+  // 建立排名(同分同排名)
+  let rankMap={};
+  let count=0, lastScore=null, curRank=0;
+  filteredSortedData.forEach(d=>{
+    const avg= storeAverageMap[d.storeName]?.avg || 0;
+    count++;
+    if(avg!== lastScore){
+      curRank= count;
+      lastScore= avg;
+    }
+    rankMap[d.storeName] = curRank;
+  });
+
+  // 生成表格
+  const tbody= document.getElementById("resultTbody");
+  tbody.innerHTML= "";
+  
+  slice.forEach(d=>{
+    const tr= document.createElement("tr");
+    const avg= storeAverageMap[d.storeName]?.avg || 0;
+    const grade= getFinalGrade(avg);
+
+    // 分制顯示
+    let showScore;
+    if(scaleMode==="5"){
+      showScore = (avg/5).toFixed(5);
+    } else {
+      showScore = avg.toFixed(5);
+    }
+
+    // 排名
+    const tdRank= document.createElement("td");
+    tdRank.className="text-center";
+    tdRank.textContent= rankMap[d.storeName];
+
+    // 店家(連到地圖)
+    const tdStore= document.createElement("td");
+    const link= document.createElement("a");
+    link.href= `food-map.html?storeName=${encodeURIComponent(d.storeName)}`;
+    link.textContent= d.storeName;
+    tdStore.appendChild(link);
+
+    // 平均分
+    const tdScore= document.createElement("td");
+    tdScore.className= "text-center score-td " + getGradeColorClass(grade);
+    tdScore.textContent= showScore;
+    tdScore.addEventListener("click",(evt)=> showDetailPopup(evt,d));
+
+    // 等第
+    const tdGrade= document.createElement("td");
+    tdGrade.className= "text-center "+ getGradeColorClass(grade);
+    tdGrade.textContent= grade;
+
+    // 縣市(區域)
+    const tdCityDist= document.createElement("td");
+    tdCityDist.textContent= d.city+"("+ d.district +")";
+
+    // 類別
+    const tdCat= document.createElement("td");
+    tdCat.textContent= d.category;
+
+    // 價位
+    const tdPrice= document.createElement("td");
+    tdPrice.textContent= d.priceLevel;
+
+    // 時間
+    const tdTime= document.createElement("td");
+    tdTime.textContent= d.time;
+
+    tr.append(tdRank, tdStore, tdScore, tdGrade, tdCityDist, tdCat, tdPrice, tdTime);
+    tbody.appendChild(tr);
+  });
+
+  // 分頁資訊
+  document.getElementById("pageInfo").textContent = 
+    `第 ${currentPage} 頁 / 共 ${Math.ceil(filteredSortedData.length/pageSize)} 頁`;
+}
+
+function resetSearch(){
+  document.getElementById("citySelect").value="";
+  document.getElementById("districtSelect").value="";
+  document.getElementById("gradeSelect").value="";
+  document.getElementById("categorySelect").value="";
+  document.getElementById("priceSelect").value="";
+  document.getElementById("sortSelect").value="desc";
+  document.getElementById("scoreScaleSelect").value="100";
+
+  performSearch(); // 會重置、篩選(全部) & 排序
+}
+
+/* ========== 點擊「平均分」 -> 細項等第 POPUP ========== */
+const detailPopup= document.getElementById("detailPopup");
+const detailList= document.getElementById("detailList");
+document.getElementById("closePopupBtn").addEventListener("click", ()=>{
+  detailPopup.style.display="none";
+});
+function showDetailPopup(evt, rowData){
+  detailList.innerHTML="";
+  const detail = [
+    {label:"口味", val:getItemLetter(rowData.taste)},
+    {label:"食材新鮮度", val:getItemLetter(rowData.freshness)},
+    {label:"口感", val:getItemLetter(rowData.texture)},
+    {label:"外觀", val:getItemLetter(rowData.appearance)},
+    {label:"氣味", val:getItemLetter(rowData.smell)},
+    {label:"分量", val:getItemLetter(rowData.portion)},
+    {label:"獨特性", val:getItemLetter(rowData.uniqueness)},
+    {label:"價格", val:getItemLetter(rowData.price)},
+    {label:"環境", val:getItemLetter(rowData.environment)},
+    {label:"態度", val:getItemLetter(rowData.attitude)},
+    {label:"其他", val:getItemLetter(rowData.others)}
+  ];
+  detail.forEach(obj=>{
+    const li=document.createElement("li");
+    li.textContent= `${obj.label}：${obj.val}`;
+    detailList.appendChild(li);
+  });
+  detailPopup.style.display="block";
+  detailPopup.style.top= (evt.clientY+window.scrollY)+"px";
+  detailPopup.style.left= evt.clientX+"px";
+}
+
+// 分頁按鈕
+document.getElementById("prevPageBtn").addEventListener("click",()=>{
+  if(currentPage>1){
+    currentPage--;
+    renderTablePage();
+  }
+});
+document.getElementById("nextPageBtn").addEventListener("click",()=>{
+  if(currentPage*pageSize < filteredSortedData.length){
+    currentPage++;
+    renderTablePage();
+  }
+});
+
+/* ========== Google翻譯 ========== */
+function googleTranslateElementInit() {
+  new google.translate.TranslateElement({pageLanguage: 'zh-TW'},
+    'google_translate_element'
+  );
+}
+
+// DOM Loaded
+document.addEventListener("DOMContentLoaded", ()=>{
+  initSelectOptions();
+  resetSearch(); // 預設顯示全部(第1頁)
+});
+</script>
+<script 
+  type="text/javascript" 
+  src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit">
+</script>
+</body>
+</html>

@@ -1,0 +1,143 @@
+<!-- food-chart.html -->
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8"/>
+  <title>統計圖表</title>
+  <link rel="stylesheet" href="food-style.css">
+  <!-- Google Font -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link 
+    href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap"
+    rel="stylesheet"
+  >
+</head>
+<body>
+<header>
+  <h1>美食評分 - 統計圖表</h1>
+  <p>顯示(1)所有店家「總平均」(100 & 5), (2)各等第分配</p>
+</header>
+
+<div class="navbar">
+  <a href="food.html">首頁(排名)</a>
+  <a href="food-info.html">說明</a>
+  <a href="food-chart.html">統計圖表</a>
+  <a href="food-map.html">地圖</a>
+</div>
+
+<div class="container">
+  <!-- Google翻譯 -->
+  <div class="translate-bar" id="google_translate_element"></div>
+
+  <canvas id="avgChart" width="600" height="400"></canvas>
+  <br/>
+  <canvas id="gradeChart" width="600" height="400"></canvas>
+</div>
+
+<footer>
+  <p>美食評分 - 統計圖表</p>
+</footer>
+
+<script src="food.js"></script>
+<!-- Chart.js CDN -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+/* ========== 權重 & 計算 ========== */
+const WEIGHTS = {
+  taste: 0.15, freshness: 0.10, texture: 0.15, appearance: 0.10, smell: 0.10,
+  portion: 0.10, uniqueness: 0.05, price: 0.10, environment: 0.05, attitude: 0.05, others: 0.05
+};
+function computeSingleScore(d){
+  return (
+    d.taste*WEIGHTS.taste + d.freshness*WEIGHTS.freshness + 
+    d.texture*WEIGHTS.texture + d.appearance*WEIGHTS.appearance + 
+    d.smell*WEIGHTS.smell + d.portion*WEIGHTS.portion + d.uniqueness*WEIGHTS.uniqueness + 
+    d.price*WEIGHTS.price + d.environment*WEIGHTS.environment + 
+    d.attitude*WEIGHTS.attitude + d.others*WEIGHTS.others
+  );
+}
+function getFinalGrade(score){
+  if(score>=93)   return "A++";
+  if(score>=90)   return "A+";
+  if(score>=86)   return "A";
+  if(score>=83.5) return "B++";
+  if(score>=77)   return "B+";
+  if(score>=70)   return "B";
+  if(score>=60)   return "C";
+  return "F";
+}
+
+// 1) 計算「整體平均」
+let sumAll=0;
+foodData.forEach(d=> sumAll+= computeSingleScore(d));
+const overallAvg100 = sumAll / foodData.length;
+const overallAvg5   = overallAvg100 / 5;
+
+// 2) 計算「等第分配」
+const gradeCountMap= {};
+foodData.forEach(d=>{
+  const sc= computeSingleScore(d);
+  const grade= getFinalGrade(sc);
+  gradeCountMap[grade] = (gradeCountMap[grade]||0) + 1;
+});
+
+// 常見等第順序
+const gradeLabels= ["A++","A+","A","B++","B+","B","C","F"];
+const gradeCounts= gradeLabels.map(g => gradeCountMap[g]||0);
+
+// (A) 顯示2根Bar => overallAvg(100) & overallAvg(5)
+const ctx1= document.getElementById("avgChart").getContext("2d");
+new Chart(ctx1, {
+  type: 'bar',
+  data: {
+    labels: ["平均分(100)", "平均分(5)"],
+    datasets: [{
+      label: '所有店家 - 總平均',
+      data: [overallAvg100.toFixed(2), overallAvg5.toFixed(2)],
+      backgroundColor: 'rgba(54,162,235,0.4)',
+      borderColor: 'rgba(54,162,235,1)',
+      borderWidth:1
+    }]
+  },
+  options: {
+    scales: {
+      y: { beginAtZero:true }
+    }
+  }
+});
+
+// (B) 等第分配
+const ctx2= document.getElementById("gradeChart").getContext("2d");
+new Chart(ctx2, {
+  type: 'bar',
+  data:{
+    labels: gradeLabels,
+    datasets:[{
+      label: '等第次數(家數)',
+      data: gradeCounts,
+      backgroundColor: 'rgba(255,99,132,0.4)',
+      borderColor: 'rgba(255,99,132,1)',
+      borderWidth:1
+    }]
+  },
+  options:{
+    scales:{
+      y:{ beginAtZero:true }
+    }
+  }
+});
+
+// Google翻譯
+function googleTranslateElementInit() {
+  new google.translate.TranslateElement({pageLanguage: 'zh-TW'},
+    'google_translate_element'
+  );
+}
+</script>
+<script 
+  type="text/javascript" 
+  src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit">
+</script>
+</body>
+</html>

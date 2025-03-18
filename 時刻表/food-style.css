@@ -1,0 +1,180 @@
+/* ================== RESET & BASE ================== */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+  body {
+    font-family: 'Roboto', sans-serif;
+    background: linear-gradient(135deg, #4dd0e1, #ba68c8);
+    color: #333;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+  a {
+    text-decoration: none;
+    color: #004d40;
+  }
+  a:hover {
+    text-decoration: underline;
+  }
+  
+  /* ================== HEADER & FOOTER ================== */
+  header, footer {
+    background: rgba(255,255,255,0.8);
+    padding: 20px;
+    text-align: center;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+  }
+  header h1 {
+    font-size: 28px;
+    color: #7b1fa2;
+    margin-bottom: 5px;
+  }
+  header p {
+    font-size: 14px;
+    color: #666;
+  }
+  footer p {
+    font-size: 14px;
+  }
+  
+  /* ================== NAV BAR ================== */
+  .navbar {
+    background: rgba(255,255,255,0.7);
+    padding: 10px 20px;
+    text-align: center;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    margin-bottom: 20px;
+  }
+  .navbar a {
+    margin: 0 15px;
+    font-weight: 500;
+    color: #424242;
+  }
+  .navbar a:hover {
+    color: #bf360c;
+  }
+  
+  /* ================== CONTAINER ================== */
+  .container {
+    width: 90%;
+    max-width: 1200px;
+    margin: 0 auto 50px auto;
+    flex: 1;
+    position: relative;
+  }
+  
+  /* ================== TRANSLATE BAR ================== */
+  .translate-bar {
+    text-align: right;
+    margin-bottom: 10px;
+  }
+  
+  /* ================== TABLE ================== */
+  .table-container {
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.15);
+    overflow-x: auto; /* 水平捲動(for RWD) */
+    margin-bottom: 20px;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 600px; /* 保證寬度 */
+  }
+  thead {
+    background: #f7f7f7;
+  }
+  th, td {
+    padding: 12px;
+    border-bottom: 1px solid #eee;
+    text-align: left;
+  }
+  th {
+    font-weight: 500;
+    white-space: nowrap;
+  }
+  tr:hover td {
+    background: #fafafa;
+  }
+  .text-center {
+    text-align: center;
+  }
+  .score-td {
+    cursor: pointer;
+    transition: transform 0.1s;
+    font-weight: 700;
+    color: #8e24aa;
+  }
+  .score-td:hover {
+    transform: scale(1.05);
+  }
+  
+  /* 等第顏色(可自行改) */
+  .grade-color-App { color: #e53935; }
+  .grade-color-Ap  { color: #f57c00; }
+  .grade-color-A   { color: #fdd835; }
+  .grade-color-Bpp { color: #43a047; }
+  .grade-color-Bp  { color: #00897b; }
+  .grade-color-B   { color: #1e88e5; }
+  .grade-color-C   { color: #673ab7; }
+  .grade-color-F   { color: #757575; }
+  
+  /* ================== DETAIL POPUP ================== */
+  .detail-popup {
+    position: absolute;
+    background: #fff;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    padding: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+    display: none;
+    z-index: 999;
+  }
+  .detail-popup h4 {
+    margin-bottom: 8px;
+    font-size: 16px;
+    color: #8e24aa;
+    text-align: center;
+  }
+  .detail-list {
+    list-style: none;
+    padding: 0;
+    margin-bottom: 8px;
+  }
+  .detail-list li {
+    margin-bottom: 4px;
+  }
+  .close-popup {
+    display: block;
+    margin: 0 auto;
+    padding: 5px 10px;
+    background: #fbc02d;
+    color: #333;
+    text-align: center;
+    border-radius: 4px;
+    font-size: 13px;
+    cursor: pointer;
+    border: none;
+  }
+  .close-popup:hover {
+    background: #f9a825;
+  }
+  
+  /* ================== RWD MEDIA QUERIES ================== */
+  @media (max-width: 768px) {
+    header h1 {
+      font-size: 22px;
+    }
+    header p {
+      font-size: 13px;
+    }
+    th, td {
+      font-size: 14px;
+      padding: 10px;
+    }
+  }
+  

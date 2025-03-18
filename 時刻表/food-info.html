@@ -1,0 +1,102 @@
+<!-- food-info.html -->
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8" />
+  <title>評分細項說明</title>
+  <link rel="stylesheet" href="food-style.css">
+  <!-- Google Font -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link 
+    href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" 
+    rel="stylesheet"
+  >
+</head>
+<body>
+<header>
+  <h1>評分細項與等第標準</h1>
+  <p>詳細解釋 11 項評分依據與各等第對照</p>
+</header>
+
+<!-- NAVBAR -->
+<div class="navbar">
+  <a href="food.html">首頁(排名)</a>
+  <a href="food-info.html">說明</a>
+  <a href="food-chart.html">統計圖表</a>
+  <a href="food-map.html">地圖</a>
+</div>
+
+<div class="container">
+  <!-- Google 翻譯 -->
+  <div class="translate-bar" id="google_translate_element"></div>
+
+  <h2>評分細項</h2>
+  <ol>
+    <li><b>價格</b>：
+      <ul>
+        <li>評估餐點價格與品質、份量、用餐體驗是否相符。</li>
+        <li>比較同類型餐廳或餐點的價格，判斷其性價比。</li>
+        <li>考量消費者預算與期望，判斷價格是否合理。</li>
+      </ul>
+    </li>
+    <li><b>外觀(含擺盤)</b>：
+      <ul>
+        <li>觀察顏色、形狀、擺盤是否美觀吸引人。</li>
+        <li>擺盤的創意與精緻度，能否提升用餐愉悅感。</li>
+        <li>視覺呈現是否符合餐點類型與風格。</li>
+      </ul>
+    </li>
+    <!-- 其餘 9 項略... 依前例貼上即可 -->
+    <li><b>...其餘略...</b></li>
+  </ol>
+
+  <hr/>
+
+  <h2>等第標準</h2>
+  <ul>
+    <li>A++：>= 93</li>
+    <li>A+：>= 90</li>
+    <li>A：>= 86</li>
+    <li>B++：>= 83.5</li>
+    <li>B+：>= 77</li>
+    <li>B：>= 70</li>
+    <li>C：>= 60</li>
+    <li>F：< 60</li>
+  </ul>
+
+  <hr/>
+  <h2>加權比例 (總和 100%)</h2>
+  <ul>
+    <li>口味：15%</li>
+    <li>食材新鮮度：10%</li>
+    <li>口感：15%</li>
+    <li>外觀：10%</li>
+    <li>氣味：10%</li>
+    <li>分量：10%</li>
+    <li>獨特性：5%</li>
+    <li>價格：10%</li>
+    <li>環境：5%</li>
+    <li>態度：5%</li>
+    <li>其他：5%</li>
+  </ul>
+
+</div>
+
+<footer>
+  <p>美食評分 - 說明頁</p>
+</footer>
+
+<!-- Google翻譯 -->
+<script type="text/javascript">
+  function googleTranslateElementInit() {
+    new google.translate.TranslateElement({pageLanguage: 'zh-TW'},
+      'google_translate_element'
+    );
+  }
+</script>
+<script 
+  type="text/javascript" 
+  src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit">
+</script>
+</body>
+</html>

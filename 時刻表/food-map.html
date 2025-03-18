@@ -1,0 +1,225 @@
+<!-- food-map.html -->
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <title>店家地圖</title>
+  <link rel="stylesheet" href="food-style.css">
+
+  <!-- Leaflet -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+  
+  <!-- Google Font -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link 
+    href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap"
+    rel="stylesheet"
+  >
+
+  <style>
+    #map {
+      width: 100%;
+      height: 600px;
+      margin-top: 20px;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+      background: #fff;
+    }
+  </style>
+</head>
+<body>
+<header>
+  <h1>店家地圖 (可篩選)</h1>
+  <p>Leaflet示範：可篩選城市、區域、等第，或透過 ?storeName=xxx 聚焦</p>
+</header>
+
+<div class="navbar">
+  <a href="food.html">首頁(排名)</a>
+  <a href="food-info.html">說明</a>
+  <a href="food-chart.html">統計圖表</a>
+  <a href="food-map.html">地圖</a>
+</div>
+
+<div class="container">
+  <!-- Google翻譯 -->
+  <div class="translate-bar" id="google_translate_element"></div>
+
+  <div style="background:#fff; border-radius:8px; padding:20px; box-shadow:0 2px 5px rgba(0,0,0,0.15); margin-bottom:20px;">
+    <h2>篩選</h2>
+    <div class="row" style="margin-bottom:8px;">
+      <label for="mapCitySelect">城市：</label>
+      <select id="mapCitySelect"></select>
+
+      <label for="mapDistSelect">區域：</label>
+      <select id="mapDistSelect"></select>
+
+      <label for="mapGradeSelect">等第：</label>
+      <select id="mapGradeSelect"></select>
+    </div>
+    <button id="mapSearchBtn">搜尋</button>
+  </div>
+
+  <div id="map"></div>
+</div>
+
+<footer>
+  <p>美食評分 - 地圖示範</p>
+</footer>
+
+<script src="food.js"></script>
+<script>
+/* ========== 權重 & 計算 & 等第 ========== */
+const WEIGHTS = {
+  taste: 0.15, freshness: 0.10, texture: 0.15, appearance: 0.10, smell: 0.10,
+  portion: 0.10, uniqueness: 0.05, price: 0.10, environment: 0.05, attitude: 0.05, others: 0.05
+};
+function computeSingleScore(d){
+  return (
+    d.taste*WEIGHTS.taste + d.freshness*WEIGHTS.freshness + 
+    d.texture*WEIGHTS.texture + d.appearance*WEIGHTS.appearance + 
+    d.smell*WEIGHTS.smell + d.portion*WEIGHTS.portion + d.uniqueness*WEIGHTS.uniqueness + 
+    d.price*WEIGHTS.price + d.environment*WEIGHTS.environment + 
+    d.attitude*WEIGHTS.attitude + d.others*WEIGHTS.others
+  );
+}
+function getFinalGrade(score){
+  if(score>=93)   return "A++";
+  if(score>=90)   return "A+";
+  if(score>=86)   return "A";
+  if(score>=83.5) return "B++";
+  if(score>=77)   return "B+";
+  if(score>=70)   return "B";
+  if(score>=60)   return "C";
+  return "F";
+}
+
+// ========== Leaflet 地圖 ==========
+let map;
+let markers = [];
+function initMap(){
+  map = L.map('map').setView([25.0340, 121.5645], 10); // 台北預設
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{
+    maxZoom:19,
+  }).addTo(map);
+}
+
+// 下拉篩選
+function distinct(arr,key){
+  return [...new Set(arr.map(d=> d[key]).filter(Boolean))];
+}
+function initMapSelectOptions(){
+  populate(document.getElementById("mapCitySelect"), distinct(foodData,"city"), "全部");
+  populate(document.getElementById("mapDistSelect"), distinct(foodData,"district"), "全部");
+
+  // 等第要先計算
+  const gradeSet= new Set();
+  foodData.forEach(d=>{
+    const score= computeSingleScore(d);
+    gradeSet.add( getFinalGrade(score) );
+  });
+  populate(document.getElementById("mapGradeSelect"), [...gradeSet], "全部");
+}
+function populate(sel, arr, defText){
+  sel.innerHTML="";
+  const op= document.createElement("option");
+  op.value="";
+  op.textContent= defText;
+  sel.appendChild(op);
+  arr.forEach(v=>{
+    const o= document.createElement("option");
+    o.value= v;
+    o.textContent= v;
+    sel.appendChild(o);
+  });
+}
+
+// URL參數
+function getQueryParam(param){
+  const sp= new URLSearchParams(window.location.search);
+  return sp.get(param);
+}
+
+// 重新顯示Marker
+function showMarkers(){
+  // 1) 清除舊Marker
+  markers.forEach(m=> map.removeLayer(m));
+  markers=[];
+
+  // 2) 篩選
+  const city= document.getElementById("mapCitySelect").value;
+  const dist= document.getElementById("mapDistSelect").value;
+  const grd= document.getElementById("mapGradeSelect").value;
+
+  let arr= foodData.filter(d=>{
+    if(!d.lat || !d.lng) return false;
+    if(city && d.city!== city) return false;
+    if(dist && d.district!== dist) return false;
+    if(grd){
+      const sc= computeSingleScore(d);
+      const storeGrade= getFinalGrade(sc);
+      if(storeGrade!== grd) return false;
+    }
+    return true;
+  });
+
+  // 3) 建立Marker
+  arr.forEach(d=>{
+    const score= computeSingleScore(d);
+    const grade= getFinalGrade(score);
+    const mk= L.marker([d.lat, d.lng]).addTo(map);
+    mk.bindPopup(`
+      <b>${d.storeName}</b><br/>
+      ${d.city}(${d.district})<br/>
+      平均分(100): ${score.toFixed(2)}<br/>
+      等第: ${grade}
+    `);
+    markers.push(mk);
+  });
+
+  // 4) 如果帶 storeName => 聚焦該店
+  const storeParam= getQueryParam("storeName");
+  if(storeParam){
+    const found= arr.find(x=> x.storeName=== storeParam);
+    if(found){
+      map.setView([found.lat, found.lng], 15);
+    }
+    else {
+      // 若篩選後沒該店 => 就預設到 arr[0] (若有)
+      if(arr.length>0){
+        map.setView([arr[0].lat, arr[0].lng], 10);
+      }
+    }
+  }
+  else {
+    // 未帶參數 => 如果有筆，就調整到第一筆 or 保持台北
+    if(arr.length>0){
+      map.setView([arr[0].lat, arr[0].lng], 10);
+    }
+  }
+}
+
+document.addEventListener("DOMContentLoaded", ()=>{
+  initMap();
+  initMapSelectOptions();
+
+  // 預設顯示
+  showMarkers();
+
+  // 按搜尋 => showMarkers
+  document.getElementById("mapSearchBtn").addEventListener("click", showMarkers);
+});
+
+// Google翻譯
+function googleTranslateElementInit() {
+  new google.translate.TranslateElement({pageLanguage: 'zh-TW'},
+    'google_translate_element'
+  );
+}
+</script>
+<script 
+  type="text/javascript" 
+  src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit">
+</script>
+</body>
+</html>
