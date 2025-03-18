@@ -5,16 +5,14 @@
   <meta charset="UTF-8"/>
   <title>美食評分 - 首頁</title>
   <link rel="stylesheet" href="food-style.css">
-  <!-- (可放 Google Font / icon... 省略) -->
 </head>
 <body>
 
 <header>
   <h1>美食評分 - 排名首頁</h1>
-  <p>功能一(下拉)與功能二(關鍵字)不可同時使用，每頁顯示10筆</p>
+  <p>功能一(下拉) & 功能二(關鍵字) 不可同時使用；每頁10筆</p>
 </header>
 
-<!-- NAVBAR -->
 <div class="navbar">
   <a href="food.html">首頁(排名)</a>
   <a href="food-info.html">說明</a>
@@ -26,22 +24,23 @@
   <!-- Google 翻譯 -->
   <div class="translate-bar" id="google_translate_element"></div>
 
-  <!-- (A) 搜尋區 -->
+  <!-- (A) 搜尋/篩選區 -->
   <div class="search-section">
-    <h2>搜尋篩選</h2>
-    <!-- 切換功能1 / 功能2 -->
+    <h2>搜尋與篩選</h2>
+
+    <!-- 切換功能一/功能二 -->
     <div class="radio-group">
       <label>
         <input type="radio" name="searchMode" value="mode1" checked>
-        功能一(下拉式篩選)
+        功能一 (下拉式篩選)
       </label>
       <label>
         <input type="radio" name="searchMode" value="mode2">
-        功能二(關鍵字)
+        功能二 (關鍵字)
       </label>
     </div>
 
-    <!-- 功能1: 下拉篩選 -->
+    <!-- 功能一: 下拉式篩選 -->
     <div id="filterContainer">
       <div class="row">
         <label>縣市:</label>
@@ -57,22 +56,22 @@
       </div>
     </div>
 
-    <!-- 功能2: 關鍵字 -->
+    <!-- 功能二: 關鍵字搜尋 -->
     <div id="keywordContainer" style="display:none;">
       <div class="row">
         <label for="keywordInput">關鍵字:</label>
-        <input type="text" id="keywordInput" placeholder="店名/縣市/類別/價位...">
+        <input type="text" id="keywordInput" placeholder="店名/縣市/區域/類別/價位...">
       </div>
     </div>
 
     <div class="row">
-      <label>分制:</label>
+      <label for="scoreScaleSelect">分制:</label>
       <select id="scoreScaleSelect">
         <option value="100" selected>100 分制</option>
         <option value="5">5 分制</option>
       </select>
 
-      <label>排序:</label>
+      <label for="sortSelect">排序:</label>
       <select id="sortSelect">
         <option value="desc" selected>由高到低</option>
         <option value="asc">由低到高</option>
@@ -83,7 +82,7 @@
     </div>
   </div>
 
-  <!-- (B) 排名表 -->
+  <!-- (B) 排名表格 -->
   <div class="table-container">
     <table>
       <thead>
@@ -109,7 +108,7 @@
     <button id="nextPageBtn">下一頁 &raquo;</button>
   </div>
 
-  <!-- (D) 點擊平均分 -> 細項等第 -->
+  <!-- (D) 點擊「平均分」 -> 細項等第 -->
   <div id="detailPopup" class="detail-popup">
     <h4>細項評分等第</h4>
     <ul class="detail-list" id="detailList"></ul>
@@ -121,7 +120,7 @@
   <p>美食評分 - 2025</p>
 </footer>
 
-<!-- 載入 food.js 資料 -->
+<!-- 載入資料檔 -->
 <script src="food.js"></script>
 <script>
 /* ================== 權重 + 計算 ================== */
@@ -174,7 +173,7 @@ function getGradeColorClass(g){
   }
 }
 
-/* ================== 下拉選單初始化 ================== */
+/* ================== 下拉選單 ================== */
 function distinctValues(key){
   return [...new Set(foodData.map(d=> d[key]).filter(Boolean))];
 }
@@ -196,7 +195,7 @@ function initSelectOptions(){
 function populate(sel, arr, def){
   sel.innerHTML= "";
   const o= document.createElement("option");
-  o.value="";
+  o.value= "";
   o.textContent= def;
   sel.appendChild(o);
   arr.forEach(v=>{
@@ -207,7 +206,7 @@ function populate(sel, arr, def){
   });
 }
 
-/* ================== 功能1 & 功能2 篩選 ================== */
+/* ================== 功能1/功能2篩選 ================== */
 function filterByDropdown(data){
   const citySel= document.getElementById("citySelect").value;
   const distSel= document.getElementById("districtSelect").value;
@@ -216,14 +215,13 @@ function filterByDropdown(data){
   const grdSel= document.getElementById("gradeSelect").value;
 
   return data.filter(d=>{
-    if(citySel && d.city!== citySel) return false;
-    if(distSel && d.district!== distSel) return false;
-    if(catSel && d.category!== catSel) return false;
-    if(priSel && d.priceLevel!== priSel) return false;
+    if(citySel && d.city!==citySel) return false;
+    if(distSel && d.district!==distSel) return false;
+    if(catSel && d.category!==catSel) return false;
+    if(priSel && d.priceLevel!==priSel) return false;
     if(grdSel){
       const sc= computeSingleScore(d);
-      const g= getFinalGrade(sc);
-      if(g!== grdSel) return false;
+      if(getFinalGrade(sc)!== grdSel) return false;
     }
     return true;
   });
@@ -237,22 +235,22 @@ function filterByKeyword(data){
   });
 }
 function getSearchMode(){
-  return document.querySelector('input[name="searchMode"]:checked').value; // mode1/mode2
+  return document.querySelector('input[name="searchMode"]:checked').value; // mode1 / mode2
 }
 
-/* ================== 排序 + 分制顯示 ================== */
+/* ================== 排序 & 分制 ================== */
 function sortData(arr){
   const sortMode= document.getElementById("sortSelect").value; // asc/desc
   arr.sort((a,b)=>{
     const scA= computeSingleScore(a);
     const scB= computeSingleScore(b);
-    return (sortMode==="asc")? (scA - scB) : (scB - scA);
+    return sortMode==="asc"? (scA - scB) : (scB - scA);
   });
   return arr;
 }
 function getScoreText(d){
-  const scale= document.getElementById("scoreScaleSelect").value; // 100/5
   const rawScore= computeSingleScore(d);
+  const scale= document.getElementById("scoreScaleSelect").value; // 100 / 5
   if(scale==="5"){
     return (rawScore/5).toFixed(5);
   } else {
@@ -263,10 +261,10 @@ function getScoreText(d){
 /* ================== 分頁 ================== */
 const pageSize= 10;
 let currentPage= 1;
-let finalData= []; // 篩選 + 排序後的結果
+let finalData= [];
 
 function performSearch(){
-  // 1) 依模式做篩選
+  // 1) 功能1 or 功能2
   let result= [];
   if(getSearchMode()==="mode1"){
     result= filterByDropdown(foodData);
@@ -277,14 +275,13 @@ function performSearch(){
   result= sortData(result);
   // 3) 存到全域
   finalData= result;
-  currentPage= 1;
+  currentPage=1;
   renderTablePage();
 }
 function renderTablePage(){
-  // 分頁
   const start= (currentPage-1)*pageSize;
   const end= currentPage*pageSize;
-  const slice= finalData.slice(start,end);
+  const slice= finalData.slice(start, end);
 
   // 排名(同分同排名)
   let rankMap= {};
@@ -299,54 +296,51 @@ function renderTablePage(){
     rankMap[d.storeName]= curRank;
   });
 
-  // 產生表格
   const tbody= document.getElementById("resultTbody");
   tbody.innerHTML= "";
+
   slice.forEach(d=>{
+    const tr= document.createElement("tr");
     const avg= computeSingleScore(d);
     const grade= getFinalGrade(avg);
-
-    // 分制分數
     const showScore= getScoreText(d);
 
-    const tr= document.createElement("tr");
-
-    // (1) 排名
+    // 排名
     const tdRank= document.createElement("td");
     tdRank.className="text-center";
     tdRank.textContent= rankMap[d.storeName];
 
-    // (2) 店家 (點擊 -> 跳map?storeName=xxx)
+    // 店家(連到地圖)
     const tdStore= document.createElement("td");
     const link= document.createElement("a");
     link.href= `food-map.html?storeName=${encodeURIComponent(d.storeName)}`;
     link.textContent= d.storeName;
     tdStore.appendChild(link);
 
-    // (3) 平均分
+    // 平均分
     const tdScore= document.createElement("td");
     tdScore.className= "text-center score-td "+ getGradeColorClass(grade);
     tdScore.textContent= showScore;
     tdScore.addEventListener("click",(evt)=> showDetailPopup(evt, d));
 
-    // (4) 等第
+    // 等第
     const tdGrade= document.createElement("td");
-    tdGrade.className= "text-center " + getGradeColorClass(grade);
+    tdGrade.className= "text-center "+ getGradeColorClass(grade);
     tdGrade.textContent= grade;
 
-    // (5) 縣市(區域)
+    // 縣市(區域)
     const tdCityDist= document.createElement("td");
-    tdCityDist.textContent= d.city + "(" + d.district + ")";
+    tdCityDist.textContent= d.city+"("+ d.district +")";
 
-    // (6) 類別
+    // 類別
     const tdCat= document.createElement("td");
     tdCat.textContent= d.category;
 
-    // (7) 價位
+    // 價位
     const tdPrice= document.createElement("td");
     tdPrice.textContent= d.priceLevel;
 
-    // (8) 時間
+    // 時間
     const tdTime= document.createElement("td");
     tdTime.textContent= d.time;
 
@@ -354,12 +348,13 @@ function renderTablePage(){
     tbody.appendChild(tr);
   });
 
-  // 分頁資訊
-  document.getElementById("pageInfo").textContent= 
+  // 分頁顯示
+  document.getElementById("pageInfo").textContent =
     `第 ${currentPage} 頁 / 共 ${Math.ceil(finalData.length/pageSize)} 頁`;
 }
+
 function resetSearch(){
-  // 清空下拉 / 關鍵字
+  // 清空下拉 & 關鍵字
   document.getElementById("citySelect").value="";
   document.getElementById("districtSelect").value="";
   document.getElementById("categorySelect").value="";
@@ -367,14 +362,15 @@ function resetSearch(){
   document.getElementById("gradeSelect").value="";
   document.getElementById("keywordInput").value="";
 
-  // 回到模式1
+  // 回到功能1
   document.querySelector('input[name="searchMode"][value="mode1"]').checked= true;
   document.getElementById("filterContainer").style.display="";
   document.getElementById("keywordContainer").style.display="none";
 
-  document.getElementById("sortSelect").value="desc";
   document.getElementById("scoreScaleSelect").value="100";
+  document.getElementById("sortSelect").value="desc";
 
+  // 重新執行搜尋
   performSearch();
 }
 
@@ -401,12 +397,12 @@ function showDetailPopup(evt, rowData){
   ];
   items.forEach(obj=>{
     const li= document.createElement("li");
-    li.textContent= obj.label + "：" + obj.val;
+    li.textContent= `${obj.label}：${obj.val}`;
     detailList.appendChild(li);
   });
   detailPopup.style.display= "block";
-  detailPopup.style.top= (evt.clientY + window.scrollY)+"px";
-  detailPopup.style.left= evt.clientX+"px";
+  detailPopup.style.top= (evt.clientY + window.scrollY) + "px";
+  detailPopup.style.left= evt.clientX + "px";
 }
 
 /* ================== 分頁按鈕 ================== */
@@ -417,16 +413,13 @@ document.getElementById("prevPageBtn").addEventListener("click", ()=>{
   }
 });
 document.getElementById("nextPageBtn").addEventListener("click", ()=>{
-  if(currentPage * pageSize < finalData.length){
+  if(currentPage*pageSize< finalData.length){
     currentPage++;
     renderTablePage();
   }
 });
 
 /* ================== 功能1 <-> 功能2 切換 ================== */
-function getSearchMode(){
-  return document.querySelector('input[name="searchMode"]:checked').value;
-}
 const radios= document.querySelectorAll('input[name="searchMode"]');
 radios.forEach(radio=>{
   radio.addEventListener("change",(e)=>{
@@ -440,22 +433,23 @@ radios.forEach(radio=>{
   });
 });
 
-/* ================== GOOGLE 翻譯 ================== */
-function googleTranslateElementInit() {
-  new google.translate.TranslateElement({pageLanguage: 'zh-TW'},
+/* ================== Google 翻譯 ================== */
+function googleTranslateElementInit(){
+  new google.translate.TranslateElement({pageLanguage:'zh-TW'},
     'google_translate_element'
   );
 }
 
-/* ================== DOM LOADED ================== */
+/* ================== DOM Loaded ================== */
 document.addEventListener("DOMContentLoaded", ()=>{
   initSelectOptions();
-  resetSearch();
+  resetSearch(); // 預設顯示所有資料
 });
 </script>
 <!-- Google翻譯 -->
-<script type="text/javascript" 
+<script type="text/javascript"
   src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit">
 </script>
+
 </body>
 </html>

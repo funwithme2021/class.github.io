@@ -152,7 +152,17 @@
     transform: scale(1.05);
   }
   
-  /* 分頁按鈕 */
+  /* 使「店家名稱連結」看起來像普通文字 */
+  .table-container a {
+    text-decoration: none;
+    color: inherit;
+  }
+  .table-container a:hover {
+    text-decoration: none;
+    color: inherit;
+  }
+  
+  /* ================== PAGINATION ================== */
   .pagination {
     margin-top: 10px;
     text-align: center;
@@ -227,7 +237,7 @@
       font-size: 13px;
     }
   }
-/* 在 food-style.css 最後面或適當位置加入 */
+  /* 在 food-style.css 最後面或適當位置加入 */
 .info-card {
     background: #fafafa;
     border: 1px solid #eee;
@@ -245,4 +255,4 @@
     list-style-type: disc;
     margin-left: 20px;
   }
-    
+  
