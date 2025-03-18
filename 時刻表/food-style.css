@@ -5,65 +5,64 @@
     box-sizing: border-box;
   }
   body {
-    font-family: 'Roboto', sans-serif;
-    background: linear-gradient(135deg, #4dd0e1, #ba68c8);
+    font-family: 'Helvetica Neue', Arial, sans-serif;
+    background: #f2f2f2;
     color: #333;
     min-height: 100vh;
     display: flex;
     flex-direction: column;
   }
-  a {
-    text-decoration: none;
-    color: #004d40;
+  
+  /* ================== NAVBAR ================== */
+  .navbar {
+    background: #66a3ff;
+    padding: 15px;
+    text-align: center;
   }
-  a:hover {
+  .navbar a {
+    color: #fff;
+    margin: 0 20px;
+    font-weight: 500;
+    text-decoration: none;
+  }
+  .navbar a:hover {
     text-decoration: underline;
   }
   
   /* ================== HEADER & FOOTER ================== */
-  header, footer {
-    background: rgba(255,255,255,0.8);
+  header {
+    background: #fff;
     padding: 20px;
     text-align: center;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
   }
   header h1 {
-    font-size: 28px;
-    color: #7b1fa2;
-    margin-bottom: 5px;
+    font-size: 26px;
+    margin-bottom: 8px;
+    color: #004080;
   }
   header p {
     font-size: 14px;
     color: #666;
   }
-  footer p {
-    font-size: 14px;
-  }
-  
-  /* ================== NAV BAR ================== */
-  .navbar {
-    background: rgba(255,255,255,0.7);
-    padding: 10px 20px;
+  footer {
+    background: #fafafa;
+    padding: 15px;
     text-align: center;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-    margin-bottom: 20px;
-  }
-  .navbar a {
-    margin: 0 15px;
-    font-weight: 500;
-    color: #424242;
-  }
-  .navbar a:hover {
-    color: #bf360c;
+    font-size: 14px;
+    color: #666;
+    box-shadow: 0 -2px 4px rgba(0,0,0,0.1);
   }
   
   /* ================== CONTAINER ================== */
   .container {
     width: 90%;
-    max-width: 1200px;
+    max-width: 1000px;
     margin: 0 auto 50px auto;
-    flex: 1;
-    position: relative;
+    background: #fff;
+    border-radius: 6px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    padding: 20px;
   }
   
   /* ================== TRANSLATE BAR ================== */
@@ -72,30 +71,70 @@
     margin-bottom: 10px;
   }
   
+  /* ================== SEARCH SECTION ================== */
+  .search-section h2 {
+    font-size: 18px;
+    margin-bottom: 10px;
+    color: #004080;
+  }
+  .search-section .row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 10px;
+  }
+  .radio-group {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 8px;
+  }
+  label {
+    font-size: 14px;
+    margin-right: 5px;
+  }
+  select, input[type="text"] {
+    font-size: 14px;
+    padding: 4px 8px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    min-width: 120px;
+  }
+  button {
+    padding: 6px 14px;
+    border: none;
+    border-radius: 4px;
+    font-size: 14px;
+    cursor: pointer;
+    background: #0080ff;
+    color: #fff;
+  }
+  button:hover {
+    background: #006ad1;
+  }
+  
   /* ================== TABLE ================== */
   .table-container {
-    background: #fff;
-    border-radius: 8px;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.15);
-    overflow-x: auto; /* 水平捲動(for RWD) */
-    margin-bottom: 20px;
+    margin-top: 20px;
+    overflow-x: auto;
   }
   table {
     width: 100%;
     border-collapse: collapse;
-    min-width: 600px; /* 保證寬度 */
+    min-width: 600px;
   }
   thead {
     background: #f7f7f7;
   }
   th, td {
-    padding: 12px;
-    border-bottom: 1px solid #eee;
+    padding: 10px;
+    border-bottom: 1px solid #ddd;
     text-align: left;
+    white-space: nowrap;
   }
   th {
-    font-weight: 500;
-    white-space: nowrap;
+    font-weight: 600;
+    color: #444;
   }
   tr:hover td {
     background: #fafafa;
@@ -104,24 +143,28 @@
     text-align: center;
   }
   .score-td {
+    font-weight: bold;
     cursor: pointer;
     transition: transform 0.1s;
-    font-weight: 700;
-    color: #8e24aa;
+    color: #004080;
   }
   .score-td:hover {
     transform: scale(1.05);
   }
   
-  /* 等第顏色(可自行改) */
-  .grade-color-App { color: #e53935; }
-  .grade-color-Ap  { color: #f57c00; }
-  .grade-color-A   { color: #fdd835; }
-  .grade-color-Bpp { color: #43a047; }
-  .grade-color-Bp  { color: #00897b; }
-  .grade-color-B   { color: #1e88e5; }
-  .grade-color-C   { color: #673ab7; }
-  .grade-color-F   { color: #757575; }
+  /* 分頁按鈕 */
+  .pagination {
+    margin-top: 10px;
+    text-align: center;
+  }
+  .pagination button {
+    margin: 0 5px;
+    background: #cccccc;
+    color: #333;
+  }
+  .pagination button:hover {
+    background: #999999;
+  }
   
   /* ================== DETAIL POPUP ================== */
   .detail-popup {
@@ -137,13 +180,13 @@
   .detail-popup h4 {
     margin-bottom: 8px;
     font-size: 16px;
-    color: #8e24aa;
+    color: #004080;
     text-align: center;
   }
   .detail-list {
     list-style: none;
     padding: 0;
-    margin-bottom: 8px;
+    margin-bottom: 6px;
   }
   .detail-list li {
     margin-bottom: 4px;
@@ -152,7 +195,7 @@
     display: block;
     margin: 0 auto;
     padding: 5px 10px;
-    background: #fbc02d;
+    background: #cccccc;
     color: #333;
     text-align: center;
     border-radius: 4px;
@@ -161,20 +204,45 @@
     border: none;
   }
   .close-popup:hover {
-    background: #f9a825;
+    background: #999999;
   }
   
-  /* ================== RWD MEDIA QUERIES ================== */
+  /* ================== GRADE COLOR EXAMPLE ================== */
+  .grade-color-App { color: #ff0000; }
+  .grade-color-Ap  { color: #d02f2f; }
+  .grade-color-A   { color: #ff9900; }
+  .grade-color-Bpp { color: #669900; }
+  .grade-color-Bp  { color: #33a02c; }
+  .grade-color-B   { color: #1f78b4; }
+  .grade-color-C   { color: #6a3d9a; }
+  .grade-color-F   { color: #777777; }
+  
+  /* ================== MEDIA QUERY (RWD) ================== */
   @media (max-width: 768px) {
-    header h1 {
-      font-size: 22px;
+    .search-section .row {
+      flex-direction: column;
+      align-items: flex-start;
     }
-    header p {
+    table, th, td {
       font-size: 13px;
     }
-    th, td {
-      font-size: 14px;
-      padding: 10px;
-    }
   }
-  
+/* 在 food-style.css 最後面或適當位置加入 */
+.info-card {
+    background: #fafafa;
+    border: 1px solid #eee;
+    border-radius: 6px;
+    padding: 15px;
+    margin-bottom: 12px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+  }
+  .info-card h3 {
+    margin-bottom: 8px;
+    font-size: 16px;
+    color: #444;
+  }
+  .info-card ul {
+    list-style-type: disc;
+    margin-left: 20px;
+  }
+    
