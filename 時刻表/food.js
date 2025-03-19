@@ -1,6 +1,156 @@
 // food.js
 const foodData = [
     {
+        time: "2025-03-10",
+        city: "台中市",
+        district: "沙鹿區",
+        storeName: "鹿雅森林",
+        category: "景觀餐廳",
+        priceLevel: "$$$",
+         // 地圖用 (示例座標)
+        lat: 24.227327, 
+        lng: 120.595054,
+        // 各細項評分 (0~100)
+        taste: 78,        // 口味
+        freshness: 80,    // 食材新鮮度
+        texture: 80,      // 口感
+        appearance: 77,   // 外觀
+        smell: 77,        // 氣味
+        portion: 75,      // 分量
+        uniqueness: 84,   // 獨特性
+        price: 80,        // 價格
+        environment: 88,  // 環境
+        attitude: 88,     // 態度
+        others: 80,        // 其他
+        // ★★ 加入 Google Maps 連結 ★★
+        gmapUrl: "https://maps.app.goo.gl/rJto2WZisTTouqYe9"
+      },
+      {
+        time: "2025-03-10",
+        city: "台中市",
+        district: "龍井區",
+        storeName: "啡文學 龍井店",
+        category: "景觀餐廳",
+        priceLevel: "$$$",
+         // 地圖用 (示例座標)
+        lat: 24.188923, 
+        lng: 120.575486,
+        // 各細項評分 (0~100)
+        taste: 83,        // 口味
+        freshness: 81,    // 食材新鮮度
+        texture: 82.5,      // 口感
+        appearance: 80,   // 外觀
+        smell: 79,        // 氣味
+        portion: 80,      // 分量
+        uniqueness: 80,   // 獨特性
+        price: 82,        // 價格
+        environment: 80,  // 環境
+        attitude: 83,     // 態度
+        others: 88.5,        // 其他
+        // ★★ 加入 Google Maps 連結 ★★
+        gmapUrl: "https://maps.app.goo.gl/VFDkf78MSV1g5hJw5"
+      },
+      {
+        time: "2025-03-10",
+        city: "台中市",
+        district: "南區",
+        storeName: "咖啡任務 — 總部",
+        category: "景觀餐廳",
+        priceLevel: "$$$",
+         // 地圖用 (示例座標)
+        lat: 24.123385, 
+        lng: 120.660871,
+        // 各細項評分 (0~100)
+        taste: 88.5,        // 口味
+        freshness: 83,    // 食材新鮮度
+        texture: 87,      // 口感
+        appearance: 85,   // 外觀
+        smell: 86,        // 氣味
+        portion: 78.5,      // 分量
+        uniqueness: 86,   // 獨特性
+        price: 75.5,        // 價格
+        environment: 89,  // 環境
+        attitude: 80,     // 態度
+        others: 86,        // 其他
+        // ★★ 加入 Google Maps 連結 ★★
+        gmapUrl: "https://maps.app.goo.gl/8xobP82uyg7AnqXc7"
+      },
+      {
+        time: "2025-03-10",
+        city: "台北市",
+        district: "士林區",
+        storeName: "屋頂上",
+        category: "景觀餐廳",
+        priceLevel: "$$$",
+         // 地圖用 (示例座標)
+        lat: 25.1334811, 
+        lng: 121.536832,
+        // 各細項評分 (0~100)
+        taste: 85.5,        // 口味
+        freshness: 82,    // 食材新鮮度
+        texture: 85,      // 口感
+        appearance: 89.5,   // 外觀
+        smell: 84,        // 氣味
+        portion: 79,      // 分量
+        uniqueness: 85,   // 獨特性
+        price: 73,        // 價格
+        environment: 88,  // 環境
+        attitude: 82.5,     // 態度
+        others: 65,        // 其他
+        // ★★ 加入 Google Maps 連結 ★★
+        gmapUrl: "https://maps.app.goo.gl/4vkxDir3A82AHkJ5A"
+      },
+      {
+        time: "2025-03-10",
+        city: "台北市",
+        district: "士林區",
+        storeName: "草山夜未眠景觀餐廳",
+        category: "景觀餐廳",
+        priceLevel: "$$$",
+         // 地圖用 (示例座標)
+        lat: 25.1339777, 
+        lng: 121.5327677,
+        // 各細項評分 (0~100)
+        taste: 85,        // 口味
+        freshness: 82,    // 食材新鮮度
+        texture: 85.5,      // 口感
+        appearance: 85.5,   // 外觀
+        smell: 84,        // 氣味
+        portion: 79.5,      // 分量
+        uniqueness: 85,   // 獨特性
+        price: 74,        // 價格
+        environment: 91,  // 環境
+        attitude: 90,     // 態度
+        others: 84.5,        // 其他
+        // ★★ 加入 Google Maps 連結 ★★
+        gmapUrl: "https://maps.app.goo.gl/KrLFbgETjgfzKT2x6"
+      },
+      {
+        time: "2025-03-10",
+        city: "屏東縣",
+        district: "枋山鄉",
+        storeName: "魔幻咖啡",
+        category: "景觀餐廳",
+        priceLevel: "$$$",
+         // 地圖用 (示例座標)
+        lat: 22.296043, 
+        lng: 120.6409869,
+        // 各細項評分 (0~100)
+        taste: 87,        // 口味
+        freshness: 82,    // 食材新鮮度
+        texture: 85,      // 口感
+        appearance: 85.5,   // 外觀
+        smell: 82.5,        // 氣味
+        portion: 81,      // 分量
+        uniqueness: 82,   // 獨特性
+        price: 75,        // 價格
+        environment: 90,  // 環境
+        attitude: 80,     // 態度
+        others: 81.5,        // 其他
+        // ★★ 加入 Google Maps 連結 ★★
+        gmapUrl: "https://maps.app.goo.gl/FBNbStaSSC89kZC29"
+      },
+    {
       time: "2025-03-10",
       city: "台南市",
       district: "東區",
@@ -449,6 +599,256 @@ const foodData = [
         others: 70,        // 其他
         // ★★ 加入 Google Maps 連結 ★★
         gmapUrl: "https://maps.app.goo.gl/h5WbkimmjdQgQNSH6"
+      },
+      {
+        time: "2025-03-10",
+        city: "台南市",
+        district: "中西區",
+        storeName: "阿堂鹹粥",
+        category: "店面",
+        priceLevel: "$$$",
+         // 地圖用 (示例座標)
+        lat: 22.9899117, 
+        lng:  120.195373,
+        // 各細項評分 (0~100)
+        taste: 81.5,        // 口味
+        freshness: 82.5,    // 食材新鮮度
+        texture: 81,      // 口感
+        appearance: 83.5,   // 外觀
+        smell: 80,        // 氣味
+        portion: 81,      // 分量
+        uniqueness: 85,   // 獨特性
+        price: 79,        // 價格
+        environment: 81.5,  // 環境
+        attitude: 83,     // 態度
+        others: 85,        // 其他
+        // ★★ 加入 Google Maps 連結 ★★
+        gmapUrl: "https://maps.app.goo.gl/6LUAdVSUJns12qvq8"
+      },
+      {
+        time: "2025-03-10",
+        city: "台中市",
+        district: "豐原區",
+        storeName: "廟東清水排骨麵店",
+        category: "店面",
+        priceLevel: "$$",
+         // 地圖用 (示例座標)
+        lat: 24.2511364, 
+        lng:  120.7166141,
+        // 各細項評分 (0~100)
+        taste: 87,        // 口味
+        freshness: 83,    // 食材新鮮度
+        texture: 82.5,      // 口感
+        appearance: 85,   // 外觀
+        smell: 89,        // 氣味
+        portion: 79.5,      // 分量
+        uniqueness: 82,   // 獨特性
+        price: 80,        // 價格
+        environment: 67,  // 環境
+        attitude: 78,     // 態度
+        others: 65,        // 其他
+        // ★★ 加入 Google Maps 連結 ★★
+        gmapUrl: "https://maps.app.goo.gl/7dnmmw2At1jjuQGy9"
+      },
+      {
+        time: "2025-03-10",
+        city: "台南市",
+        district: "中西區",
+        storeName: "海安牛肉食堂",
+        category: "店面",
+        priceLevel: "$$$",
+         // 地圖用 (示例座標)
+        lat: 22.9884109, 
+        lng:  120.1920725,
+        // 各細項評分 (0~100)
+        taste: 81.5,        // 口味
+        freshness: 82,    // 食材新鮮度
+        texture: 78,      // 口感
+        appearance: 80,   // 外觀
+        smell: 81.5,        // 氣味
+        portion: 81.5,      // 分量
+        uniqueness: 80,   // 獨特性
+        price: 80,        // 價格
+        environment: 85,  // 環境
+        attitude: 82.5,     // 態度
+        others: 85,        // 其他
+        // ★★ 加入 Google Maps 連結 ★★
+        gmapUrl: "https://maps.app.goo.gl/oEA8H6Lwvui4NGtP8"
+      },
+      {
+        time: "2025-03-10",
+        city: "台中市",
+        district: "南區",
+        storeName: "王將藥燉排骨",
+        category: "店面",
+        priceLevel: "$$$",
+         // 地圖用 (示例座標)
+        lat: 24.1259306, 
+        lng:  120.660582,
+        // 各細項評分 (0~100)
+        taste: 86,        // 口味
+        freshness: 80,    // 食材新鮮度
+        texture: 80,      // 口感
+        appearance: 81,   // 外觀
+        smell: 84,        // 氣味
+        portion: 82,      // 分量
+        uniqueness: 80,   // 獨特性
+        price: 81,        // 價格
+        environment: 75,  // 環境
+        attitude: 77,     // 態度
+        others: 74,        // 其他
+        // ★★ 加入 Google Maps 連結 ★★
+        gmapUrl: "https://maps.app.goo.gl/HL7ekKzP2ZdaEX5ZA"
+      },
+      {
+        time: "2025-03-10",
+        city: "桃園市",
+        district: "中壢區",
+        storeName: "御冠園鮮肉湯包專賣店",
+        category: "夜市",
+        priceLevel: "$$",
+         // 地圖用 (示例座標)
+        lat: 24.9556584, 
+        lng:  121.2380475,
+        // 各細項評分 (0~100)
+        taste: 82.5,        // 口味
+        freshness: 81,    // 食材新鮮度
+        texture: 80,      // 口感
+        appearance: 82.5,   // 外觀
+        smell: 81,        // 氣味
+        portion: 81,      // 分量
+        uniqueness: 80,   // 獨特性
+        price: 80,        // 價格
+        environment: 77,  // 環境
+        attitude: 80,     // 態度
+        others: 79,        // 其他
+        // ★★ 加入 Google Maps 連結 ★★
+        gmapUrl: "https://maps.app.goo.gl/VpeR3KjXCtVNrVfRA"
+      },
+      {
+        time: "2025-03-10",
+        city: "台南市",
+        district: "中西區",
+        storeName: "葉家小卷米粉",
+        category: "店面",
+        priceLevel: "$$$",
+         // 地圖用 (示例座標)
+        lat: 22.9910754, 
+        lng:  120.1943792,
+        // 各細項評分 (0~100)
+        taste: 84,        // 口味
+        freshness: 69,    // 食材新鮮度
+        texture: 79,      // 口感
+        appearance: 82.5,   // 外觀
+        smell: 82.5,        // 氣味
+        portion: 83,      // 分量
+        uniqueness: 82,   // 獨特性
+        price: 82,        // 價格
+        environment: 80,  // 環境
+        attitude: 81.5,     // 態度
+        others: 80.5,        // 其他
+        // ★★ 加入 Google Maps 連結 ★★
+        gmapUrl: "https://maps.app.goo.gl/kfdwMpTkpk5dtCCy7"
+      },
+      {
+        time: "2025-03-10",
+        city: "台中市",
+        district: "南區",
+        storeName: "清一色牛肉麵 興大店",
+        category: "店面",
+        priceLevel: "$$$",
+         // 地圖用 (示例座標)
+        lat: 24.1260836, 
+        lng:  120.67270002,
+        // 各細項評分 (0~100)
+        taste: 77.5,        // 口味
+        freshness: 80,    // 食材新鮮度
+        texture: 82,      // 口感
+        appearance: 82.5,   // 外觀
+        smell: 80,        // 氣味
+        portion: 85,      // 分量
+        uniqueness: 81,   // 獨特性
+        price: 73,        // 價格
+        environment: 80,  // 環境
+        attitude: 80,     // 態度
+        others: 85,        // 其他
+        // ★★ 加入 Google Maps 連結 ★★
+        gmapUrl: "https://maps.app.goo.gl/ADyaHuqh8aQcjdde7"
+      },
+      {
+        time: "2025-03-10",
+        city: "台中市",
+        district: "南區",
+        storeName: "聞香牛肉麵",
+        category: "店面",
+        priceLevel: "$$$",
+         // 地圖用 (示例座標)
+        lat: 24.1259414, 
+        lng:  120.6724735,
+        // 各細項評分 (0~100)
+        taste: 77,        // 口味
+        freshness: 80,    // 食材新鮮度
+        texture: 78,      // 口感
+        appearance: 80,   // 外觀
+        smell: 82,        // 氣味
+        portion: 85.5,      // 分量
+        uniqueness: 82.5,   // 獨特性
+        price: 74,        // 價格
+        environment: 78,  // 環境
+        attitude: 78.5,     // 態度
+        others: 85,        // 其他
+        // ★★ 加入 Google Maps 連結 ★★
+        gmapUrl: "https://maps.app.goo.gl/vtRai2dAsoKZAnzy9"
+      },
+      {
+        time: "2025-03-10",
+        city: "台南市",
+        district: "東區",
+        storeName: "鴻牛溫體牛肉湯-東寧店",
+        category: "店面",
+        priceLevel: "$$$",
+         // 地圖用 (示例座標)
+        lat: 22.989598, 
+        lng:  120.2264142,
+        // 各細項評分 (0~100)
+        taste: 79,        // 口味
+        freshness: 82,    // 食材新鮮度
+        texture: 75,      // 口感
+        appearance: 74,   // 外觀
+        smell: 80,        // 氣味
+        portion: 81,      // 分量
+        uniqueness: 81,   // 獨特性
+        price: 77,        // 價格
+        environment: 80,  // 環境
+        attitude: 80,     // 態度
+        others: 84,        // 其他
+        // ★★ 加入 Google Maps 連結 ★★
+        gmapUrl: "https://maps.app.goo.gl/mq7RuLgYVmxrNYrC8"
+      },
+      {
+        time: "2025-03-10",
+        city: "台南市",
+        district: "中西區",
+        storeName: "大岡山羊肉專家",
+        category: "店面",
+        priceLevel: "$$$",
+         // 地圖用 (示例座標)
+        lat: 22.9955808, 
+        lng:  120.1938146,
+        // 各細項評分 (0~100)
+        taste: 76.5,        // 口味
+        freshness: 78,    // 食材新鮮度
+        texture: 75,      // 口感
+        appearance: 76.5,   // 外觀
+        smell: 79,        // 氣味
+        portion: 82,      // 分量
+        uniqueness: 81.5,   // 獨特性
+        price: 79,        // 價格
+        environment: 80,  // 環境
+        attitude: 79,     // 態度
+        others: 85,        // 其他
+        // ★★ 加入 Google Maps 連結 ★★
+        gmapUrl: "https://maps.app.goo.gl/8BqbKxKLe2BmXpP69"
       },
     
   ];
