@@ -250,6 +250,206 @@ const foodData = [
         // ★★ 加入 Google Maps 連結 ★★
         gmapUrl: "https://maps.app.goo.gl/pzNKGh76vQZRGAvh6"
       },
+      {
+        time: "2025-03-10",
+        city: "高雄市",
+        district: "前金區",
+        storeName: "黃家粉圓冰",
+        category: "冰甜品",
+        priceLevel: "$$",
+         // 地圖用 (示例座標)
+        lat: 22.634270, 
+        lng:  120.292613,
+        // 各細項評分 (0~100)
+        taste: 87.5,        // 口味
+        freshness: 86,    // 食材新鮮度
+        texture: 84,      // 口感
+        appearance: 77.5,   // 外觀
+        smell: 80,        // 氣味
+        portion: 83.5,      // 分量
+        uniqueness: 76.5,   // 獨特性
+        price: 88.5,        // 價格
+        environment: 83,  // 環境
+        attitude: 82,     // 態度
+        others: 82,        // 其他
+        // ★★ 加入 Google Maps 連結 ★★
+        gmapUrl: "https://maps.app.goo.gl/33kCsCyUNQyA68N29"
+      },
+      {
+        time: "2025-03-10",
+        city: "台中市",
+        district: "南區",
+        storeName: "味全米糕",
+        category: "店面",
+        priceLevel: "$$",
+         // 地圖用 (示例座標)
+        lat: 24.129439, 
+        lng:  120.681417,
+        // 各細項評分 (0~100)
+        taste: 85.5,        // 口味
+        freshness: 83.5,    // 食材新鮮度
+        texture: 82.5,      // 口感
+        appearance: 82.5,   // 外觀
+        smell: 84,        // 氣味
+        portion: 80.5,      // 分量
+        uniqueness: 83.5,   // 獨特性
+        price: 83.5,        // 價格
+        environment: 79,  // 環境
+        attitude: 82,     // 態度
+        others: 76,        // 其他
+        // ★★ 加入 Google Maps 連結 ★★
+        gmapUrl: "https://maps.app.goo.gl/F35PnEyxqfHqdfYh6"
+      },
+      {
+        time: "2025-03-10",
+        city: "桃園市",
+        district: "中壢區",
+        storeName: "源記牛肉麵",
+        category: "店面",
+        priceLevel: "$$$",
+         // 地圖用 (示例座標)
+        lat: 24.955932, 
+        lng:  121.225533,
+        // 各細項評分 (0~100)
+        taste: 83,        // 口味
+        freshness: 82,    // 食材新鮮度
+        texture: 80,      // 口感
+        appearance: 81,   // 外觀
+        smell: 84.5,        // 氣味
+        portion: 85,      // 分量
+        uniqueness: 82.5,   // 獨特性
+        price: 85,        // 價格
+        environment: 83,  // 環境
+        attitude: 90,     // 態度
+        others: 80,        // 其他
+        // ★★ 加入 Google Maps 連結 ★★
+        gmapUrl: "https://maps.app.goo.gl/nXziVPdVVk3cjrDz7"
+      },
+      {
+        time: "2025-03-10",
+        city: "台南市",
+        district: "中西區",
+        storeName: "八寶彬 圓仔惠",
+        category: "冰甜品",
+        priceLevel: "$$",
+         // 地圖用 (示例座標)
+        lat: 22.990444, 
+        lng:  120.196709,
+        // 各細項評分 (0~100)
+        taste: 84,        // 口味
+        freshness: 84,    // 食材新鮮度
+        texture: 82.5,      // 口感
+        appearance: 82.5,   // 外觀
+        smell: 83,        // 氣味
+        portion: 82,      // 分量
+        uniqueness: 79,   // 獨特性
+        price: 83,        // 價格
+        environment: 82,  // 環境
+        attitude: 84,     // 態度
+        others: 82,        // 其他
+        // ★★ 加入 Google Maps 連結 ★★
+        gmapUrl: "https://maps.app.goo.gl/5aLsKukofUJGGeqTA"
+      },
+      {
+        time: "2025-03-10",
+        city: "台北市",
+        district: "中山區",
+        storeName: "重‧烘爐火炭羊肉爐",
+        category: "店面",
+        priceLevel: "$$$$",
+         // 地圖用 (示例座標)
+        lat: 25.064291, 
+        lng:  121.535032,
+        // 各細項評分 (0~100)
+        taste: 85,        // 口味
+        freshness: 85,    // 食材新鮮度
+        texture: 82.5,      // 口感
+        appearance: 85,   // 外觀
+        smell: 83,        // 氣味
+        portion: 79.5,      // 分量
+        uniqueness: 88,   // 獨特性
+        price: 78,        // 價格
+        environment: 79,  // 環境
+        attitude: 80,     // 態度
+        others: 82,        // 其他
+        // ★★ 加入 Google Maps 連結 ★★
+        gmapUrl: "https://maps.app.goo.gl/xe8Fu8Pxcf1XzgMV9"
+      },
+      {
+        time: "2025-03-10",
+        city: "台中市",
+        district: "南區",
+        storeName: "品味牛肉麵/紅燒原汁牛肉麵",
+        category: "店面",
+        priceLevel: "$$$",
+         // 地圖用 (示例座標)
+        lat: 24.125251, 
+        lng:  120.667938,
+        // 各細項評分 (0~100)
+        taste: 83,        // 口味
+        freshness: 84,    // 食材新鮮度
+        texture: 83.5,      // 口感
+        appearance: 82,   // 外觀
+        smell: 81,        // 氣味
+        portion: 80.5,      // 分量
+        uniqueness: 81.5,   // 獨特性
+        price: 84,        // 價格
+        environment: 78.5,  // 環境
+        attitude: 78,     // 態度
+        others: 80,        // 其他
+        // ★★ 加入 Google Maps 連結 ★★
+        gmapUrl: "https://maps.app.goo.gl/96qg16ww6etqg5SJ9"
+      },
+      {
+        time: "2025-03-10",
+        city: "台南市",
+        district: "中西區",
+        storeName: "邱家小卷米粉",
+        category: "店面",
+        priceLevel: "$$$",
+         // 地圖用 (示例座標)
+        lat: 22.999207, 
+        lng:  120.199649,
+        // 各細項評分 (0~100)
+        taste: 83.5,        // 口味
+        freshness: 80,    // 食材新鮮度
+        texture: 80.5,      // 口感
+        appearance: 82.5,   // 外觀
+        smell: 83.5,        // 氣味
+        portion: 83,      // 分量
+        uniqueness: 82.5,   // 獨特性
+        price: 81,        // 價格
+        environment: 80,  // 環境
+        attitude: 83,     // 態度
+        others: 82,        // 其他
+        // ★★ 加入 Google Maps 連結 ★★
+        gmapUrl: "https://maps.app.goo.gl/6dF6zQqGwa8uuaS87"
+      },
+      {
+        time: "2025-03-10",
+        city: "台中市",
+        district: "南區",
+        storeName: "春美牛肉麵",
+        category: "店面",
+        priceLevel: "$$$",
+         // 地圖用 (示例座標)
+        lat: 24.124384, 
+        lng:  120.670193,
+        // 各細項評分 (0~100)
+        taste: 86,        // 口味
+        freshness: 84,    // 食材新鮮度
+        texture: 84,      // 口感
+        appearance: 82.5,   // 外觀
+        smell: 82.5,        // 氣味
+        portion: 80.5,      // 分量
+        uniqueness: 82.5,   // 獨特性
+        price: 84,        // 價格
+        environment: 75,  // 環境
+        attitude: 76,     // 態度
+        others: 70,        // 其他
+        // ★★ 加入 Google Maps 連結 ★★
+        gmapUrl: "https://maps.app.goo.gl/h5WbkimmjdQgQNSH6"
+      },
     
   ];
   
