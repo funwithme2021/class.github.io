@@ -10,7 +10,7 @@
 
 <header>
   <h1>美食評分 - 排名首頁</h1>
-  <p>篩選功能、排名查詢</p>
+  <p>功能一(下拉) & 功能二(關鍵字) 不可同時使用；每頁10筆</p>
 </header>
 
 <div class="navbar">
@@ -178,7 +178,7 @@ function getGradeColorClass(g){
   }
 }
 
-/* ================== 下拉選單 ================== */
+/* ================== 下拉選單工具 ================== */
 function distinctValues(key){
   return [...new Set(foodData.map(d => d[key]).filter(Boolean))];
 }
@@ -190,25 +190,56 @@ function getAllGrades(){
   });
   return [...set];
 }
-function initSelectOptions(){
-  populate(document.getElementById("citySelect"), distinctValues("city"), "全部");
-  populate(document.getElementById("districtSelect"), distinctValues("district"), "全部");
-  populate(document.getElementById("categorySelect"), distinctValues("category"), "全部");
-  populate(document.getElementById("priceSelect"), distinctValues("priceLevel"), "全部");
-  populate(document.getElementById("gradeSelect"), getAllGrades(), "全部");
-}
 function populate(sel, arr, def){
   sel.innerHTML = "";
+  // "全部" 選項
   const o = document.createElement("option");
   o.value = "";
   o.textContent = def;
   sel.appendChild(o);
+
+  // 逐項填入
   arr.forEach(v =>{
     const opt = document.createElement("option");
     opt.value = v;
     opt.textContent = v;
     sel.appendChild(opt);
   });
+}
+
+/* ================== 城市 -> 區域聯動 ==================
+   如果沒有選擇城市 => 顯示所有區域
+   如果已選擇城市 => 只顯示該城市的區域 */
+function updateDistrictOptions() {
+  const citySel = document.getElementById("citySelect").value;
+  if (!citySel) {
+    // 未選城市 => 所有區域
+    const allDistricts = distinctValues("district");
+    populate(document.getElementById("districtSelect"), allDistricts, "全部");
+  } else {
+    // 已選城市 => 篩出該城市的區域
+    const filtered = foodData
+      .filter(d => d.city === citySel && d.district)
+      .map(d => d.district);
+    const uniqueDistricts = [...new Set(filtered)];
+    populate(document.getElementById("districtSelect"), uniqueDistricts, "全部");
+  }
+}
+
+/* ================== 初始化下拉選單 ================== */
+function initSelectOptions(){
+  // 城市 (全部+各城市)
+  const cityArr = distinctValues("city");
+  populate(document.getElementById("citySelect"), cityArr, "全部");
+
+  // 區域(一開始就顯示全部)
+  const allDistricts = distinctValues("district");
+  populate(document.getElementById("districtSelect"), allDistricts, "全部");
+
+  // 其餘 (類別, 價位, 等第)
+  populate(document.getElementById("categorySelect"), distinctValues("category"), "全部");
+  populate(document.getElementById("priceSelect"), distinctValues("priceLevel"), "全部");
+  populate(document.getElementById("gradeSelect"), getAllGrades(), "全部");
 }
 
 /* ================== 功能1/功能2篩選 ================== */
@@ -245,19 +276,19 @@ function getSearchMode(){
 
 /* ================== 排序 & 分制 ================== */
 function sortData(arr){
-  const sortMode = document.getElementById("sortSelect").value; // asc / desc
+  const sortMode = document.getElementById("sortSelect").value; // asc or desc
   arr.sort((a,b) =>{
     const scA = computeSingleScore(a);
     const scB = computeSingleScore(b);
-    return sortMode === "asc" ? (scA - scB) : (scB - scA);
+    return (sortMode === "asc") ? (scA - scB) : (scB - scA);
   });
   return arr;
 }
 function getScoreText(d){
   const rawScore = computeSingleScore(d);
-  const scale = document.getElementById("scoreScaleSelect").value; // 100 / 5
+  const scale = document.getElementById("scoreScaleSelect").value; // "100" or "5"
   if(scale === "5"){
-    return (rawScore / 20).toFixed(5);
+    return (rawScore / 5).toFixed(5);
   } else {
     return rawScore.toFixed(5);
   }
@@ -269,16 +300,16 @@ let currentPage = 1;
 let finalData = [];
 
 function performSearch(){
-  // 1) 功能1 or 功能2
+  // (1) 依功能1或功能2取得篩選結果
   let result = [];
   if(getSearchMode() === "mode1"){
     result = filterByDropdown(foodData);
   } else {
     result = filterByKeyword(foodData);
   }
-  // 2) 排序
+  // (2) 排序
   result = sortData(result);
-  // 3) 存到全域
+  // (3) 存到 finalData，重置頁面到第1頁
   finalData = result;
   currentPage = 1;
   renderTablePage();
@@ -316,7 +347,7 @@ function renderTablePage(){
     tdRank.className = "text-center";
     tdRank.textContent = rankMap[d.storeName];
 
-    // 店家(連到地圖)
+    // 店家 (連到地圖)
     const tdStore = document.createElement("td");
     const link = document.createElement("a");
     link.href = `food-map.html?storeName=${encodeURIComponent(d.storeName)}`;
@@ -342,11 +373,21 @@ function renderTablePage(){
     const tdCat = document.createElement("td");
     tdCat.textContent = d.category;
 
-    // 價位
+    // 價位 (+ 導航按鈕)
     const tdPrice = document.createElement("td");
     tdPrice.textContent = d.priceLevel;
 
-    // 時間
+    // ★★ 導航按鈕（開啟 d.gmapUrl） ★★
+    const navBtn = document.createElement("button");
+    navBtn.textContent = "導航";
+    navBtn.style.marginLeft = "8px";
+    navBtn.addEventListener("click", () => {
+      // 開啟新分頁導向 Google Maps 連結
+      window.open(d.gmapUrl, "_blank");
+    });
+    tdPrice.appendChild(navBtn);
+
+    // 評分時間
     const tdTime = document.createElement("td");
     tdTime.textContent = d.time;
 
@@ -354,13 +395,13 @@ function renderTablePage(){
     tbody.appendChild(tr);
   });
 
-  // 分頁顯示
+  // 分頁訊息
   document.getElementById("pageInfo").textContent =
     `第 ${currentPage} 頁 / 共 ${Math.ceil(finalData.length / pageSize)} 頁`;
 }
 
 function resetSearch(){
-  // 清空下拉 & 關鍵字
+  // (A) 清空下拉 & 關鍵字
   document.getElementById("citySelect").value="";
   document.getElementById("districtSelect").value="";
   document.getElementById("categorySelect").value="";
@@ -368,24 +409,27 @@ function resetSearch(){
   document.getElementById("gradeSelect").value="";
   document.getElementById("keywordInput").value="";
 
-  // 回到功能1
+  // (B) 回到功能1
   document.querySelector('input[name="searchMode"][value="mode1"]').checked = true;
   document.getElementById("filterContainer").style.display = "";
   document.getElementById("keywordContainer").style.display = "none";
 
+  // (C) 分制 & 排序都重置
   document.getElementById("scoreScaleSelect").value="100";
   document.getElementById("sortSelect").value="desc";
 
-  // 重新執行搜尋
+  // (D) 重新執行搜尋 (顯示所有)
   performSearch();
 }
 
 /* ================== 點擊平均分 -> 細項等第 ================== */
 const detailPopup = document.getElementById("detailPopup");
 const detailList = document.getElementById("detailList");
+
 document.getElementById("closePopupBtn").addEventListener("click", () =>{
   detailPopup.style.display = "none";
 });
+
 function showDetailPopup(evt, rowData){
   detailList.innerHTML = "";
   const items = [
@@ -448,13 +492,17 @@ function googleTranslateElementInit(){
 
 /* ================== DOM Loaded ================== */
 document.addEventListener("DOMContentLoaded", () =>{
+  // (1) 初始化下拉選單
   initSelectOptions();
 
-  // ★★ 修正重點：將查詢與重置按鈕綁定事件 ★★
+  // (2) 綁定「城市下拉 -> 區域同步」事件
+  document.getElementById("citySelect").addEventListener("change", updateDistrictOptions);
+
+  // (3) 綁定「查詢」與「重置」按鈕
   document.getElementById("searchBtn").addEventListener("click", performSearch);
   document.getElementById("resetBtn").addEventListener("click", resetSearch);
 
-  // 預設顯示所有資料
+  // (4) 預設顯示所有資料
   resetSearch();
 });
 </script>

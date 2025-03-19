@@ -3,37 +3,20 @@
 <html lang="zh-TW">
 <head>
   <meta charset="UTF-8">
-  <title>店家地圖</title>
+  <title>店家地圖 - 篩選 & Marker Popup</title>
   <link rel="stylesheet" href="food-style.css">
-
-  <!-- Leaflet -->
+  
+  <!-- Leaflet CDN -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
   <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
-  
-  <!-- Google Font -->
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link 
-    href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap"
-    rel="stylesheet"
-  >
-
-  <style>
-    #map {
-      width: 100%;
-      height: 600px;
-      margin-top: 20px;
-      border-radius: 8px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.15);
-      background: #fff;
-    }
-  </style>
 </head>
 <body>
 <header>
-  <h1>店家地圖</h1>
-  <p>可篩選城市、區域、等第</p>
+  <h1>店家地圖 (城市/區域/等第 篩選)</h1>
+  <p>點擊Marker可查看店家名稱(連結至Google地圖)、評分(100)、等第</p>
 </header>
 
+<!-- 導航列 (Navbar) -->
 <div class="navbar">
   <a href="food.html">首頁(排名)</a>
   <a href="food-info.html">說明</a>
@@ -41,13 +24,15 @@
   <a href="food-map.html">地圖</a>
 </div>
 
+<!-- 主要容器 -->
 <div class="container">
-  <!-- Google翻譯 -->
+  <!-- Google 翻譯 (若需要) -->
   <div class="translate-bar" id="google_translate_element"></div>
 
-  <div style="background:#fff; border-radius:8px; padding:20px; box-shadow:0 2px 5px rgba(0,0,0,0.15); margin-bottom:20px;">
+  <!-- 篩選區塊 -->
+  <div style="background:#fff; padding:20px; border-radius:8px; box-shadow:0 2px 5px rgba(0,0,0,0.15); margin-bottom:20px;">
     <h2>篩選</h2>
-    <div class="row" style="margin-bottom:8px;">
+    <div class="row" style="margin-bottom:10px;">
       <label for="mapCitySelect">城市：</label>
       <select id="mapCitySelect"></select>
 
@@ -60,29 +45,36 @@
     <button id="mapSearchBtn">搜尋</button>
   </div>
 
-  <div id="map"></div>
+  <!-- 地圖顯示區 -->
+  <div id="map" style="width:100%; height:600px; border-radius:6px; background:#eee;"></div>
 </div>
 
 <footer>
-  <p>美食評分 - 地圖示範</p>
+  <p>美食評分 - 地圖頁</p>
 </footer>
 
+<!-- 載入 food.js 資料檔 -->
 <script src="food.js"></script>
 <script>
-/* ========== 權重 & 計算 & 等第 ========== */
+/* =================== 權重 & 評分(0~100) -> 等第 =================== */
 const WEIGHTS = {
-  taste: 0.15, freshness: 0.10, texture: 0.15, appearance: 0.10, smell: 0.10,
-  portion: 0.10, uniqueness: 0.05, price: 0.10, environment: 0.05, attitude: 0.05, others: 0.05
+  taste: 0.15, freshness: 0.10, texture: 0.15,
+  appearance: 0.10, smell: 0.10, portion: 0.10,
+  uniqueness: 0.05, price: 0.10, environment: 0.05,
+  attitude: 0.05, others: 0.05
 };
+
 function computeSingleScore(d){
   return (
-    d.taste*WEIGHTS.taste + d.freshness*WEIGHTS.freshness + 
-    d.texture*WEIGHTS.texture + d.appearance*WEIGHTS.appearance + 
-    d.smell*WEIGHTS.smell + d.portion*WEIGHTS.portion + d.uniqueness*WEIGHTS.uniqueness + 
-    d.price*WEIGHTS.price + d.environment*WEIGHTS.environment + 
-    d.attitude*WEIGHTS.attitude + d.others*WEIGHTS.others
+    d.taste*WEIGHTS.taste + d.freshness*WEIGHTS.freshness +
+    d.texture*WEIGHTS.texture + d.appearance*WEIGHTS.appearance +
+    d.smell*WEIGHTS.smell + d.portion*WEIGHTS.portion +
+    d.uniqueness*WEIGHTS.uniqueness + d.price*WEIGHTS.price +
+    d.environment*WEIGHTS.environment + d.attitude*WEIGHTS.attitude +
+    d.others*WEIGHTS.others
   );
 }
+
 function getFinalGrade(score){
   if(score>=93)   return "A++";
   if(score>=90)   return "A+";
@@ -94,129 +86,158 @@ function getFinalGrade(score){
   return "F";
 }
 
-// ========== Leaflet 地圖 ==========
-let map;
-let markers = [];
-function initMap(){
-  map = L.map('map').setView([25.0340, 121.5645], 10); // 台北預設
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{
-    maxZoom:19,
-  }).addTo(map);
-}
-
-// 下拉篩選
-function distinct(arr,key){
-  return [...new Set(arr.map(d=> d[key]).filter(Boolean))];
-}
-function initMapSelectOptions(){
-  populate(document.getElementById("mapCitySelect"), distinct(foodData,"city"), "全部");
-  populate(document.getElementById("mapDistSelect"), distinct(foodData,"district"), "全部");
-
-  // 等第要先計算
-  const gradeSet= new Set();
-  foodData.forEach(d=>{
-    const score= computeSingleScore(d);
-    gradeSet.add( getFinalGrade(score) );
-  });
-  populate(document.getElementById("mapGradeSelect"), [...gradeSet], "全部");
-}
-function populate(sel, arr, defText){
-  sel.innerHTML="";
-  const op= document.createElement("option");
-  op.value="";
-  op.textContent= defText;
-  sel.appendChild(op);
-  arr.forEach(v=>{
-    const o= document.createElement("option");
-    o.value= v;
-    o.textContent= v;
-    sel.appendChild(o);
-  });
-}
-
-// URL參數
+/* =================== URL 參數: storeName =================== */
 function getQueryParam(param){
   const sp= new URLSearchParams(window.location.search);
   return sp.get(param);
 }
 
-// 重新顯示Marker
+/* =================== Leaflet 地圖 =================== */
+let map;       // Leaflet map 物件
+let markers=[]; // 儲存目前顯示中的 Marker
+
+function initMap(){
+  // 初始化地圖 (以台北為中心)
+  map= L.map("map").setView([25.0340,121.5645],10);
+  L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",{ maxZoom:19 }).addTo(map);
+
+  // 初始化下拉選單 (城市, 區域, 等第)
+  initSelectOptions();
+
+  // 綁定城市 -> 區域 (相依)
+  document.getElementById("mapCitySelect").addEventListener("change", updateDistrictOptions);
+
+  // 預設: 顯示所有Marker or 由篩選?
+  // 這裡先執行 showMarkers() => 顯示全部 (因城市,區域,等第都沒選)
+  showMarkers();
+
+  // 看是否帶 storeName => 若找到對應店家就聚焦
+  // => 具體在 showMarkers() 中也會再檢查
+}
+
+/* 下拉選單: distinct & populateSelect */
+function distinct(arr,key){
+  return [...new Set(arr.map(d=> d[key]).filter(Boolean))];
+}
+function populateSelect(sel, arr, defText){
+  sel.innerHTML= "";
+  const o= document.createElement("option");
+  o.value= "";
+  o.textContent= defText;
+  sel.appendChild(o);
+
+  arr.forEach(v=>{
+    const opt= document.createElement("option");
+    opt.value= v;
+    opt.textContent= v;
+    sel.appendChild(opt);
+  });
+}
+
+/* 初始化 (城市, 區域, 等第) */
+function initSelectOptions(){
+  populateSelect(document.getElementById("mapCitySelect"), distinct(foodData,"city"), "全部");
+  populateSelect(document.getElementById("mapDistSelect"), distinct(foodData,"district"), "全部");
+
+  // 等第 => 先計算
+  const gradeSet= new Set();
+  foodData.forEach(d=>{
+    const sc= computeSingleScore(d);
+    gradeSet.add(getFinalGrade(sc));
+  });
+  populateSelect(document.getElementById("mapGradeSelect"), [...gradeSet], "全部");
+}
+
+/* 當城市改變 => 動態更新「區域」清單 */
+function updateDistrictOptions(){
+  const city= document.getElementById("mapCitySelect").value;
+  let arr= foodData;
+  if(city){
+    // 若有選擇城市 => 只取 city=該城市 的資料
+    arr= arr.filter(d=> d.city=== city);
+  }
+  // 取得 distinct 的區域
+  const distArr= distinct(arr, "district");
+  populateSelect(document.getElementById("mapDistSelect"), distArr, "全部");
+}
+
+/* 按「搜尋」 => showMarkers */
+document.addEventListener("DOMContentLoaded", ()=>{
+  initMap();
+  document.getElementById("mapSearchBtn").addEventListener("click", showMarkers);
+});
+
+// 顯示 Marker
 function showMarkers(){
-  // 1) 清除舊Marker
+  // 1) 移除舊 Marker
   markers.forEach(m=> map.removeLayer(m));
   markers=[];
 
-  // 2) 篩選
+  // 2) 取得篩選條件
   const city= document.getElementById("mapCitySelect").value;
   const dist= document.getElementById("mapDistSelect").value;
   const grd= document.getElementById("mapGradeSelect").value;
+  const storeParam= getQueryParam("storeName"); // 帶參數?
 
-  let arr= foodData.filter(d=>{
-    if(!d.lat || !d.lng) return false;
+  // 3) 篩選
+  let filtered= foodData.filter(d=>{
+    if(!d.lat || !d.lng) return false; // 沒座標 => 不顯示
     if(city && d.city!== city) return false;
     if(dist && d.district!== dist) return false;
     if(grd){
       const sc= computeSingleScore(d);
-      const storeGrade= getFinalGrade(sc);
-      if(storeGrade!== grd) return false;
+      const g= getFinalGrade(sc);
+      if(g!== grd) return false;
     }
     return true;
   });
 
-  // 3) 建立Marker
-  arr.forEach(d=>{
-    const score= computeSingleScore(d);
-    const grade= getFinalGrade(score);
-    const mk= L.marker([d.lat, d.lng]).addTo(map);
-    mk.bindPopup(`
-      <b>${d.storeName}</b><br/>
-      ${d.city}(${d.district})<br/>
-      平均分(100): ${score.toFixed(2)}<br/>
-      等第: ${grade}
-    `);
-    markers.push(mk);
-  });
+  // 4) 建立 Marker
+  filtered.forEach(d=> addMarker(d));
 
-  // 4) 如果帶 storeName => 聚焦該店
-  const storeParam= getQueryParam("storeName");
+  // 5) 若帶 storeName => 聚焦
   if(storeParam){
-    const found= arr.find(x=> x.storeName=== storeParam);
+    const found= filtered.find(x=> x.storeName=== storeParam);
     if(found){
-      map.setView([found.lat, found.lng], 15);
-    }
-    else {
-      // 若篩選後沒該店 => 就預設到 arr[0] (若有)
-      if(arr.length>0){
-        map.setView([arr[0].lat, arr[0].lng], 10);
-      }
-    }
-  }
-  else {
-    // 未帶參數 => 如果有筆，就調整到第一筆 or 保持台北
-    if(arr.length>0){
-      map.setView([arr[0].lat, arr[0].lng], 10);
+      map.setView([found.lat, found.lng],15);
     }
   }
 }
 
-document.addEventListener("DOMContentLoaded", ()=>{
-  initMap();
-  initMapSelectOptions();
+// 幫忙建立單一 Marker
+function addMarker(d){
+  const mk= L.marker([d.lat, d.lng]).addTo(map);
+  markers.push(mk);
 
-  // 預設顯示
-  showMarkers();
+  // 計算評分(100), 等第
+  const sc= computeSingleScore(d).toFixed(2);
+  const grade= getFinalGrade(sc);
 
-  // 按搜尋 => showMarkers
-  document.getElementById("mapSearchBtn").addEventListener("click", showMarkers);
-});
+  // Popup 內容: 
+  // 1) 店名 => <a href="d.gmapUrl" target="_blank">...店名...</a>
+  // 2) 評分(100): sc
+  // 3) 等第: grade
+  let popupHtml= `
+    <b>
+      <a href="${d.gmapUrl||"#"}" target="_blank"
+         style="text-decoration:none;color:blue;">
+        ${d.storeName}
+      </a>
+    </b><br/>
+    評分(100): ${sc}<br/>
+    等第: ${grade}
+  `;
+  mk.bindPopup(popupHtml);
+}
 
-// Google翻譯
-function googleTranslateElementInit() {
-  new google.translate.TranslateElement({pageLanguage: 'zh-TW'},
+/* 若需要Google翻譯 */
+function googleTranslateElementInit(){
+  new google.translate.TranslateElement({pageLanguage:'zh-TW'},
     'google_translate_element'
   );
 }
 </script>
+<!-- Google翻譯 -->
 <script 
   type="text/javascript" 
   src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit">
