@@ -14,14 +14,14 @@ const foodData = [
         taste: 78,        // 口味
         freshness: 80,    // 食材新鮮度
         texture: 80,      // 口感
-        appearance: 77,   // 外觀
+        appearance: 80,   // 外觀
         smell: 77,        // 氣味
         portion: 75,      // 分量
         uniqueness: 84,   // 獨特性
         price: 80,        // 價格
         environment: 88,  // 環境
-        attitude: 88,     // 態度
-        others: 80,        // 其他
+        attitude: 90.8,     // 態度
+        others: 93,        // 其他
         // ★★ 加入 Google Maps 連結 ★★
         gmapUrl: "https://maps.app.goo.gl/rJto2WZisTTouqYe9"
       },
