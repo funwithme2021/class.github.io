@@ -850,6 +850,56 @@ const foodData = [
         // ★★ 加入 Google Maps 連結 ★★
         gmapUrl: "https://maps.app.goo.gl/8BqbKxKLe2BmXpP69"
       },
+      {
+        time: "2025-03-10",
+        city: "台中市",
+        district: "南區",
+        storeName: "西濱蛋炒飯-脆皮蚵仔煎",
+        category: "店面",
+        priceLevel: "$$",
+         // 地圖用 (示例座標)
+        lat: 24.1275607, 
+        lng:  120.6743128,
+        // 各細項評分 (0~100)
+        taste: 77.5,        // 口味
+        freshness: 83,    // 食材新鮮度
+        texture: 82,      // 口感
+        appearance: 78.5,   // 外觀
+        smell: 78.5,        // 氣味
+        portion: 81.5,      // 分量
+        uniqueness: 78,   // 獨特性
+        price: 85,        // 價格
+        environment: 80,  // 環境
+        attitude: 76.5,     // 態度
+        others: 84,        // 其他
+        // ★★ 加入 Google Maps 連結 ★★
+        gmapUrl: "https://maps.app.goo.gl/q2oVUYRxRa3iSgKN6"
+      },
+      {
+        time: "2025-03-10",
+        city: "台中市",
+        district: "南區",
+        storeName: "正記北港香菇肉羹/炒飯",
+        category: "店面",
+        priceLevel: "$$",
+         // 地圖用 (示例座標)
+        lat: 24.1288051, 
+        lng:  120.6713529,
+        // 各細項評分 (0~100)
+        taste: 84.1,        // 口味
+        freshness: 84.7,    // 食材新鮮度
+        texture: 83,      // 口感
+        appearance: 76,   // 外觀
+        smell: 80,        // 氣味
+        portion: 81.5,      // 分量
+        uniqueness: 79,   // 獨特性
+        price: 94,        // 價格
+        environment: 70,  // 環境
+        attitude: 75,     // 態度
+        others: 82.5,        // 其他
+        // ★★ 加入 Google Maps 連結 ★★
+        gmapUrl: "https://maps.app.goo.gl/9PUUv4qqhXvLbgCT8"
+      },
     
   ];
   
