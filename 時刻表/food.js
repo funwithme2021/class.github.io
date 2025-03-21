@@ -14,11 +14,11 @@ const foodData = [
         taste: 78,        // 口味
         freshness: 80,    // 食材新鮮度
         texture: 80,      // 口感
-        appearance: 80,   // 外觀
+        appearance: 82.5,   // 外觀
         smell: 77,        // 氣味
         portion: 75,      // 分量
         uniqueness: 84,   // 獨特性
-        price: 80,        // 價格
+        price: 82,        // 價格
         environment: 88,  // 環境
         attitude: 90.8,     // 態度
         others: 93,        // 其他
@@ -758,8 +758,8 @@ const foodData = [
         category: "店面",
         priceLevel: "$$$",
          // 地圖用 (示例座標)
-        lat: 24.1260836, 
-        lng:  120.67270002,
+        lat: 24.126088, 
+        lng:  120.675216,
         // 各細項評分 (0~100)
         taste: 77.5,        // 口味
         freshness: 80,    // 食材新鮮度
@@ -783,8 +783,8 @@ const foodData = [
         category: "店面",
         priceLevel: "$$$",
          // 地圖用 (示例座標)
-        lat: 24.1259414, 
-        lng:  120.6724735,
+        lat: 24.125935, 
+        lng:  120.675131,
         // 各細項評分 (0~100)
         taste: 77,        // 口味
         freshness: 80,    // 食材新鮮度
@@ -808,8 +808,8 @@ const foodData = [
         category: "店面",
         priceLevel: "$$$",
          // 地圖用 (示例座標)
-        lat: 22.989598, 
-        lng:  120.2264142,
+        lat: 22.989624, 
+        lng:  120.228977,
         // 各細項評分 (0~100)
         taste: 79,        // 口味
         freshness: 82,    // 食材新鮮度
@@ -833,8 +833,8 @@ const foodData = [
         category: "店面",
         priceLevel: "$$$",
          // 地圖用 (示例座標)
-        lat: 22.9955808, 
-        lng:  120.1938146,
+        lat: 22.995503, 
+        lng:  120.196399,
         // 各細項評分 (0~100)
         taste: 76.5,        // 口味
         freshness: 78,    // 食材新鮮度
@@ -858,8 +858,8 @@ const foodData = [
         category: "店面",
         priceLevel: "$$",
          // 地圖用 (示例座標)
-        lat: 24.1275607, 
-        lng:  120.6743128,
+        lat: 24.127536, 
+        lng:  120.676905,
         // 各細項評分 (0~100)
         taste: 77.5,        // 口味
         freshness: 83,    // 食材新鮮度
@@ -883,8 +883,8 @@ const foodData = [
         category: "店面",
         priceLevel: "$$",
          // 地圖用 (示例座標)
-        lat: 24.1288051, 
-        lng:  120.6713529,
+        lat: 24.128849, 
+        lng:  120.674059,
         // 各細項評分 (0~100)
         taste: 84.1,        // 口味
         freshness: 84.7,    // 食材新鮮度
@@ -899,6 +899,131 @@ const foodData = [
         others: 82.5,        // 其他
         // ★★ 加入 Google Maps 連結 ★★
         gmapUrl: "https://maps.app.goo.gl/9PUUv4qqhXvLbgCT8"
+      },
+      {
+        time: "2025-03-10",
+        city: "台中市",
+        district: "南區",
+        storeName: "八十八號牛排",
+        category: "夜市",
+        priceLevel: "$$$",
+         // 地圖用 (示例座標)
+        lat: 24.128647, 
+        lng:  120.679805,
+        // 各細項評分 (0~100)
+        taste: 85,        // 口味
+        freshness: 86,    // 食材新鮮度
+        texture: 86,      // 口感
+        appearance: 83,   // 外觀
+        smell: 86,        // 氣味
+        portion: 90,      // 分量
+        uniqueness: 73,   // 獨特性
+        price: 83,        // 價格
+        environment: 74,  // 環境
+        attitude: 82,     // 態度
+        others: 80,        // 其他
+        // ★★ 加入 Google Maps 連結 ★★
+        gmapUrl: "https://maps.app.goo.gl/kaeQSKVGKR2EQ4JB9"
+      },
+      {
+        time: "2025-03-10",
+        city: "台中市",
+        district: "南區",
+        storeName: "德洲牛排",
+        category: "夜市",
+        priceLevel: "$$$",
+         // 地圖用 (示例座標)
+        lat: 24.128943, 
+        lng:  120.680272,
+        // 各細項評分 (0~100)
+        taste: 81.5,        // 口味
+        freshness: 86.8,    // 食材新鮮度
+        texture: 83.5,      // 口感
+        appearance: 83.3,   // 外觀
+        smell: 83,        // 氣味
+        portion: 80,      // 分量
+        uniqueness: 70,   // 獨特性
+        price:79,        // 價格
+        environment: 75,  // 環境
+        attitude: 82,     // 態度
+        others: 80,        // 其他
+        // ★★ 加入 Google Maps 連結 ★★
+        gmapUrl: "https://maps.app.goo.gl/HLYNHRkigEAZ4s4q7"
+      },
+      {
+        time: "2025-03-10",
+        city: "台中市",
+        district: "南區",
+        storeName: "越南安安河粉米線專賣店",
+        category: "店面",
+        priceLevel: "$$$",
+         // 地圖用 (示例座標)
+        lat: 24.125683, 
+        lng:  120.675478,
+        // 各細項評分 (0~100)
+        taste: 82.8,        // 口味
+        freshness: 87,    // 食材新鮮度
+        texture: 82.5,      // 口感
+        appearance: 85.5,   // 外觀
+        smell: 84.5,        // 氣味
+        portion: 85,      // 分量
+        uniqueness: 77,   // 獨特性
+        price:81,        // 價格
+        environment: 87,  // 環境
+        attitude: 85.9,     // 態度
+        others: 83,        // 其他
+        // ★★ 加入 Google Maps 連結 ★★
+        gmapUrl: "https://maps.app.goo.gl/P4EuHZ9ZjxrrwPYeA"
+      },
+      {
+        time: "2025-03-10",
+        city: "台中市",
+        district: "南區",
+        storeName: "沙茶魷魚焿",
+        category: "夜市",
+        priceLevel: "$$",
+         // 地圖用 (示例座標)
+        lat: 24.128787, 
+        lng:  120.680060,
+        // 各細項評分 (0~100)
+        taste: 73,        // 口味
+        freshness: 85,    // 食材新鮮度
+        texture: 83,      // 口感
+        appearance: 79,   // 外觀
+        smell: 79,        // 氣味
+        portion: 88,      // 分量
+        uniqueness: 82,   // 獨特性
+        price:90,        // 價格
+        environment: 74,  // 環境
+        attitude: 30,     // 態度
+        others: 62,        // 其他
+        // ★★ 加入 Google Maps 連結 ★★
+        gmapUrl: "https://maps.app.goo.gl/BPbwiRNPhrrWE5Rf8"
+      },
+      {
+        time: "2025-03-10",
+        city: "台中市",
+        district: "南區",
+        storeName: "植人炸雞忠孝總店",
+        category: "夜市",
+        priceLevel: "$$",
+         // 地圖用 (示例座標)
+        lat: 24.128814, 
+        lng:  120.679980,
+        // 各細項評分 (0~100)
+        taste: 86.6,        // 口味
+        freshness: 88,    // 食材新鮮度
+        texture: 88,      // 口感
+        appearance: 83.5,   // 外觀
+        smell: 85.5,        // 氣味
+        portion: 86,      // 分量
+        uniqueness: 77,   // 獨特性
+        price:88,        // 價格
+        environment: 90,  // 環境
+        attitude: 90,     // 態度
+        others: 78,        // 其他
+        // ★★ 加入 Google Maps 連結 ★★
+        gmapUrl: "https://maps.app.goo.gl/DNdaqN5Qd2D3kXw47"
       },
     
   ];
