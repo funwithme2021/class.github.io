@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8" />
+  <title>台鐵列車動態地圖示範</title>
+  <!-- Leaflet CSS -->
+  <link
+    rel="stylesheet"
+    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    integrity="sha256-sA+e2mdMl7kWwPFvyi8H3UhEXWE2h1Qbs9Z4QGPcAX4="
+    crossorigin=""
+  />
+  <!-- Leaflet JS -->
+  <script
+    src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+    integrity="sha256-qR6f+5KKeGs8GLLcLQw1KOMmeDjKBJ9Lb4fQ35qt30M="
+    crossorigin=""
+  ></script>
+  <style>
+    html, body {
+      margin: 0; padding: 0;
+      height: 100vh;
+    }
+    #map {
+      width: 100%;
+      height: 100%;
+    }
+    .info-panel {
+      position: absolute;
+      top: 10px; left: 10px;
+      z-index: 999;
+      background: rgba(255,255,255,0.8);
+      padding: 8px 12px;
+      border-radius: 4px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+    }
+    .train-marker-label {
+      font-size: 10px;
+      white-space: nowrap;
+      text-align: center;
+      background-color: rgba(255,255,255,0.8);
+      padding: 2px 4px;
+      border-radius: 4px;
+      border: 1px solid #333;
+      margin-top: -10px;
+      margin-left: -50%;
+    }
+  </style>
+</head>
+<body>
+<div id="map"></div>
+
+<div class="info-panel">
+  <strong>台鐵列車動態示範</strong><br/>
+  <span>依「目前電腦時間」來估算列車位置，<br/>經緯度僅示範用，請勿作實際參考。</span>
+</div>
+
+<!-- 引入 train-schedule.js (請確保與本檔案同資料夾) -->
+<script src="train-schedule.js"></script>
+<script>
+/* -----------------------------------------
+   1) 先定義各站之經緯度 (僅示範部分)
+   ----------------------------------------- */
+const stationCoords = {
+  // === 東部線示例 ===
+  "臺東": { lat: 22.785, lng: 121.125 },
+  "鹿野": { lat: 22.912, lng: 121.083 },
+  "關山": { lat: 23.041, lng: 121.163 },
+  "池上": { lat: 23.116, lng: 121.215 },
+  "玉里": { lat: 23.336, lng: 121.365 },
+  "瑞穗": { lat: 23.506, lng: 121.376 },
+  "光復": { lat: 23.657, lng: 121.423 },
+  "鳳林": { lat: 23.743, lng: 121.450 },
+  "壽豐": { lat: 23.867, lng: 121.514 },
+  "花蓮": { lat: 23.993, lng: 121.601 },
+
+  // === 宜蘭線示例 ===
+  "蘇澳":   { lat: 24.596, lng: 121.851 },
+  "蘇澳新": { lat: 24.598, lng: 121.839 },
+  "羅東":   { lat: 24.676, lng: 121.769 },
+  "宜蘭":   { lat: 24.756, lng: 121.756 },
+  "礁溪":   { lat: 24.829, lng: 121.771 },
+  "頭城":   { lat: 24.856, lng: 121.830 },
+  "瑞芳":   { lat: 25.108, lng: 121.805 },
+  "七堵":   { lat: 25.119, lng: 121.723 },
+  "松山":   { lat: 25.050, lng: 121.578 },
+  "臺北":   { lat: 25.048, lng: 121.517 },
+  "板橋":   { lat: 25.014, lng: 121.462 },
+  "樹林":   { lat: 24.984, lng: 121.418 },
+
+  // === 西部線示例 ===
+  "桃園": { lat: 24.989, lng: 121.313 },
+  "中壢": { lat: 24.954, lng: 121.225 },
+  "新竹": { lat: 24.804, lng: 120.967 },
+  "苗栗": { lat: 24.571, lng: 120.822 },
+  "臺中": { lat: 24.136, lng: 120.685 },
+  "彰化": { lat: 24.066, lng: 120.541 },
+  "員林": { lat: 23.956, lng: 120.572 },
+  "嘉義": { lat: 23.479, lng: 120.441 },
+  "臺南": { lat: 22.993, lng: 120.212 },
+  "高雄": { lat: 22.639, lng: 120.302 },
+  "屏東": { lat: 22.673, lng: 120.488 },
+  "潮州": { lat: 22.551, lng: 120.536 },
+  "枋寮": { lat: 22.394, lng: 120.593 },
+
+  // ...其餘車站請自行補齊...
+};
+
+/* -----------------------------------------
+   2) 將時刻表的「HH:MM」轉為「距離當天 00:00 的分鐘數」(0~1439)
+   ----------------------------------------- */
+function timeToMinutes(hhmm) {
+  if(!hhmm) return null;
+  const [hh, mm] = hhmm.split(":").map(Number);
+  let total = hh*60 + mm;
+  // 若有跨日(部分車次最後時間超過 24:00)
+  // 可自行約定：超過 00:00 就 +1440  (這是簡單的做法)
+  if(hh>=0 && hh<3 && hhmm.length === 5){ 
+    // ※此處僅示範: 假設出現 '00:xx', '01:xx', '02:xx' 可能是跨午夜
+    //   可依實際狀況判斷是否 +1440
+    //   例如：某些車次最後到站 00:07，視為 24:07 => 1447
+    //   若不需要跨日，也可略過。
+    //   此處程式可能仍不完美，僅示範。
+    total += 1440;
+  }
+  return total;
+}
+
+/* -----------------------------------------
+   3) 取得「當前時間」(以電腦時間為準)的「分鐘數」
+      並考慮跨日 => 若超過 24:00，也可以用相同方式 +1440
+   ----------------------------------------- */
+function getNowInMinutes() {
+  let now = new Date();
+  let hh = now.getHours();
+  let mm = now.getMinutes();
+  // 若時間在 0~2點，假設是「行車隔日」可 +1440；請依實際需要調整。
+  let total = hh*60 + mm;
+  if(hh>=0 && hh<3){
+    total += 1440; 
+  }
+  return total;
+}
+
+/* -----------------------------------------
+   4) 根據「目前時間」計算「某車次」的經緯度
+      - 若尚未開車 => 回傳起點站
+      - 若已到終點 => 回傳終點站
+      - 否則 => 前後兩站之間插值
+   ----------------------------------------- */
+function getTrainLatLng(trainNumber, nowMin) {
+  let trainData = trainSchedule[trainNumber];
+  if(!trainData) return null;
+
+  let times = trainData["車站時間"];
+  // step1: 把 times 轉成 [ {station:'臺北', t: 123, lat:..., lng:...}, ... ]
+  let timeline = [];
+  for(let i=0; i<times.length; i++){
+    let stName = times[i][0];
+    let stTimeStr = times[i][1];
+    if(!stationCoords[stName]) continue; // 如果沒定義該站的經緯度 => 略過
+    let tMin = timeToMinutes(stTimeStr);
+    if(tMin!==null){
+      timeline.push({
+        station: stName,
+        t: tMin,
+        lat: stationCoords[stName].lat,
+        lng: stationCoords[stName].lng,
+      });
+    }
+  }
+  if(timeline.length===0) return null;
+
+  // step2: 依 t 排序
+  timeline.sort((a,b)=>a.t - b.t);
+
+  // step3: 判斷 nowMin 與 timeline 區間
+  //  (a) 若 nowMin <= timeline[0].t => 還沒開車 => 回傳第一站
+  if(nowMin <= timeline[0].t){
+    return { lat: timeline[0].lat, lng: timeline[0].lng };
+  }
+  //  (b) 若 nowMin >= timeline[last].t => 已到終點 => 回傳最後一站
+  let last = timeline[timeline.length-1];
+  if(nowMin >= last.t){
+    return { lat: last.lat, lng: last.lng };
+  }
+  //  (c) 否則 => 在 timeline[i], timeline[i+1] 之間
+  for(let i=0; i<timeline.length-1; i++){
+    let cur = timeline[i];
+    let nxt = timeline[i+1];
+    if(nowMin>=cur.t && nowMin<=nxt.t){
+      let ratio = (nowMin - cur.t)/(nxt.t - cur.t); // 0~1
+      let latInterp = cur.lat + (nxt.lat - cur.lat)*ratio;
+      let lngInterp = cur.lng + (nxt.lng - cur.lng)*ratio;
+      return { lat: latInterp, lng: lngInterp };
+    }
+  }
+  return null;
+}
+
+/* -----------------------------------------
+   5) 初始化 Leaflet 地圖
+   ----------------------------------------- */
+const map = L.map('map').setView([23.5, 121], 7); // 台灣大致中心
+
+// 套用 OSM 圖層
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+  maxZoom: 18,
+  attribution: '© OpenStreetMap'
+}).addTo(map);
+
+/* -----------------------------------------
+   6) 在地圖上放「所有車站」的 Marker（選擇性）
+   ----------------------------------------- */
+Object.keys(stationCoords).forEach(stName=>{
+  let { lat, lng } = stationCoords[stName];
+  L.circleMarker([lat, lng], {
+    radius: 4, color: "#333", fillColor: "#fff", fillOpacity: 1, weight:1
+  })
+    .bindPopup(`車站: ${stName}`)
+    .addTo(map);
+});
+
+/* -----------------------------------------
+   7) 為每個車次建立一個 Marker，用於顯示動態位置
+      - 存在 trainMarkers = { '車次': { marker:..., labelDiv:... } }
+   ----------------------------------------- */
+let trainMarkers = {};
+for(let tn in trainSchedule){
+  // 先給每個車次一個 Marker，預設在地圖中央(或隨意)，之後會動態移動
+  let color = getTrainTypeColor(trainSchedule[tn]["車種"]);
+  let m = L.circleMarker([23.5,121], {
+    radius: 6,
+    color: color,
+    fillColor: color,
+    fillOpacity: 1
+  }).addTo(map);
+  // Leaflet 沒有內建 Marker Label，所以用自製的 label
+  // 這裡示範使用 bindTooltip 也行，但若想要常駐顯示，需另設定
+  m.bindTooltip(`車次: ${tn}`, {
+    permanent: true, direction: 'right', offset: [10,0],
+    className: 'train-marker-label'
+  });
+
+  trainMarkers[tn] = { marker: m, color: color };
+}
+
+// 根據車種回傳顏色 (可自行修改)
+function getTrainTypeColor(trainType) {
+  switch(trainType) {
+    case "新自強":       return "#8600FF"; 
+    case "普悠瑪":       return "#FF1493"; 
+    case "自強號":       return "red";     
+    case "莒光號":       return "orange";  
+    case "區間快":       return "green";   
+    case "復興號":       return "#0080FF"; 
+    case "區間車":       return "black";   
+    case "自強號(新)":   return "brown";   
+    case "加班車":       return "teal";    
+    default:             return "gray";  
+  }
+}
+
+/* -----------------------------------------
+   8) 每隔 X 秒更新所有列車位置
+   ----------------------------------------- */
+function updateAllTrainPositions() {
+  let nowMin = getNowInMinutes(); 
+  for(let tn in trainMarkers){
+    let pos = getTrainLatLng(tn, nowMin);
+    if(pos){
+      trainMarkers[tn].marker.setLatLng([pos.lat, pos.lng]);
+    }
+  }
+}
+
+// 一開始立即執行一次
+updateAllTrainPositions();
+// 然後每 30 秒執行一次 (可自行調整，如 10 秒、60 秒皆可)
+setInterval(updateAllTrainPositions, 30*1000);
+
+</script>
+</body>
+</html>
