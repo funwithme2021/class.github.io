@@ -1,79 +1,253 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<svg 
-    width="300" 
-    height="300" 
-    viewBox="0 0 200 200" 
-    xmlns="http://www.w3.org/2000/svg"
-    version="1.1"
->
-  <title>Cute Boy with Glasses</title>
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8" />
+  <title>列車運行動態圖</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: #f5f6fa;
+      display: flex;
+      height: 100vh;
+      overflow: hidden;
+    }
 
-  <!-- 頭部圓形 -->
-  <circle 
-    cx="100" cy="60" r="25" 
-    fill="none" stroke="black" stroke-width="2" 
-  />
+    .container {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 20px;
+      overflow-y: auto;
+    }
 
-  <!-- 頭髮 (簡單弧線) -->
-  <path 
-    d="M80,50 Q100,30 120,50" 
-    fill="none" 
-    stroke="black" 
-    stroke-width="2" 
-  />
+    .station-line {
+      position: relative;
+      width: 4px;
+      height: 5000px;
+      background: #ccc;
+      margin: 20px 0;
+    }
 
-  <!-- 眼睛 (小圓點) -->
-  <circle cx="90" cy="60" r="3" fill="black" />
-  <circle cx="110" cy="60" r="3" fill="black" />
+    .station-dot {
+      position: absolute;
+      left: 50%;
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: #333;
+      transform: translate(-50%, -50%);
+    }
 
-  <!-- 眼鏡框 (稍大一點的圓) -->
-  <circle 
-    cx="90" cy="60" r="8" 
-    fill="none" stroke="black" stroke-width="2" 
-  />
-  <circle 
-    cx="110" cy="60" r="8" 
-    fill="none" stroke="black" stroke-width="2" 
-  />
+    .station-label {
+      position: absolute;
+      left: calc(50% - 10px - 6px);
+      transform: translateX(-100%) translateY(-50%);
+      font-size: 14px;
+      white-space: nowrap;
+      color: #2f3640;
+    }
 
-  <!-- 眼鏡中間的連線 -->
-  <line 
-    x1="98" y1="60" x2="102" y2="60" 
-    stroke="black" stroke-width="2"
-  />
+    .train-marker {
+      position: absolute;
+      left: 0%;
+      transform: translate(-3%, 0);
+      display: flex;
+      align-items: center;
+      z-index: 3;
+    }
 
-  <!-- 嘴巴 (簡單弧線) -->
-  <path 
-    d="M90,70 Q100,75 110,70" 
-    fill="none" 
-    stroke="black" 
-    stroke-width="2" 
-  />
+    .train-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      border: 2px solid white;
+    }
 
-  <!-- 身體 (簡易圓形) -->
-  <circle 
-    cx="100" cy="110" r="18" 
-    fill="none" stroke="black" stroke-width="2" 
-  />
+    .train-dot.soon-arriving {
+      animation: blink 1s infinite;
+    }
 
-  <!-- 手臂 (兩條線) -->
-  <line 
-    x1="82" y1="110" x2="68" y2="100" 
-    stroke="black" stroke-width="2" 
-  />
-  <line 
-    x1="118" y1="110" x2="132" y2="100" 
-    stroke="black" stroke-width="2" 
-  />
+    @keyframes blink {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.3; }
+    }
 
-  <!-- 腿 (兩條線) -->
-  <line 
-    x1="95" y1="128" x2="95" y2="145" 
-    stroke="black" stroke-width="2"
-  />
-  <line 
-    x1="105" y1="128" x2="105" y2="145" 
-    stroke="black" stroke-width="2"
-  />
+    .train-label {
+      margin-left: 6px;
+      font-size: 13px;
+    }
 
-</svg>
+    .sidebar {
+      width: 320px;
+      border-left: 1px solid #ddd;
+      background: #fff;
+      padding: 15px;
+      display: flex;
+      flex-direction: column;
+      overflow-y: auto;
+    }
+
+    .sidebar h3 {
+      margin-top: 0;
+      font-size: 18px;
+      color: #333;
+    }
+
+    .train-info-item {
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      padding: 8px 10px;
+      margin-bottom: 10px;
+      background: #f7f7f7;
+      cursor: pointer;
+    }
+
+    .train-info-item:hover {
+      background: #e1ecf4;
+    }
+
+    .filter-box {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-bottom: 15px;
+    }
+
+    #currentTime {
+      font-size: 16px;
+      color: #555;
+      margin-bottom: 10px;
+    }
+
+    h1 {
+      font-size: 22px;
+      margin-bottom: 10px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>列車運行動態圖</h1>
+    <div id="currentTime">現在時間：--:--:--</div>
+    <div id="stationLine" class="station-line"></div>
+  </div>
+
+  <div class="sidebar">
+    <h3>行進中車次</h3>
+    <div class="filter-box">
+      <label><input type="checkbox" class="filter-checkbox" value="新自強" checked> 新自強</label>
+      <label><input type="checkbox" class="filter-checkbox" value="普悠瑪" checked> 普悠瑪</label>
+      <label><input type="checkbox" class="filter-checkbox" value="自強號(新)" checked> 自強號(新)</label>
+      <label><input type="checkbox" class="filter-checkbox" value="自強號" checked> 自強號</label>
+      <label><input type="checkbox" class="filter-checkbox" value="莒光號" checked> 莒光號</label>
+      <label><input type="checkbox" class="filter-checkbox" value="復興號" checked> 復興號</label>
+      <label><input type="checkbox" class="filter-checkbox" value="區間快" checked> 區間快</label>
+      <label><input type="checkbox" class="filter-checkbox" value="區間車" checked> 區間車</label>
+      <label><input type="checkbox" class="filter-checkbox" value="加班車" checked> 加班車</label>
+    </div>
+    <div id="trainInfoList"></div>
+  </div>
+
+  <script src="train-schedule.js"></script>
+  <script>
+    const stationLine = document.getElementById("stationLine");
+    const trainInfoList = document.getElementById("trainInfoList");
+
+    const trainTypeColors = {
+      '自強號': 'red', '新自強': '#8600FF', '普悠瑪': '#FF1493',
+      '自強號(新)': 'brown', '莒光號': 'orange', '加班車': 'teal',
+      '復興號': '#0080FF', '區間快': 'green', '區間車': 'black'
+    };
+
+    function updateTimeDisplay() {
+      const now = new Date();
+      document.getElementById("currentTime").innerText = `現在時間：${now.toLocaleTimeString('zh-TW')}`;
+    }
+    setInterval(updateTimeDisplay, 1000);
+    updateTimeDisplay();
+
+    const stationCount = stations.length;
+    stations.forEach((station, i) => {
+      const percent = (i / (stationCount - 1)) * 100;
+      const dot = document.createElement('div');
+      dot.className = 'station-dot';
+      dot.style.top = percent + '%';
+
+      const label = document.createElement('div');
+      label.className = 'station-label';
+      label.innerText = station;
+      label.style.top = percent + '%';
+
+      stationLine.appendChild(dot);
+      stationLine.appendChild(label);
+    });
+
+    let autoScrollTrainNo = null;
+
+    function updateTrains() {
+      document.querySelectorAll('.train-marker').forEach(el => el.remove());
+      trainInfoList.innerHTML = '';
+
+      const now = new Date();
+      const currentMinutes = now.getHours() * 60 + now.getMinutes();
+      const checkedTypes = [...document.querySelectorAll('.filter-checkbox:checked')].map(cb => cb.value);
+
+      Object.entries(trainSchedule).forEach(([trainNo, data]) => {
+        const type = data['車種'];
+        if (!checkedTypes.includes(type)) return;
+
+        const times = data['車站時間'];
+        for (let i = 0; i < times.length - 1; i++) {
+          const t1 = timeToMinutes(times[i][1]);
+          const t2 = timeToMinutes(times[i + 1][1]);
+          if (currentMinutes >= t1 && currentMinutes < t2) {
+            const s1 = stations.indexOf(times[i][0]);
+            const s2 = stations.indexOf(times[i + 1][0]);
+            const percent = (s1 + (currentMinutes - t1) / (t2 - t1)) / (stationCount - 1) * 100;
+
+            const marker = document.createElement('div');
+            marker.className = 'train-marker';
+            marker.style.top = percent + '%';
+            marker.dataset.trainNo = trainNo;
+
+            const dot = document.createElement('div');
+            dot.className = 'train-dot';
+            dot.style.backgroundColor = trainTypeColors[type] || '#000';
+
+            const label = document.createElement('div');
+            label.className = 'train-label';
+            label.innerHTML = `${trainNo}次 <span style="color:${trainTypeColors[type] || '#000'}">${type}</span>`;
+
+            marker.appendChild(dot);
+            marker.appendChild(label);
+            stationLine.appendChild(marker);
+
+            const info = document.createElement('div');
+            info.className = 'train-info-item';
+            info.innerHTML = `
+              <strong>${trainNo}次</strong> <span style="color:${trainTypeColors[type]}">${type}</span><br>
+              目前在 <strong>${stations[s1]}</strong> 與 <strong>${stations[s2]}</strong> 之間<br>
+              下一站：${times[i + 1][0]} (${times[i + 1][1]})
+            `;
+            info.onclick = () => {
+              autoScrollTrainNo = trainNo;
+              marker.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            };
+            trainInfoList.appendChild(info);
+          }
+        }
+      });
+    }
+
+    function timeToMinutes(t) {
+      const [h, m] = t.split(':');
+      return parseInt(h) * 60 + parseInt(m);
+    }
+
+    updateTrains();
+    setInterval(updateTrains, 10000);
+  </script>
+</body>
+</html>

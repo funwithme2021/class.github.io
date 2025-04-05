@@ -2,283 +2,362 @@
 <html lang="zh-TW">
 <head>
   <meta charset="UTF-8" />
-  <title>台鐵列車動態地圖示範</title>
-  <!-- Leaflet CSS -->
-  <link
-    rel="stylesheet"
-    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-    integrity="sha256-sA+e2mdMl7kWwPFvyi8H3UhEXWE2h1Qbs9Z4QGPcAX4="
-    crossorigin=""
-  />
-  <!-- Leaflet JS -->
-  <script
-    src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
-    integrity="sha256-qR6f+5KKeGs8GLLcLQw1KOMmeDjKBJ9Lb4fQ35qt30M="
-    crossorigin=""
-  ></script>
+  <title>列車運行動態圖</title>
   <style>
-    html, body {
-      margin: 0; padding: 0;
-      height: 100vh;
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Helvetica Neue', sans-serif;
+      background: #f9f9f9;
+      display: flex;
     }
-    #map {
-      width: 100%;
-      height: 100%;
+
+    .container {
+      width: 70%;
+      margin: 20px auto;
+      position: relative;
     }
-    .info-panel {
+
+    .station-line {
+      position: relative;
+      width: 4px;
+      height: 5500px;
+      background: #999;
+      margin: 40px auto;
+    }
+
+    .station-dot {
       position: absolute;
-      top: 10px; left: 10px;
-      z-index: 999;
-      background: rgba(255,255,255,0.8);
-      padding: 8px 12px;
-      border-radius: 4px;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+      left: 50%;
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+      background: #333;
+      transform: translate(-50%, -50%);
+      z-index: 2;
     }
-    .train-marker-label {
-      font-size: 10px;
+
+    .station-label {
+      position: absolute;
+      top: 0;
+      left: calc(50% - 10px - 6px);
+      transform: translateX(-100%) translateY(-50%);
+      font-size: 14px;
+      padding: 0;
       white-space: nowrap;
+      color: #222;
+      z-index: 1;
+    }
+
+    .station-label.highlight {
+      font-weight: bold;
+      color: blue;
+    }
+
+    .train-marker {
+      position: absolute;
+      left: 0%;
+      transform: translate(-2.8%, 0);
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      z-index: 3;
+      cursor: pointer;
+    }
+
+    .train-dot {
+      width: 7.5px;
+      height: 7.5px;
+      border-radius: 50%;
+      border: 1px solid #fff;
+    }
+
+    .train-dot.soon-arriving {
+      animation: blink 1s infinite;
+    }
+
+    @keyframes blink {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.3; }
+    }
+
+    .train-label {
+      margin-left: 8px;
+      font-size: 13px;
+      padding: 0;
+      white-space: nowrap;
+      color: #000;
+    }
+
+    #currentTime {
       text-align: center;
-      background-color: rgba(255,255,255,0.8);
-      padding: 2px 4px;
-      border-radius: 4px;
-      border: 1px solid #333;
-      margin-top: -10px;
-      margin-left: -50%;
+      font-size: 18px;
+      color: #555;
+      margin-bottom: 20px;
+    }
+
+    h1 {
+      text-align: center;
+      font-size: 24px;
+      margin-bottom: 0;
+    }
+
+    #searchBox {
+      display: flex;
+      justify-content: center;
+      margin: 10px;
+    }
+
+    #searchInput {
+      font-size: 14px;
+    }
+
+    #modal {
+      display: none;
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: #fff;
+      padding: 20px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.3);
+      z-index: 10;
+      max-height: 400px;
+      overflow-y: auto;
+    }
+
+    #modal h3 { margin-top: 0; }
+    #modalClose { float: right; cursor: pointer; color: red; }
+
+    .sidebar {
+      width: 30%;
+      max-height: 100vh;
+      overflow-y: auto;
+      border-left: 1px solid #ccc;
+      padding: 10px;
+      font-size: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .train-info-item {
+      padding: 6px 10px;
+      border: 1px solid #ddd;
+      border-radius: 5px;
+      cursor: pointer;
+      background: #fff;
+    }
+
+    .train-info-item:hover {
+      background-color: #f0f0f0;
+    }
+
+    .filter-box {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      font-size: 13px;
     }
   </style>
 </head>
 <body>
-<div id="map"></div>
+  <div class="container">
+    <h1>列車運行動態圖 (垂直站序)</h1>
+    <div id="currentTime">現在時間：--:--:--</div>
+    <div id="searchBox">
+      <input type="text" id="searchInput" placeholder="搜尋站名並跳至位置..." />
+    </div>
+    <div id="stationLine" class="station-line"></div>
+  </div>
 
-<div class="info-panel">
-  <strong>台鐵列車動態示範</strong><br/>
-  <span>依「目前電腦時間」來估算列車位置，<br/>經緯度僅示範用，請勿作實際參考。</span>
-</div>
+  <div class="sidebar">
+    <h3>行進中車次</h3>
+    <div class="filter-box">
+      <label><input type="checkbox" class="filter-checkbox" value="新自強" checked> 新自強</label>
+      <label><input type="checkbox" class="filter-checkbox" value="普悠瑪" checked> 普悠瑪</label>
+      <label><input type="checkbox" class="filter-checkbox" value="自強號(新)" checked> 自強號(新)</label>
+      <label><input type="checkbox" class="filter-checkbox" value="自強號" checked> 自強號</label>
+      <label><input type="checkbox" class="filter-checkbox" value="莒光號" checked> 莒光號</label>
+      <label><input type="checkbox" class="filter-checkbox" value="復興號" checked> 復興號</label>
+      <label><input type="checkbox" class="filter-checkbox" value="區間快" checked> 區間快</label>
+      <label><input type="checkbox" class="filter-checkbox" value="區間車" checked> 區間車</label>
+      <label><input type="checkbox" class="filter-checkbox" value="加班車" checked> 加班車</label>
+    </div>
+    <div id="trainInfoList"></div>
+  </div>
 
-<!-- 引入 train-schedule.js (請確保與本檔案同資料夾) -->
-<script src="train-schedule.js"></script>
-<script>
-/* -----------------------------------------
-   1) 先定義各站之經緯度 (僅示範部分)
-   ----------------------------------------- */
-const stationCoords = {
-  // === 東部線示例 ===
-  "臺東": { lat: 22.785, lng: 121.125 },
-  "鹿野": { lat: 22.912, lng: 121.083 },
-  "關山": { lat: 23.041, lng: 121.163 },
-  "池上": { lat: 23.116, lng: 121.215 },
-  "玉里": { lat: 23.336, lng: 121.365 },
-  "瑞穗": { lat: 23.506, lng: 121.376 },
-  "光復": { lat: 23.657, lng: 121.423 },
-  "鳳林": { lat: 23.743, lng: 121.450 },
-  "壽豐": { lat: 23.867, lng: 121.514 },
-  "花蓮": { lat: 23.993, lng: 121.601 },
+  <div id="modal">
+    <span id="modalClose">[X]</span>
+    <h3 id="modalTitle"></h3>
+    <div id="modalContent"></div>
+  </div>
 
-  // === 宜蘭線示例 ===
-  "蘇澳":   { lat: 24.596, lng: 121.851 },
-  "蘇澳新": { lat: 24.598, lng: 121.839 },
-  "羅東":   { lat: 24.676, lng: 121.769 },
-  "宜蘭":   { lat: 24.756, lng: 121.756 },
-  "礁溪":   { lat: 24.829, lng: 121.771 },
-  "頭城":   { lat: 24.856, lng: 121.830 },
-  "瑞芳":   { lat: 25.108, lng: 121.805 },
-  "七堵":   { lat: 25.119, lng: 121.723 },
-  "松山":   { lat: 25.050, lng: 121.578 },
-  "臺北":   { lat: 25.048, lng: 121.517 },
-  "板橋":   { lat: 25.014, lng: 121.462 },
-  "樹林":   { lat: 24.984, lng: 121.418 },
+  <script src="train-schedule.js"></script>
+  <script>
+    const trainTypeColors = {
+      '自強號': 'red', '新自強': '#8600FF', '普悠瑪': '#FF1493',
+      '自強號(新)': 'brown', '莒光號': 'orange', '加班車': 'teal',
+      '復興號': '#0080FF', '區間快': 'green', '區間車': 'black'
+    };
 
-  // === 西部線示例 ===
-  "桃園": { lat: 24.989, lng: 121.313 },
-  "中壢": { lat: 24.954, lng: 121.225 },
-  "新竹": { lat: 24.804, lng: 120.967 },
-  "苗栗": { lat: 24.571, lng: 120.822 },
-  "臺中": { lat: 24.136, lng: 120.685 },
-  "彰化": { lat: 24.066, lng: 120.541 },
-  "員林": { lat: 23.956, lng: 120.572 },
-  "嘉義": { lat: 23.479, lng: 120.441 },
-  "臺南": { lat: 22.993, lng: 120.212 },
-  "高雄": { lat: 22.639, lng: 120.302 },
-  "屏東": { lat: 22.673, lng: 120.488 },
-  "潮州": { lat: 22.551, lng: 120.536 },
-  "枋寮": { lat: 22.394, lng: 120.593 },
+    function updateTimeDisplay() {
+      const now = new Date();
+      document.getElementById("currentTime").innerText = `現在時間：${now.toLocaleTimeString('zh-TW')}`;
+    }
+    setInterval(updateTimeDisplay, 1000);
+    updateTimeDisplay();
 
-  // ...其餘車站請自行補齊...
-};
+    const stationLine = document.getElementById('stationLine');
+    const stationCount = stations.length;
 
-/* -----------------------------------------
-   2) 將時刻表的「HH:MM」轉為「距離當天 00:00 的分鐘數」(0~1439)
-   ----------------------------------------- */
-function timeToMinutes(hhmm) {
-  if(!hhmm) return null;
-  const [hh, mm] = hhmm.split(":").map(Number);
-  let total = hh*60 + mm;
-  // 若有跨日(部分車次最後時間超過 24:00)
-  // 可自行約定：超過 00:00 就 +1440  (這是簡單的做法)
-  if(hh>=0 && hh<3 && hhmm.length === 5){ 
-    // ※此處僅示範: 假設出現 '00:xx', '01:xx', '02:xx' 可能是跨午夜
-    //   可依實際狀況判斷是否 +1440
-    //   例如：某些車次最後到站 00:07，視為 24:07 => 1447
-    //   若不需要跨日，也可略過。
-    //   此處程式可能仍不完美，僅示範。
-    total += 1440;
-  }
-  return total;
-}
+    stations.forEach((stationName, index) => {
+      const percent = (index / (stationCount - 1)) * 100;
+      const dot = document.createElement('div');
+      dot.className = 'station-dot';
+      dot.style.top = percent + '%';
 
-/* -----------------------------------------
-   3) 取得「當前時間」(以電腦時間為準)的「分鐘數」
-      並考慮跨日 => 若超過 24:00，也可以用相同方式 +1440
-   ----------------------------------------- */
-function getNowInMinutes() {
-  let now = new Date();
-  let hh = now.getHours();
-  let mm = now.getMinutes();
-  // 若時間在 0~2點，假設是「行車隔日」可 +1440；請依實際需要調整。
-  let total = hh*60 + mm;
-  if(hh>=0 && hh<3){
-    total += 1440; 
-  }
-  return total;
-}
+      const label = document.createElement('div');
+      label.className = 'station-label';
+      label.style.top = percent + '%';
+      label.innerText = stationName;
+      label.dataset.name = stationName;
 
-/* -----------------------------------------
-   4) 根據「目前時間」計算「某車次」的經緯度
-      - 若尚未開車 => 回傳起點站
-      - 若已到終點 => 回傳終點站
-      - 否則 => 前後兩站之間插值
-   ----------------------------------------- */
-function getTrainLatLng(trainNumber, nowMin) {
-  let trainData = trainSchedule[trainNumber];
-  if(!trainData) return null;
+      stationLine.appendChild(dot);
+      stationLine.appendChild(label);
+    });
 
-  let times = trainData["車站時間"];
-  // step1: 把 times 轉成 [ {station:'臺北', t: 123, lat:..., lng:...}, ... ]
-  let timeline = [];
-  for(let i=0; i<times.length; i++){
-    let stName = times[i][0];
-    let stTimeStr = times[i][1];
-    if(!stationCoords[stName]) continue; // 如果沒定義該站的經緯度 => 略過
-    let tMin = timeToMinutes(stTimeStr);
-    if(tMin!==null){
-      timeline.push({
-        station: stName,
-        t: tMin,
-        lat: stationCoords[stName].lat,
-        lng: stationCoords[stName].lng,
+    function timeToMinutes(t) {
+      const [h, m] = t.split(':');
+      return parseInt(h) * 60 + parseInt(m);
+    }
+
+    function getTrainPosition(trainData, currentMinutes) {
+      const arr = trainData['車站時間'];
+      const start = timeToMinutes(arr[0][1]);
+      const end = timeToMinutes(arr[arr.length - 1][1]);
+      if (currentMinutes < start || currentMinutes > end) return { running: false };
+
+      for (let i = 0; i < arr.length - 1; i++) {
+        const t1 = timeToMinutes(arr[i][1]);
+        const t2 = timeToMinutes(arr[i + 1][1]);
+        if (currentMinutes === t1 || (currentMinutes > t1 && currentMinutes < t2)) {
+          const ratio = (currentMinutes - t1) / (t2 - t1);
+          const sIndex1 = stations.indexOf(arr[i][0]);
+          return {
+            running: true,
+            segmentIndex: sIndex1,
+            positionRatio: ratio,
+            currentStation: arr[i][0],
+            nextStation: arr[i + 1][0],
+            nextTime: arr[i + 1][1],
+            nextStopMinutes: t2 - currentMinutes
+          };
+        }
+      }
+
+      if (currentMinutes === end) {
+        return {
+          running: true,
+          segmentIndex: stations.indexOf(arr[arr.length - 1][0]),
+          positionRatio: 0,
+          currentStation: arr[arr.length - 1][0],
+          nextStation: null,
+          nextTime: null,
+          nextStopMinutes: 0
+        };
+      }
+      return { running: false };
+    }
+
+    let autoScrollTrainNo = null;
+
+    function updateTrains() {
+      document.querySelectorAll('.train-marker').forEach(el => el.remove());
+      const now = new Date();
+      const currentMinutes = now.getHours() * 60 + now.getMinutes();
+
+      const infoList = document.getElementById("trainInfoList");
+      infoList.innerHTML = "";
+
+      const checkedTypes = [...document.querySelectorAll('.filter-checkbox:checked')].map(cb => cb.value);
+
+      Object.keys(trainSchedule).forEach(trainNo => {
+        const trainData = trainSchedule[trainNo];
+        const trainType = trainData['車種'];
+        if (!checkedTypes.includes(trainType)) return;
+
+        const posInfo = getTrainPosition(trainData, currentMinutes);
+        if (!posInfo.running) return;
+
+        const percentStart = (posInfo.segmentIndex / (stationCount - 1)) * 100;
+        const percentEnd = ((posInfo.segmentIndex + 1) / (stationCount - 1)) * 100;
+        const topPercent = percentStart + (percentEnd - percentStart) * posInfo.positionRatio;
+
+        const marker = document.createElement('div');
+        marker.className = 'train-marker';
+        marker.style.top = topPercent + '%';
+        marker.dataset.trainNo = trainNo;
+
+        const color = trainTypeColors[trainType] || '#000';
+
+        const dot = document.createElement('div');
+        dot.className = 'train-dot';
+        dot.style.backgroundColor = color;
+
+        if (posInfo.nextStopMinutes <= 2) dot.classList.add('soon-arriving');
+
+        const label = document.createElement('div');
+        label.className = 'train-label';
+        label.innerHTML = `${trainNo}次 <span style="color:${color}">${trainType}</span>`;
+
+        marker.onclick = () => {
+          document.getElementById('modalTitle').innerText = `${trainNo}次 ${trainType}`;
+          const list = trainData['車站時間']
+            .map(s => `<li>${s[0]} - ${s[1]}</li>`)
+            .join('');
+          document.getElementById('modalContent').innerHTML = `<ul>${list}</ul>`;
+          document.getElementById('modal').style.display = 'block';
+          autoScrollTrainNo = trainNo;
+        };
+
+        marker.appendChild(dot);
+        marker.appendChild(label);
+        stationLine.appendChild(marker);
+
+        if (autoScrollTrainNo === trainNo) {
+          setTimeout(() => marker.scrollIntoView({ behavior: 'smooth', block: 'center' }), 100);
+        }
+
+        const info = document.createElement('div');
+        info.className = 'train-info-item';
+        info.innerHTML = `<strong>${trainNo}次</strong> <span style="color:${color}">${trainType}</span><br>目前在 ${posInfo.currentStation} 與 ${posInfo.nextStation} 間<br>下一站：${posInfo.nextStation}（${posInfo.nextTime}）`;
+        info.onclick = () => {
+          autoScrollTrainNo = trainNo;
+          updateTrains();
+        };
+        infoList.appendChild(info);
       });
     }
-  }
-  if(timeline.length===0) return null;
 
-  // step2: 依 t 排序
-  timeline.sort((a,b)=>a.t - b.t);
+    updateTrains();
+    setInterval(updateTrains, 10000);
 
-  // step3: 判斷 nowMin 與 timeline 區間
-  //  (a) 若 nowMin <= timeline[0].t => 還沒開車 => 回傳第一站
-  if(nowMin <= timeline[0].t){
-    return { lat: timeline[0].lat, lng: timeline[0].lng };
-  }
-  //  (b) 若 nowMin >= timeline[last].t => 已到終點 => 回傳最後一站
-  let last = timeline[timeline.length-1];
-  if(nowMin >= last.t){
-    return { lat: last.lat, lng: last.lng };
-  }
-  //  (c) 否則 => 在 timeline[i], timeline[i+1] 之間
-  for(let i=0; i<timeline.length-1; i++){
-    let cur = timeline[i];
-    let nxt = timeline[i+1];
-    if(nowMin>=cur.t && nowMin<=nxt.t){
-      let ratio = (nowMin - cur.t)/(nxt.t - cur.t); // 0~1
-      let latInterp = cur.lat + (nxt.lat - cur.lat)*ratio;
-      let lngInterp = cur.lng + (nxt.lng - cur.lng)*ratio;
-      return { lat: latInterp, lng: lngInterp };
-    }
-  }
-  return null;
-}
+    document.getElementById('searchInput').addEventListener('input', e => {
+      const value = e.target.value.trim();
+      const label = [...document.querySelectorAll('.station-label')]
+        .find(el => el.dataset.name.includes(value));
+      if (label) {
+        document.querySelectorAll('.station-label').forEach(l => l.classList.remove('highlight'));
+        label.classList.add('highlight');
+        label.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+    });
 
-/* -----------------------------------------
-   5) 初始化 Leaflet 地圖
-   ----------------------------------------- */
-const map = L.map('map').setView([23.5, 121], 7); // 台灣大致中心
-
-// 套用 OSM 圖層
-L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-  maxZoom: 18,
-  attribution: '© OpenStreetMap'
-}).addTo(map);
-
-/* -----------------------------------------
-   6) 在地圖上放「所有車站」的 Marker（選擇性）
-   ----------------------------------------- */
-Object.keys(stationCoords).forEach(stName=>{
-  let { lat, lng } = stationCoords[stName];
-  L.circleMarker([lat, lng], {
-    radius: 4, color: "#333", fillColor: "#fff", fillOpacity: 1, weight:1
-  })
-    .bindPopup(`車站: ${stName}`)
-    .addTo(map);
-});
-
-/* -----------------------------------------
-   7) 為每個車次建立一個 Marker，用於顯示動態位置
-      - 存在 trainMarkers = { '車次': { marker:..., labelDiv:... } }
-   ----------------------------------------- */
-let trainMarkers = {};
-for(let tn in trainSchedule){
-  // 先給每個車次一個 Marker，預設在地圖中央(或隨意)，之後會動態移動
-  let color = getTrainTypeColor(trainSchedule[tn]["車種"]);
-  let m = L.circleMarker([23.5,121], {
-    radius: 6,
-    color: color,
-    fillColor: color,
-    fillOpacity: 1
-  }).addTo(map);
-  // Leaflet 沒有內建 Marker Label，所以用自製的 label
-  // 這裡示範使用 bindTooltip 也行，但若想要常駐顯示，需另設定
-  m.bindTooltip(`車次: ${tn}`, {
-    permanent: true, direction: 'right', offset: [10,0],
-    className: 'train-marker-label'
-  });
-
-  trainMarkers[tn] = { marker: m, color: color };
-}
-
-// 根據車種回傳顏色 (可自行修改)
-function getTrainTypeColor(trainType) {
-  switch(trainType) {
-    case "新自強":       return "#8600FF"; 
-    case "普悠瑪":       return "#FF1493"; 
-    case "自強號":       return "red";     
-    case "莒光號":       return "orange";  
-    case "區間快":       return "green";   
-    case "復興號":       return "#0080FF"; 
-    case "區間車":       return "black";   
-    case "自強號(新)":   return "brown";   
-    case "加班車":       return "teal";    
-    default:             return "gray";  
-  }
-}
-
-/* -----------------------------------------
-   8) 每隔 X 秒更新所有列車位置
-   ----------------------------------------- */
-function updateAllTrainPositions() {
-  let nowMin = getNowInMinutes(); 
-  for(let tn in trainMarkers){
-    let pos = getTrainLatLng(tn, nowMin);
-    if(pos){
-      trainMarkers[tn].marker.setLatLng([pos.lat, pos.lng]);
-    }
-  }
-}
-
-// 一開始立即執行一次
-updateAllTrainPositions();
-// 然後每 30 秒執行一次 (可自行調整，如 10 秒、60 秒皆可)
-setInterval(updateAllTrainPositions, 30*1000);
-
-</script>
+    document.getElementById('modalClose').onclick = () => {
+      document.getElementById('modal').style.display = 'none';
+      autoScrollTrainNo = null;
+    };
+  </script>
 </body>
 </html>
