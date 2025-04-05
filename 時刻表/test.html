@@ -6,63 +6,148 @@
   <style>
     body {
       margin: 0;
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background: #f5f6fa;
+      padding: 0;
+      font-family: 'Helvetica Neue', sans-serif;
+      background: #f0f2f5;
       display: flex;
+      flex-direction: column;
       height: 100vh;
-      overflow: hidden;
     }
 
-    .container {
-      flex: 1;
+    .controls {
       display: flex;
       flex-direction: column;
       align-items: center;
-      padding: 20px;
+      gap: 8px;
+      padding: 0px;
+      background: #fff;
+      border-bottom: 1px solid #ddd;
+    }
+
+    .control-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    #simTimeLabel {
+      font-size: 14px;
+      color: #333;
+    }
+
+    select, button {
+      font-size: 14px;
+      padding: 4px 8px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+
+    .main-layout {
+      display: flex;
+      flex: 1;
+      height: 100%;
+    }
+
+    .container {
+      width: 70%;
       overflow-y: auto;
+      padding: 20px;
+    }
+
+    .sidebar {
+      width: 30%;
+      border-left: 1px solid #ccc;
+      background: #fff;
+      padding: 20px;
+      box-shadow: -2px 0 5px rgba(0, 0, 0, 0.05);
+      overflow-y: auto;
+    }
+
+    h1 {
+      font-size: 28px;
+      text-align: center;
+      margin-bottom: 10px;
+    }
+
+    #currentTime {
+      font-size: 16px;
+      text-align: center;
+      color: #666;
+      margin-bottom: 10px;
+    }
+
+    #searchBox, #trainSearchInput {
+      display: flex;
+      justify-content: center;
+      margin: 10px 0;
+    }
+
+    #searchInput, #trainSearchInput {
+      font-size: 14px;
+      padding: 5px 8px;
+      border-radius: 4px;
+      border: 1px solid #ccc;
+      width: 80%;
     }
 
     .station-line {
       position: relative;
-      width: 4px;
-      height: 5000px;
+      width: 6px;
+      height: 5500px;
+      margin: 0 auto;
       background: #ccc;
-      margin: 20px 0;
     }
 
     .station-dot {
       position: absolute;
       left: 50%;
-      width: 6px;
-      height: 6px;
-      border-radius: 50%;
+      width: 7px;
+      height: 7px;
       background: #333;
+      border-radius: 50%;
       transform: translate(-50%, -50%);
+      z-index: 2;
     }
 
     .station-label {
       position: absolute;
-      left: calc(50% - 10px - 6px);
-      transform: translateX(-100%) translateY(-50%);
-      font-size: 14px;
+      font-size: 13px;
+      color: #333;
+      transform: translateY(-50%);
       white-space: nowrap;
-      color: #2f3640;
+      right: 20px;
+      font-weight:bold;
+    
+    }
+
+    .station-label.highlight {
+      font-weight: bold;
+      color: #007BFF;
+    }
+
+    .incoming-train-indicator {
+      color: #e60000;
+      margin-left: 5px;
     }
 
     .train-marker {
       position: absolute;
       left: 0%;
-      transform: translate(-3%, 0);
+      transform: translateX(-1.2%);
       display: flex;
       align-items: center;
+      cursor: pointer;
       z-index: 3;
+      font-weight:bold;
     }
 
     .train-dot {
       width: 8px;
       height: 8px;
       border-radius: 50%;
-      border: 2px solid white;
+      background: #000;
+      border: 2px solid #fff;
     }
 
     .train-dot.soon-arriving {
@@ -75,67 +160,87 @@
     }
 
     .train-label {
+      font-size: 12px;
       margin-left: 6px;
-      font-size: 13px;
-    }
-
-    .sidebar {
-      width: 320px;
-      border-left: 1px solid #ddd;
-      background: #fff;
-      padding: 15px;
-      display: flex;
-      flex-direction: column;
-      overflow-y: auto;
-    }
-
-    .sidebar h3 {
-      margin-top: 0;
-      font-size: 18px;
-      color: #333;
+      white-space: nowrap;
     }
 
     .train-info-item {
+      background: #fdfdfd;
       border: 1px solid #ddd;
-      border-radius: 8px;
-      padding: 8px 10px;
+      padding: 8px 12px;
+      border-radius: 5px;
       margin-bottom: 10px;
-      background: #f7f7f7;
       cursor: pointer;
+      transition: background 0.2s ease;
     }
 
     .train-info-item:hover {
-      background: #e1ecf4;
+      background: #f5f5f5;
     }
 
     .filter-box {
       display: flex;
       flex-wrap: wrap;
       gap: 6px;
-      margin-bottom: 15px;
-    }
-
-    #currentTime {
-      font-size: 16px;
-      color: #555;
+      font-size: 13px;
       margin-bottom: 10px;
     }
 
-    h1 {
-      font-size: 22px;
-      margin-bottom: 10px;
+    .filter-box label {
+      display: flex;
+      align-items: center;
+    }
+
+    #modal, #stationModal {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: #fff;
+      padding: 20px;
+      box-shadow: 0 5px 20px rgba(0,0,0,0.2);
+      z-index: 100;
+      max-height: 70vh;
+      overflow-y: auto;
+      display: none;
+      border-radius: 8px;
+    }
+
+    #modalClose, #stationModalClose {
+      float: right;
+      color: #f00;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    .station-hotness {
+      position: absolute;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 24px;
+      opacity: 0.3;
+      z-index: 1;
     }
   </style>
 </head>
 <body>
+  
+  <div class="controls">
+  </div>
+  <div class="main-layout">
   <div class="container">
     <h1>列車運行動態圖</h1>
     <div id="currentTime">現在時間：--:--:--</div>
+    <div id="searchBox">
+      <input type="text" id="searchInput" placeholder="搜尋站名並跳至位置..." />
+    </div>
     <div id="stationLine" class="station-line"></div>
   </div>
 
   <div class="sidebar">
     <h3>行進中車次</h3>
+    <input type="text" id="trainSearchInput" placeholder="輸入車次或車種搜尋..." />
     <div class="filter-box">
       <label><input type="checkbox" class="filter-checkbox" value="新自強" checked> 新自強</label>
       <label><input type="checkbox" class="filter-checkbox" value="普悠瑪" checked> 普悠瑪</label>
@@ -150,104 +255,447 @@
     <div id="trainInfoList"></div>
   </div>
 
+  <div id="modal">
+    <span id="modalClose">[X]</span>
+    <h3 id="modalTitle"></h3>
+    <div id="modalContent"></div>
+  </div>
+
   <script src="train-schedule.js"></script>
   <script>
-    const stationLine = document.getElementById("stationLine");
-    const trainInfoList = document.getElementById("trainInfoList");
+    document.addEventListener('DOMContentLoaded', () => {
+      // 時間滑桿容器
+      const sliderContainer = document.createElement('div');
+      sliderContainer.style.textAlign = 'center';
+      sliderContainer.style.margin = '10px';
+  
+      const sliderLabel = document.createElement('span');
+      sliderLabel.innerText = '模擬時間：';
+      sliderLabel.id = 'simTimeLabel';
+      sliderLabel.style.marginRight = '8px';
+  
+      const timeSlider = document.createElement('input');
+      timeSlider.type = 'range';
+      timeSlider.min = 0;
+      timeSlider.max = 1439;
+      timeSlider.value = new Date().getHours() * 60 + new Date().getMinutes();
+      timeSlider.id = 'timeSlider';
+      timeSlider.style.width = '300px';
+  
+      sliderContainer.appendChild(sliderLabel);
+      sliderContainer.appendChild(timeSlider);
+      document.body.insertBefore(sliderContainer, document.body.firstChild);
+  
+      // 模式切換、播放控制與速度選擇按鈕
+      const controlBar = document.createElement('div');
+      controlBar.style.textAlign = 'center';
+      controlBar.style.marginBottom = '10px';
+  
+      const toggleModeBtn = document.createElement('button');
+      toggleModeBtn.innerText = '切換為實時模式';
+      toggleModeBtn.style.marginRight = '10px';
+  
+      const togglePlayBtn = document.createElement('button');
+      togglePlayBtn.innerText = '⏸ 暫停模擬';
+  
+      controlBar.appendChild(toggleModeBtn);
+      controlBar.appendChild(togglePlayBtn);
+      const speedSelect = document.createElement('select');
+  speedSelect.innerHTML = `
+    <option value="1">1X</option>
+    <option value="2">2X</option>
+    <option value="5">5X</option>
+    <option value="10">10X</option>
+    <option value="20">20X</option>
+    <option value="30">30X</option>
+  `;
+  speedSelect.style.marginLeft = '10px';
+  controlBar.appendChild(speedSelect);
+  document.body.insertBefore(controlBar, sliderContainer.nextSibling);
+  
+  let speedMultiplier = 1;
+  speedSelect.addEventListener('change', () => {
+    speedMultiplier = parseInt(speedSelect.value);
+  });
+  
+      let useRealtime = false;
+      let autoAdvance = true;
+  
+      togglePlayBtn.onclick = () => {
+        autoAdvance = !autoAdvance;
+        togglePlayBtn.innerText = autoAdvance ? '⏸ 暫停模擬' : '▶️ 播放模擬';
+      };
+  
+      toggleModeBtn.onclick = () => {
+        useRealtime = !useRealtime;
+        toggleModeBtn.innerText = useRealtime ? '切換為模擬模式' : '切換為實時模式';
+        if (useRealtime) {
+          const now = new Date();
+          const currentMinutes = now.getHours() * 60 + now.getMinutes();
+          document.getElementById('timeSlider').value = currentMinutes;
+          updateTrains(currentMinutes);
+        }
+      };
+  
+      // Modal for station trains
+      const stationModal = document.createElement('div');
+      stationModal.id = 'stationModal';
+      stationModal.style.display = 'none';
+      stationModal.style.position = 'fixed';
+      stationModal.style.top = '50%';
+      stationModal.style.left = '50%';
+      stationModal.style.transform = 'translate(-50%, -50%)';
+      stationModal.style.background = '#fff';
+      stationModal.style.padding = '20px';
+      stationModal.style.boxShadow = '0 0 10px rgba(0,0,0,0.3)';
+      stationModal.style.zIndex = '10';
+      stationModal.style.maxHeight = '400px';
+      stationModal.style.overflowY = 'auto';
+      stationModal.innerHTML = `
+        <span id="stationModalClose" style="float:right;cursor:pointer;color:red">[X]</span>
+        <h3 id="stationModalTitle"></h3>
+        <div id="stationModalContent"></div>
+      `;
+      document.body.appendChild(stationModal);
+  
+      const trainTypeColors = {
+        '自強號': 'red', '新自強': '#8600FF', '普悠瑪': '#FF1493',
+        '自強號(新)': 'brown', '莒光號': 'orange', '加班車': 'teal',
+        '復興號': '#0080FF', '區間快': 'green', '區間車': 'black'
+      };
+  
+      function updateTimeDisplay() {
+        const now = new Date();
+        document.getElementById("currentTime").innerText = `現在時間：${now.toLocaleTimeString('zh-TW')}`;
+      }
+      setInterval(updateTimeDisplay, 1000);
+      updateTimeDisplay();
+  
+      const stationLine = document.getElementById('stationLine');
+      const stationCount = stations.length;
+  
+      stations.forEach((stationName, index) => {
+        const percent = (index / (stationCount - 1)) * 100;
+        const dot = document.createElement('div');
+        dot.className = 'station-dot';
+        dot.style.top = percent + '%';
+  
+        const label = document.createElement('div');
+        label.className = 'station-label';
+        label.style.top = percent + '%';
+        label.innerText = stationName;
+        label.dataset.name = stationName;
+        label.style.cursor = 'pointer';
+  
+        label.addEventListener('click', () => {
+          const currentMinutes = parseInt(document.getElementById('timeSlider').value);
+          const trainsPassing = Object.entries(trainSchedule).filter(([no, train]) => {
+            const times = train['車站時間'];
+            return times.some(([s, t]) => s === stationName && timeToMinutes(t) >= currentMinutes - 10 && timeToMinutes(t) <= currentMinutes + 30);
+          });
+          const list = trainsPassing.map(([no, train]) => `<li>${no}次 ${train['車種']}</li>`).join('');
+          document.getElementById('stationModalTitle').innerText = `${stationName} 通過列車`;
+          document.getElementById('stationModalContent').innerHTML = `<ul>${list || '<li>無列車通過</li>'}</ul>`;
+          document.getElementById('stationModal').style.display = 'block';
+        });
+  
+        stationLine.appendChild(dot);
+        stationLine.appendChild(label);
+      });
+  
+      document.getElementById('stationModalClose').onclick = () => {
+        document.getElementById('stationModal').style.display = 'none';
+      };
+  
+      let previousActiveTrains = new Set();
+  
+      function notifyNewTrains(currentTrainNos) {
+  const currentSet = new Set(currentTrainNos);
+  const newTrains = [...currentSet].filter(trainNo => !previousActiveTrains.has(trainNo));
+  
+  if (newTrains.length > 0) {
+    const messages = newTrains.map(trainNo => {
+      const data = trainSchedule[trainNo];
+      if (!data) return `🚆 ${trainNo}（資料缺失）`;
 
-    const trainTypeColors = {
-      '自強號': 'red', '新自強': '#8600FF', '普悠瑪': '#FF1493',
-      '自強號(新)': 'brown', '莒光號': 'orange', '加班車': 'teal',
-      '復興號': '#0080FF', '區間快': 'green', '區間車': 'black'
-    };
+      const type = data.車種 || '未知車種';
+      const stations = data.車站時間;
+      const from = stations?.[0]?.[0] || '未知起點';
+      const to = stations?.[stations.length - 1]?.[0] || '未知終點';
 
-    function updateTimeDisplay() {
-      const now = new Date();
-      document.getElementById("currentTime").innerText = `現在時間：${now.toLocaleTimeString('zh-TW')}`;
-    }
-    setInterval(updateTimeDisplay, 1000);
-    updateTimeDisplay();
-
-    const stationCount = stations.length;
-    stations.forEach((station, i) => {
-      const percent = (i / (stationCount - 1)) * 100;
-      const dot = document.createElement('div');
-      dot.className = 'station-dot';
-      dot.style.top = percent + '%';
-
-      const label = document.createElement('div');
-      label.className = 'station-label';
-      label.innerText = station;
-      label.style.top = percent + '%';
-
-      stationLine.appendChild(dot);
-      stationLine.appendChild(label);
+      return `🚆 ${trainNo} ${type}（${from} ➝ ${to}）`;
     });
 
-    let autoScrollTrainNo = null;
+    // 顯示彈窗
+    const popup = document.createElement('div');
+    popup.className = 'train-popup';
+    popup.innerHTML = messages.join('<br>');
 
-    function updateTrains() {
-      document.querySelectorAll('.train-marker').forEach(el => el.remove());
-      trainInfoList.innerHTML = '';
+    // 样式設定
+    popup.style.position = 'fixed';
+    popup.style.top = '20px';
+    popup.style.right = '20px';
+    popup.style.padding = '12px 18px';
+    popup.style.backgroundColor = '#e6f7ff';
+    popup.style.border = '1px solid #91d5ff';
+    popup.style.borderRadius = '8px';
+    popup.style.boxShadow = '0 2px 10px rgba(0,0,0,0.2)';
+    popup.style.zIndex = 10000;
+    popup.style.fontSize = '15px';
+    popup.style.color = '#004b6e';
 
+    document.body.appendChild(popup);
+
+    // 幾秒後消失
+    setTimeout(() => {
+      popup.remove();
+    }, 5000);
+  }
+
+
+    previousActiveTrains = currentSet;
+  }
+  
+  function timeToMinutes(t) {
+    const [h, m] = t.split(':');
+    return parseInt(h) * 60 + parseInt(m);
+  }
+  
+  function getTrainPosition(trainData, currentMinutes) {
+    const arr = trainData['車站時間'];
+    const stationTimes = arr.map(([station, time]) => ({ station, timeMinutes: timeToMinutes(time) }));
+  
+    for (let i = 0; i < stationTimes.length - 1; i++) {
+      const t1 = stationTimes[i].timeMinutes;
+      const t2 = stationTimes[i + 1].timeMinutes;
+      if (currentMinutes >= t1 && currentMinutes <= t2) {
+        const ratio = (currentMinutes - t1) / (t2 - t1);
+        const s1 = stations.indexOf(stationTimes[i].station);
+        const s2 = stations.indexOf(stationTimes[i + 1].station);
+        if (s1 === -1 || s2 === -1) return { running: false };
+        const interpolatedIndex = s1 + ratio * (s2 - s1);
+        return {
+          running: true,
+          currentStation: stationTimes[i].station,
+          nextStation: stationTimes[i + 1].station,
+          nextTime: arr[i + 1][1],
+          segmentIndex: interpolatedIndex,
+          currentBetweenStart: stations[Math.floor(interpolatedIndex)],
+          currentBetweenEnd: stations[Math.ceil(interpolatedIndex)]
+        };
+      }
+    }
+    return { running: false };
+  }
+  
+  let autoScrollTrainNo = null;
+  let incomingMap = {};
+  let segmentCounts = Array(stationCount - 1).fill(0);
+  
+  function updateTrains(currentMinutes = null) {
+    document.querySelectorAll('.train-marker').forEach(el => el.remove());
+    document.querySelectorAll('.station-hotness').forEach(el => el.remove());
+    incomingMap = {};
+    segmentCounts.fill(0);
+  
+    if (currentMinutes === null) {
       const now = new Date();
-      const currentMinutes = now.getHours() * 60 + now.getMinutes();
-      const checkedTypes = [...document.querySelectorAll('.filter-checkbox:checked')].map(cb => cb.value);
-
-      Object.entries(trainSchedule).forEach(([trainNo, data]) => {
-        const type = data['車種'];
-        if (!checkedTypes.includes(type)) return;
-
-        const times = data['車站時間'];
-        for (let i = 0; i < times.length - 1; i++) {
-          const t1 = timeToMinutes(times[i][1]);
-          const t2 = timeToMinutes(times[i + 1][1]);
-          if (currentMinutes >= t1 && currentMinutes < t2) {
-            const s1 = stations.indexOf(times[i][0]);
-            const s2 = stations.indexOf(times[i + 1][0]);
-            const percent = (s1 + (currentMinutes - t1) / (t2 - t1)) / (stationCount - 1) * 100;
-
-            const marker = document.createElement('div');
-            marker.className = 'train-marker';
-            marker.style.top = percent + '%';
-            marker.dataset.trainNo = trainNo;
-
-            const dot = document.createElement('div');
-            dot.className = 'train-dot';
-            dot.style.backgroundColor = trainTypeColors[type] || '#000';
-
-            const label = document.createElement('div');
-            label.className = 'train-label';
-            label.innerHTML = `${trainNo}次 <span style="color:${trainTypeColors[type] || '#000'}">${type}</span>`;
-
-            marker.appendChild(dot);
-            marker.appendChild(label);
-            stationLine.appendChild(marker);
-
-            const info = document.createElement('div');
-            info.className = 'train-info-item';
-            info.innerHTML = `
-              <strong>${trainNo}次</strong> <span style="color:${trainTypeColors[type]}">${type}</span><br>
-              目前在 <strong>${stations[s1]}</strong> 與 <strong>${stations[s2]}</strong> 之間<br>
-              下一站：${times[i + 1][0]} (${times[i + 1][1]})
-            `;
-            info.onclick = () => {
-              autoScrollTrainNo = trainNo;
-              marker.scrollIntoView({ behavior: 'smooth', block: 'center' });
-            };
-            trainInfoList.appendChild(info);
+      currentMinutes = now.getHours() * 60 + now.getMinutes();
+    }
+  
+    document.getElementById("simTimeLabel").innerText = `模擬時間：${String(Math.floor(currentMinutes / 60)).padStart(2, '0')}:${String(currentMinutes % 60).padStart(2, '0')}`;
+  
+    const infoList = document.getElementById("trainInfoList");
+    infoList.innerHTML = "";
+    const checkedTypes = [...document.querySelectorAll('.filter-checkbox:checked')].map(cb => cb.value);
+    const keyword = document.getElementById('trainSearchInput')?.value.trim() || "";
+  
+    const currentTrainNos = [];
+    Object.keys(trainSchedule).forEach(trainNo => {
+      const trainData = trainSchedule[trainNo];
+      const trainType = trainData['車種'];
+      if (!checkedTypes.includes(trainType)) return;
+      if (keyword && !trainNo.includes(keyword) && !trainType.includes(keyword)) return;
+  
+      const posInfo = getTrainPosition(trainData, currentMinutes);
+      if (!posInfo.running) return;
+  
+      const percent = (posInfo.segmentIndex / (stationCount - 1)) * 100;
+      const marker = document.createElement('div');
+      marker.className = 'train-marker';
+      marker.style.top = percent + '%';
+      marker.dataset.trainNo = trainNo;
+  
+      const color = trainTypeColors[trainType] || '#000';
+      const dot = document.createElement('div');
+      dot.className = 'train-dot';
+      if (posInfo.nextTime) {
+        const nextStopTime = timeToMinutes(posInfo.nextTime);
+        const remaining = nextStopTime - currentMinutes;
+        if (remaining <= 2) {
+          dot.classList.add('soon-arriving');
+          if (posInfo.nextStation) {
+            incomingMap[posInfo.nextStation] = true;
           }
         }
-      });
-    }
+      }
+      dot.style.backgroundColor = color;
+  
+      const stations = trainSchedule[trainNo]?.車站時間 || [];
+      const fromStation1 = stations[0]?.[0] || '未知';
+      const toStation1 = stations[stations.length - 1]?.[0] || '未知';
 
-    function timeToMinutes(t) {
-      const [h, m] = t.split(':');
-      return parseInt(h) * 60 + parseInt(m);
-    }
+const label = document.createElement('div');
+label.className = 'train-label';
+label.innerHTML = `🚆${trainNo}次 <span style="color:${color}">${trainType}</span>（${fromStation1} ➝ ${toStation1}）`;
 
-    updateTrains();
-    setInterval(updateTrains, 10000);
+
+
+  
+      marker.onclick = () => {
+        document.getElementById('modalTitle').innerText = `${trainNo}次 ${trainType}（${fromStation} ➝ ${toStation}）`;
+
+        const list = trainData['車站時間']
+          .map(s => `<li>${s[0]} - ${s[1]}</li>`).join('');
+        document.getElementById('modalContent').innerHTML = `<ul>${list}</ul>`;
+        document.getElementById('modal').style.display = 'block';
+        document.getElementById('modalClose').onclick = () => {
+          document.getElementById('modal').style.display = 'none';
+          autoScrollTrainNo = null;
+        };
+        autoScrollTrainNo = trainNo;
+      };
+  
+      marker.appendChild(dot);
+      marker.appendChild(label);
+      stationLine.appendChild(marker);
+  
+      if (autoScrollTrainNo === trainNo) {
+        setTimeout(() => marker.scrollIntoView({ behavior: 'smooth', block: 'center' }), 100);
+      }
+  
+      currentTrainNos.push(trainNo);
+      const data = trainSchedule[trainNo];
+const stationsData = data?.車站時間 || [];
+const fromStation = stationsData[0]?.[0] || '未知';
+const toStation = stationsData[stationsData.length - 1]?.[0] || '未知';
+
+const info = document.createElement('div');
+info.className = 'train-info-item';
+info.innerHTML = `🚆<strong>${trainNo}次 <span style="color:${color}">${trainType}</span></strong>
+  (${fromStation} ➝ ${toStation})<br>
+  ⚫目前在 ${posInfo.currentBetweenStart} ➝ ${posInfo.currentBetweenEnd} 間<br>
+  ⚫下一站：${posInfo.nextStation}（${posInfo.nextTime}）`;
+
+info.onclick = () => {
+  autoScrollTrainNo = trainNo;
+  updateTrains(currentMinutes);
+};
+infoList.appendChild(info);
+
+
+  
+      const i1 = stations.indexOf(posInfo.currentBetweenStart);
+      const i2 = stations.indexOf(posInfo.currentBetweenEnd);
+      if (i1 !== -1 && i2 !== -1) {
+        segmentCounts[Math.min(i1, i2)]++;
+      }
+    });
+  
+    document.querySelectorAll('.station-label').forEach(label => {
+      const name = label.dataset.name;
+      label.innerHTML = name;
+      if (incomingMap[name]) {
+        const icon = document.createElement('span');
+        icon.className = 'incoming-train-indicator';
+        icon.innerText = '🔜';
+        label.appendChild(icon);
+      }
+    });
+  
+    notifyNewTrains(currentTrainNos);
+  
+    segmentCounts.forEach((count, i) => {
+      if (count === 0) return;
+      const segment = document.createElement('div');
+      segment.className = 'station-hotness';
+      segment.style.position = 'absolute';
+      segment.style.left = '50%';
+      segment.style.width = '20px';
+      segment.style.height = (100 / (stationCount - 1)) + '%';
+      segment.style.top = (i / (stationCount - 1)) * 100 + '%';
+      segment.style.transform = 'translateX(-50%)';
+      segment.style.background = `rgba(255, 0, 0, ${Math.min(0.85, count / 5)})`;
+      stationLine.appendChild(segment);
+    });
+  }
+  
+  document.getElementById('trainSearchInput')?.addEventListener('input', () => updateTrains(parseInt(document.getElementById('timeSlider').value)));
+  document.getElementById('timeSlider')?.addEventListener('input', e => updateTrains(parseInt(e.target.value)));
+  
+  updateTrains(parseInt(document.getElementById('timeSlider').value));
+  
+  setInterval(() => {
+    const slider = document.getElementById('timeSlider');
+    if (useRealtime) {
+      const now = new Date();
+      const val = now.getHours() * 60 + now.getMinutes();
+      slider.value = val;
+      updateTrains(val);
+    } else if (autoAdvance) {
+      let val = parseInt(slider.value);
+      val = (val + speedMultiplier) % 1440;
+      slider.value = val;
+      updateTrains(val);
+    }
+  }, 10000);
+    });
+    let previousRunningTrains = new Set();
+  
+  function updateTrains(val) {
+    const currentRunningTrains = new Set();
+    // ...原本清除 marker, 取得時間等邏輯...
+  
+    Object.keys(trainSchedule).forEach(trainNo => {
+      const trainData = trainSchedule[trainNo];
+      const trainType = trainData['車種'];
+      if (!checkedTypes.includes(trainType)) return;
+      if (keyword && !trainNo.includes(keyword) && !trainType.includes(keyword)) return;
+  
+      const posInfo = getTrainPosition(trainData, currentMinutes);
+      if (!posInfo.running) return;
+  
+      currentRunningTrains.add(trainNo); // ⬅️ 加這一行
+      // ...原本建立列車 marker 的程式...
+    });
+  
+    // 🔔 新上線列車通知
+    const newTrains = [...currentRunningTrains].filter(t => !previousRunningTrains.has(t));
+    if (newTrains.length > 0) {
+      const msg = `🚄 新上線列車：${newTrains.join(', ')}`;
+      console.log(msg);
+  
+      const notify = document.createElement('div');
+      notify.style.position = 'fixed';
+      notify.style.bottom = '20px';
+      notify.style.right = '20px';
+      notify.style.background = '#fffa';
+      notify.style.border = '1px solid #aaa';
+      notify.style.padding = '10px';
+      notify.style.borderRadius = '8px';
+      notify.style.zIndex = '9999';
+      notify.innerText = msg;
+  
+      document.body.appendChild(notify);
+      setTimeout(() => notify.remove(), 5000);
+    }
+  
+    previousRunningTrains = currentRunningTrains;
+  }
+  
   </script>
+
+
+  
 </body>
 </html>
