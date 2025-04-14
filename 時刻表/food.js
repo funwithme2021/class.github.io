@@ -1025,6 +1025,281 @@ const foodData = [
         // ★★ 加入 Google Maps 連結 ★★
         gmapUrl: "https://maps.app.goo.gl/DNdaqN5Qd2D3kXw47"
       },
+      {
+        time: "2025-04-10",
+        city: "台中市",
+        district: "南區",
+        storeName: "滷肉莊",
+        category: "店面",
+        priceLevel: "$$",
+         // 地圖用 (示例座標)
+        lat: 24.127595, 
+        lng:  120.677354,
+        // 各細項評分 (0~100)
+        taste: 72,        // 口味
+        freshness: 83,    // 食材新鮮度
+        texture: 80,      // 口感
+        appearance: 82.5,   // 外觀
+        smell: 81.5,        // 氣味
+        portion: 84,      // 分量
+        uniqueness: 80,   // 獨特性
+        price:87,        // 價格
+        environment: 77,  // 環境
+        attitude: 82.5,     // 態度
+        others: 80,        // 其他
+        // ★★ 加入 Google Maps 連結 ★★
+        gmapUrl: "https://maps.app.goo.gl/PG9NTUTQDBj8N8K68"
+      },
+      {
+        time: "2025-04-10",
+        city: "台中市",
+        district: "南區",
+        storeName: "雞大麻三菜一湯",
+        category: "夜市",
+        priceLevel: "$$$",
+         // 地圖用 (示例座標)
+        lat: 24.129420, 
+        lng:  120.681694,
+        // 各細項評分 (0~100)
+        taste: 88,        // 口味
+        freshness: 86,    // 食材新鮮度
+        texture: 86.5,      // 口感
+        appearance: 79,   // 外觀
+        smell: 86,        // 氣味
+        portion: 86,      // 分量
+        uniqueness: 84,   // 獨特性
+        price:88,        // 價格
+        environment: 78,  // 環境
+        attitude: 90,     // 態度
+        others: 84,        // 其他
+        // ★★ 加入 Google Maps 連結 ★★
+        gmapUrl: "https://maps.app.goo.gl/zozs4MdT6BH5dC5QA"
+      },
+      {
+        time: "2025-04-10",
+        city: "台中市",
+        district: "南區",
+        storeName: "貳什 拌物/雞白湯",
+        category: "店面",
+        priceLevel: "$$$",
+         // 地圖用 (示例座標)
+        lat: 24.128681, 
+        lng:  120.682050,
+        // 各細項評分 (0~100)
+        taste: 80,        // 口味
+        freshness: 86,    // 食材新鮮度
+        texture: 85,      // 口感
+        appearance: 77,   // 外觀
+        smell: 80.5,        // 氣味
+        portion: 82.5,      // 分量
+        uniqueness: 77,   // 獨特性
+        price:86.5,        // 價格
+        environment: 79.5,  // 環境
+        attitude: 82,     // 態度
+        others: 83,        // 其他
+        // ★★ 加入 Google Maps 連結 ★★
+        gmapUrl: "https://maps.app.goo.gl/i78EQs5rkZH9F8ev7"
+      },
+      {
+        time: "2025-04-10",
+        city: "台中市",
+        district: "南區",
+        storeName: "伙房燒烤-忠孝總店",
+        category: "店面",
+        priceLevel: "$$$",
+         // 地圖用 (示例座標)
+        lat: 24.129739, 
+        lng:  120.684093,
+        // 各細項評分 (0~100)
+        taste: 82,        // 口味
+        freshness: 85,    // 食材新鮮度
+        texture: 82,      // 口感
+        appearance: 83,   // 外觀
+        smell: 81,        // 氣味
+        portion: 75,      // 分量
+        uniqueness: 75,   // 獨特性
+        price:82.5,        // 價格
+        environment: 81,  // 環境
+        attitude: 90,     // 態度
+        others: 82,        // 其他
+        // ★★ 加入 Google Maps 連結 ★★
+        gmapUrl: "https://maps.app.goo.gl/8rfUJ7Zo7nAnUi7z7"
+      },
+      {
+        time: "2025-04-10",
+        city: "台中市",
+        district: "東區",
+        storeName: "花囍家日式料理製研所(站前店）",
+        category: "店面",
+        priceLevel: "$$$",
+         // 地圖用 (示例座標)
+        lat: 24.135287, 
+        lng:  120.687233,
+        // 各細項評分 (0~100)
+        taste: 84,        // 口味
+        freshness: 86,    // 食材新鮮度
+        texture: 85,      // 口感
+        appearance: 87,   // 外觀
+        smell: 81,        // 氣味
+        portion: 71,      // 分量
+        uniqueness: 86,   // 獨特性
+        price:77,        // 價格
+        environment: 85,  // 環境
+        attitude: 84,     // 態度
+        others: 83,        // 其他
+        // ★★ 加入 Google Maps 連結 ★★
+        gmapUrl: "https://maps.app.goo.gl/feXmYJsEyAwHGnSD9"
+      },
+      {
+        time: "2025-04-10",
+        city: "台中市",
+        district: "北區",
+        storeName: "蘇坤蔚牛排 Sukhumvit STEAK",
+        category: "店面",
+        priceLevel: "$$$",
+         // 地圖用 (示例座標)
+        lat: 24.150217, 
+        lng:  120.685393,
+        // 各細項評分 (0~100)
+        taste: 77,        // 口味
+        freshness: 80,    // 食材新鮮度
+        texture: 82,      // 口感
+        appearance: 83.5,   // 外觀
+        smell: 85,        // 氣味
+        portion: 85.5,      // 分量
+        uniqueness: 79,   // 獨特性
+        price:82.5,        // 價格
+        environment: 81,  // 環境
+        attitude: 70,     // 態度
+        others: 76,        // 其他
+        // ★★ 加入 Google Maps 連結 ★★
+        gmapUrl: "https://maps.app.goo.gl/FWtYsMK6n1N4VsJ5A"
+      },
+      {
+        time: "2025-04-10",
+        city: "台中市",
+        district: "東區",
+        storeName: "石洞韓式鐵板蓋飯（總店）",
+        category: "店面",
+        priceLevel: "$$$",
+         // 地圖用 (示例座標)
+        lat:  24.133860, 
+        lng:  120.684497,
+        // 各細項評分 (0~100)
+        taste: 84,        // 口味
+        freshness: 80,    // 食材新鮮度
+        texture: 79.5,      // 口感
+        appearance: 77,   // 外觀
+        smell: 82.5,        // 氣味
+        portion: 86,      // 分量
+        uniqueness: 75,   // 獨特性
+        price:88,        // 價格
+        environment: 78,  // 環境
+        attitude: 84,     // 態度
+        others: 84,        // 其他
+        // ★★ 加入 Google Maps 連結 ★★
+        gmapUrl: "https://maps.app.goo.gl/PPHtX7uEbeWysqxJ8"
+      },
+      {
+        time: "2025-04-10",
+        city: "台中市",
+        district: "西區",
+        storeName: "發愣吃VARMT - 勤美店",
+        category: "店面",
+        priceLevel: "$$$",
+         // 地圖用 (示例座標)
+        lat:  24.1489903, 
+        lng:  120.6619419,
+        // 各細項評分 (0~100)
+        taste: 72,        // 口味
+        freshness: 80,    // 食材新鮮度
+        texture: 78,      // 口感
+        appearance: 90,   // 外觀
+        smell: 83,        // 氣味
+        portion: 79,      // 分量
+        uniqueness: 85,   // 獨特性
+        price: 67.5,        // 價格
+        environment: 88,  // 環境
+        attitude: 88,     // 態度
+        others: 84,        // 其他
+        // ★★ 加入 Google Maps 連結 ★★
+        gmapUrl: "https://maps.app.goo.gl/5YbrRA5772e6udqW7"
+      },
+      {
+        time: "2025-04-10",
+        city: "台南市",
+        district: "北區",
+        storeName: "好美味胡椒魚",
+        category: "夜市",
+        priceLevel: "$$$",
+         // 地圖用 (示例座標)
+        lat:  23.0109202, 
+        lng:  120.2078252,
+        // 各細項評分 (0~100)
+        taste: 85.8,        // 口味
+        freshness: 88,    // 食材新鮮度
+        texture: 85,      // 口感
+        appearance: 84.5,   // 外觀
+        smell: 82.5,        // 氣味
+        portion: 89,      // 分量
+        uniqueness: 81,   // 獨特性
+        price: 89,        // 價格
+        environment: 83,  // 環境
+        attitude: 88,     // 態度
+        others: 82,        // 其他
+        // ★★ 加入 Google Maps 連結 ★★
+        gmapUrl: "https://maps.app.goo.gl/N2Yt5YhB6uaGEEzm6"
+      },
+      {
+        time: "2025-04-10",
+        city: "台南市",
+        district: "北區",
+        storeName: "鴨肉國",
+        category: "夜市",
+        priceLevel: "$$$",
+         // 地圖用 (示例座標)
+        lat:  23.0109202, 
+        lng:  120.2078255,
+        // 各細項評分 (0~100)
+        taste: 82,        // 口味
+        freshness: 80.5,    // 食材新鮮度
+        texture: 78.5,      // 口感
+        appearance: 79,   // 外觀
+        smell: 84.5,        // 氣味
+        portion: 79,      // 分量
+        uniqueness: 77,   // 獨特性
+        price: 78,        // 價格
+        environment: 81.5,  // 環境
+        attitude: 85,     // 態度
+        others: 84.5,        // 其他
+        // ★★ 加入 Google Maps 連結 ★★
+        gmapUrl: "https://maps.app.goo.gl/YHuy1Bf9mWywwgzz6"
+      },
+      {
+        time: "2025-04-10",
+        city: "台南市",
+        district: "永康區",
+        storeName: "府城牛肉湯",
+        category: "店面",
+        priceLevel: "$$$",
+         // 地圖用 (示例座標)
+        lat:  23.0416355, 
+        lng:  120.2413806,
+        // 各細項評分 (0~100)
+        taste: 85,        // 口味
+        freshness: 88,    // 食材新鮮度
+        texture: 83.7,      // 口感
+        appearance: 78,   // 外觀
+        smell: 84,        // 氣味
+        portion: 80,      // 分量
+        uniqueness: 81,   // 獨特性
+        price: 77.5,        // 價格
+        environment: 79,  // 環境
+        attitude: 83,     // 態度
+        others: 83,        // 其他
+        // ★★ 加入 Google Maps 連結 ★★
+        gmapUrl: "https://maps.app.goo.gl/8wYLekRALxkLJ3PR7"
+      },
     
   ];
   
