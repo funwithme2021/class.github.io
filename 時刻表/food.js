@@ -1300,6 +1300,31 @@ const foodData = [
         // ★★ 加入 Google Maps 連結 ★★
         gmapUrl: "https://maps.app.goo.gl/8wYLekRALxkLJ3PR7"
       },
+      {
+        time: "2025-04-16",
+        city: "台中市",
+        district: "西屯區",
+        storeName: "太初麵食",
+        category: "店面",
+        priceLevel: "$$$",
+         // 地圖用 (示例座標)
+        lat:  24.150736, 
+        lng:  120.649256,
+        // 各細項評分 (0~100)
+        taste: 85.5,        // 口味
+        freshness: 85,    // 食材新鮮度
+        texture: 82,      // 口感
+        appearance: 83,   // 外觀
+        smell: 84,        // 氣味
+        portion: 80,      // 分量
+        uniqueness: 81,   // 獨特性
+        price: 84.5,        // 價格
+        environment: 94,  // 環境
+        attitude: 92,     // 態度
+        others: 85,        // 其他
+        // ★★ 加入 Google Maps 連結 ★★
+        gmapUrl: "https://maps.app.goo.gl/Pa9UriZmqWKxk8y58"
+      },
     
   ];
   
