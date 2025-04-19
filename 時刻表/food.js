@@ -1325,6 +1325,222 @@ const foodData = [
         // ★★ 加入 Google Maps 連結 ★★
         gmapUrl: "https://maps.app.goo.gl/Pa9UriZmqWKxk8y58"
       },
+      {
+        time: "2025-04-20",
+        city: "台北市",
+        district: "萬華區",
+        storeName: "廣州街夜市脆皮蚵仔煎",
+        category: "夜市",
+        priceLevel: "$$",
+         // 地圖用 (示例座標)
+        lat:  25.036735, 
+        lng:  121.495847,
+        // 各細項評分 (0~100)
+        taste: 85,        // 口味
+        freshness: 85,    // 食材新鮮度
+        texture: 85,      // 口感
+        appearance: 84,   // 外觀
+        smell: 81,        // 氣味
+        portion: 80,      // 分量
+        uniqueness: 85.5,   // 獨特性
+        price: 76,        // 價格
+        environment: 71,  // 環境
+        attitude: 74.5,     // 態度
+        others: 80,        // 其他
+        gmapUrl: "https://maps.app.goo.gl/rkzEZKSR7Y72bGf79"
+      },
+      {
+        time: "2025-04-20",
+        city: "台北市",
+        district: "萬華區",
+        storeName: "福鼎肉片 林記正宗福建特色小吃",
+        category: "夜市",
+        priceLevel: "$$",
+         // 地圖用 (示例座標)
+        lat:  25.036701, 
+        lng:  121.496500,
+        // 各細項評分 (0~100)
+        taste: 85.2,        // 口味
+        freshness: 85,    // 食材新鮮度
+        texture: 85,      // 口感
+        appearance: 81.5,   // 外觀
+        smell: 81,        // 氣味
+        portion: 85.3,      // 分量
+        uniqueness: 82.5,   // 獨特性
+        price: 82,        // 價格
+        environment: 77.5,  // 環境
+        attitude: 65,     // 態度
+        others: 69,        // 其他
+        gmapUrl: "https://maps.app.goo.gl/trLZ2zos4dkA249WA"
+      },
+      {
+        time: "2025-04-20",
+        city: "台北市",
+        district: "萬華區",
+        storeName: "烤識願 萬華店",
+        category: "店面",
+        priceLevel: "$$",
+         // 地圖用 (示例座標)
+        lat:  25.0374984, 
+        lng:  121.4963788,
+        // 各細項評分 (0~100)
+        taste: 87.5,        // 口味
+        freshness: 85,    // 食材新鮮度
+        texture: 82.5,      // 口感
+        appearance: 87,   // 外觀
+        smell: 86,        // 氣味
+        portion: 82,      // 分量
+        uniqueness: 86,   // 獨特性
+        price: 82,        // 價格
+        environment: 80,  // 環境
+        attitude: 84.5,     // 態度
+        others: 73,        // 其他
+        gmapUrl: "https://maps.app.goo.gl/rkzEZKSR7Y72bGf79"
+      },
+      {
+        time: "2025-04-20",
+        city: "台北市",
+        district: "萬華區",
+        storeName: "尋秦記（吳記排骨酥）",
+        category: "夜市",
+        priceLevel: "$$",
+         // 地圖用 (示例座標)
+        lat:  25.036773, 
+        lng:  121.495903,
+        // 各細項評分 (0~100)
+        taste: 86.5,        // 口味
+        freshness: 79,    // 食材新鮮度
+        texture: 80,      // 口感
+        appearance: 81,   // 外觀
+        smell: 86,        // 氣味
+        portion: 87,      // 分量
+        uniqueness: 83.5,   // 獨特性
+        price: 83.5,        // 價格
+        environment: 64,  // 環境
+        attitude: 87,     // 態度
+        others: 65,        // 其他
+        gmapUrl: "https://maps.app.goo.gl/fiqbkn5H65LfqwuP8"
+      },
+      {
+        time: "2025-04-20",
+        city: "台北市",
+        district: "萬華區",
+        storeName: "兩喜號 Liang Xi Hao - 總店",
+        category: "夜市",
+        priceLevel: "$$",
+         // 地圖用 (示例座標)
+        lat:  25.036785, 
+        lng:  121.497799,
+        // 各細項評分 (0~100)
+        taste: 83.7,        // 口味
+        freshness: 82,    // 食材新鮮度
+        texture: 82,      // 口感
+        appearance: 83,   // 外觀
+        smell: 84,        // 氣味
+        portion: 82.5,      // 分量
+        uniqueness: 86,   // 獨特性
+        price: 83,        // 價格
+        environment: 75,  // 環境
+        attitude: 78,     // 態度
+        others: 80,        // 其他
+        gmapUrl: "https://maps.app.goo.gl/rnfoqtZPyTys5zucA"
+      },
+      {
+        time: "2025-04-20",
+        city: "台北市",
+        district: "萬華區",
+        storeName: "頂級甜不辣",
+        category: "夜市",
+        priceLevel: "$$",
+         // 地圖用 (示例座標)
+        lat:  25.036702, 
+        lng:  121.497666,
+        // 各細項評分 (0~100)
+        taste: 84,        // 口味
+        freshness: 85,    // 食材新鮮度
+        texture: 82.5,      // 口感
+        appearance: 81,   // 外觀
+        smell: 81,        // 氣味
+        portion: 81,      // 分量
+        uniqueness: 81,   // 獨特性
+        price: 76,        // 價格
+        environment: 80,  // 環境
+        attitude: 83,     // 態度
+        others: 81,        // 其他
+        gmapUrl: "https://maps.app.goo.gl/HBqG7cBdV8xj6A8G9"
+      },
+      {
+        time: "2025-04-20",
+        city: "台北市",
+        district: "萬華區",
+        storeName: "老施碳烤",
+        category: "夜市",
+        priceLevel: "$$",
+         // 地圖用 (示例座標)
+        lat:  25.036783, 
+        lng:  121.495816,
+        // 各細項評分 (0~100)
+        taste: 85,        // 口味
+        freshness: 79,    // 食材新鮮度
+        texture: 78,      // 口感
+        appearance: 77,   // 外觀
+        smell: 85,        // 氣味
+        portion: 80,      // 分量
+        uniqueness: 81,   // 獨特性
+        price: 80,        // 價格
+        environment: 77,  // 環境
+        attitude: 83,     // 態度
+        others: 75.5,        // 其他
+        gmapUrl: "https://maps.app.goo.gl/q4ixKB6SwzVW1Qb48"
+      },
+      {
+        time: "2025-04-20",
+        city: "台北市",
+        district: "萬華區",
+        storeName: "甲林鐵板燒",
+        category: "夜市",
+        priceLevel: "$$$",
+         // 地圖用 (示例座標)
+        lat:  25.036747, 
+        lng:  121.496560,
+        // 各細項評分 (0~100)
+        taste: 84.5,        // 口味
+        freshness: 82,    // 食材新鮮度
+        texture: 82.5,      // 口感
+        appearance: 78,   // 外觀
+        smell: 82,        // 氣味
+        portion: 81.5,      // 分量
+        uniqueness: 85,   // 獨特性
+        price: 78.6,        // 價格
+        environment: 78.6,  // 環境
+        attitude: 81,     // 態度
+        others: 80,        // 其他
+        gmapUrl: "https://maps.app.goo.gl/mRMvo7MFHhxG7unh6"
+      },
+      {
+        time: "2025-04-20",
+        city: "台北市",
+        district: "萬華區",
+        storeName: "臭博士臭豆腐",
+        category: "夜市",
+        priceLevel: "$$",
+         // 地圖用 (示例座標)
+        lat:  25.036719, 
+        lng:  121.496140,
+        // 各細項評分 (0~100)
+        taste: 88.5,        // 口味
+        freshness: 86,    // 食材新鮮度
+        texture: 85,      // 口感
+        appearance: 85,   // 外觀
+        smell: 84.7,        // 氣味
+        portion: 85,      // 分量
+        uniqueness: 82.5,   // 獨特性
+        price: 82,        // 價格
+        environment: 77,  // 環境
+        attitude: 83,     // 態度
+        others: 81,        // 其他
+        gmapUrl: "https://maps.app.goo.gl/qs7MEfXc7bcigL4W9"
+      },
     
   ];
   

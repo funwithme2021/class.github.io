@@ -351,9 +351,9 @@ function getScoreText(d){
   let raw= computeSingleScore(d);
   let scale= document.getElementById("scoreScaleSelect").value;
   if(scale==="5"){
-    return (raw/20).toFixed(2);
+    return (raw/20).toFixed(4);
   } else {
-    return raw.toFixed(2);
+    return raw.toFixed(4);
   }
 }
 function sortData(arr){
@@ -597,7 +597,7 @@ function resetSearch() {
 }
 
 
-/* ========== 使用者定位 => 最近10間 ========== */
+/* ========== 使用者定位 => 最近20間 ========== */
 function haversineDistKm(lat1,lng1, lat2,lng2){
   const R=6371;
   let dLat= (lat2-lat1)*Math.PI/180;
@@ -629,7 +629,7 @@ function showNearest10(){
     finalData= finalData.slice(0,20);
     currentPage=1;
     renderTablePage();
-    alert("已顯示距離最近的10間(目前篩選結果)");
+    alert("已顯示距離最近的20間(目前篩選結果)");
   }, err=>{
     alert("定位失敗或被拒絕");
   });
