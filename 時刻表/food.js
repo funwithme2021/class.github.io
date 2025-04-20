@@ -1541,6 +1541,102 @@ const foodData = [
         others: 81,        // 其他
         gmapUrl: "https://maps.app.goo.gl/qs7MEfXc7bcigL4W9"
       },
+      {
+        time: "2025-04-20",
+        city: "台北市",
+        district: "萬華區",
+        storeName: "布袋鮮之蚵",
+        category: "店面",
+        priceLevel: "$$",
+         // 地圖用 (示例座標)
+        lat:  25.035262, 
+        lng:  121.497089,
+        // 各細項評分 (0~100)
+        taste: 86.8,        // 口味
+        freshness: 88,    // 食材新鮮度
+        texture: 82,      // 口感
+        appearance: 84,   // 外觀
+        smell: 81,        // 氣味
+        portion: 88,      // 分量
+        uniqueness: 77,   // 獨特性
+        price: 80,        // 價格
+        environment: 76.5,  // 環境
+        attitude: 80,     // 態度
+        others: 77.5,        // 其他
+        gmapUrl: "https://maps.app.goo.gl/g9vnx5xALecaf3rR7"
+      },
+      {
+        time: "2025-04-20",
+        city: "台北市",
+        district: "萬華區",
+        storeName: "李家現烤香腸",
+        category: "店面",
+        priceLevel: "$$",
+         // 地圖用 (示例座標)
+        lat:  25.035260, 
+        lng:  121.498263,
+        // 各細項評分 (0~100)
+        taste: 88,        // 口味
+        freshness: 87,    // 食材新鮮度
+        texture: 87,      // 口感
+        appearance: 85,   // 外觀
+        smell: 88,        // 氣味
+        portion: 85.8,      // 分量
+        uniqueness: 81,   // 獨特性
+        price: 75,        // 價格
+        environment: 78,  // 環境
+        attitude: 81,     // 態度
+        others: 78,        // 其他
+        gmapUrl: "https://maps.app.goo.gl/zo5HCeyu8pTc2g2e6"
+      },
+      {
+        time: "2025-04-20",
+        city: "台北市",
+        district: "萬華區",
+        storeName: "艋舺清粥小菜（新地址）",
+        category: "店面",
+        priceLevel: "$$",
+         // 地圖用 (示例座標)
+        lat:  25.035250, 
+        lng:  121.497582,
+        // 各細項評分 (0~100)
+        taste: 85,        // 口味
+        freshness: 85,    // 食材新鮮度
+        texture: 85,      // 口感
+        appearance: 83.5,   // 外觀
+        smell: 82,        // 氣味
+        portion: 88,      // 分量
+        uniqueness: 73,   // 獨特性
+        price: 90,        // 價格
+        environment: 80,  // 環境
+        attitude: 83,     // 態度
+        others: 81,        // 其他
+        gmapUrl: "https://maps.app.goo.gl/hSsi3DqG4dbq6wVx5"
+      },
+      {
+        time: "2025-04-20",
+        city: "台北市",
+        district: "萬華區",
+        storeName: "藏賀岩燒牛排",
+        category: "店面",
+        priceLevel: "$$$",
+         // 地圖用 (示例座標)
+        lat:  25.035232, 
+        lng:  121.497661,
+        // 各細項評分 (0~100)
+        taste: 85,        // 口味
+        freshness: 88,    // 食材新鮮度
+        texture: 88,      // 口感
+        appearance: 84,   // 外觀
+        smell: 83.5,        // 氣味
+        portion: 80,      // 分量
+        uniqueness: 80,   // 獨特性
+        price: 75.7,        // 價格
+        environment: 82.5,  // 環境
+        attitude: 81.5,     // 態度
+        others: 81,        // 其他
+        gmapUrl: "https://maps.app.goo.gl/L9GTz8v6Hxbms48h6"
+      },
     
   ];
   
