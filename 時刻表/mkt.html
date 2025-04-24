@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>1132運動行銷第四次作業 - AIDA 模型介紹</title>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --main-color: #174287;
+      --accent-color: #E63946;
+      --bg-color: #f0f4f8;
+      --text-color: #333;
+      --shadow: 0 4px 20px rgba(0,0,0,0.1);
+      --hover-color: #d92332;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Noto Sans TC', sans-serif;
+      background-color: var(--bg-color);
+      color: var(--text-color);
+      scroll-behavior: smooth;
+    }
+
+    header {
+      background: linear-gradient(to right, var(--main-color), #0e2954);
+      color: #fff;
+      padding: 3rem 1rem;
+      text-align: center;
+      position: sticky;
+      top: 0;
+      z-index: 999;
+    }
+
+    header h1 {
+      font-size: 2.5rem;
+    }
+
+    header p {
+      margin-top: 0.5rem;
+      font-size: 1.1rem;
+      opacity: 0.9;
+    }
+
+    nav {
+      background-color: white;
+      box-shadow: var(--shadow);
+      padding: 1rem;
+      display: flex;
+      justify-content: center;
+      gap: 1rem;
+      position: sticky;
+      top: 100px;
+      z-index: 998;
+    }
+
+    nav a {
+      color: var(--main-color);
+      text-decoration: none;
+      font-weight: bold;
+      padding: 0.5rem 1rem;
+      border-radius: 5px;
+      transition: 0.3s;
+    }
+
+    nav a:hover {
+      background-color: var(--accent-color);
+      color: white;
+    }
+
+    main {
+      max-width:1200px;
+      margin: 2rem auto;
+      background: #fff;
+      border-radius: 10px;
+      box-shadow: var(--shadow);
+      padding: 2rem;
+      animation: fadeIn 0.6s ease-out;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    h2 {
+      margin-bottom: 1rem;
+      color: var(--main-color);
+      font-size: 1.8rem;
+      border-bottom: 3px solid var(--accent-color);
+      padding-bottom: 0.5rem;
+    }
+
+    p, li {
+      margin: 1rem 0;
+      font-size: 1.05rem;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 1rem;
+      box-shadow: var(--shadow);
+    }
+
+    th, td {
+      padding: 1rem;
+      border-bottom: 1px solid #ddd;
+      text-align: left;
+    }
+
+    th {
+      background-color: var(--main-color);
+      color: #fff;
+    }
+
+    tr:hover td {
+      background-color: #f0f8ff;
+    }
+
+    ul {
+      margin-left: 1.5rem;
+    }
+
+    footer {
+      background-color: #e9edf3;
+      padding: 2rem;
+      text-align: center;
+      margin-top: 4rem;
+      color: #555;
+    }
+
+    @media (max-width: 768px) {
+      header h1 { font-size: 2rem; }
+      nav { flex-wrap: wrap; }
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1>AIDA 模型介紹</h1>
+    <p>1132運動行銷第四次作業</p>
+    <p>從注意力到行動：掌握消費者轉化的四大心理階段</p>
+  </header>
+
+  <nav>
+    <a href="#background">理論背景</a>
+    <a href="#definition">理論定義</a>
+    <a href="#application">應用範圍</a>
+    <a href="#why">選擇原因</a>
+  </nav>
+
+  <main>
+    <section id="background">
+      <h2>一、理論背景與創始者</h2>
+      <p>AIDA 模型由美國行銷學者 <strong>E. St. Elmo Lewis</strong> 於 1898 年提出，描述顧客在購買決策過程中會經歷的四個心理階段：<strong>注意（Attention）</strong>、<strong>興趣（Interest）</strong>、<strong>慾望（Desire）</strong>、<strong>行動（Action）</strong>。</p>
+    </section>
+
+    <section id="definition">
+      <h2>二、理論定義</h2>
+      <table>
+        <thead>
+          <tr><th>階段</th><th>定義</th><th>說明</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>注意（Attention）</td><td>吸引顧客注意力</td><td>透過視覺設計、話題內容、代言人等方式讓顧客認識品牌</td></tr>
+          <tr><td>興趣（Interest）</td><td>激發顧客興趣</td><td>深入介紹產品資訊，與顧客產生共鳴與關聯</td></tr>
+          <tr><td>慾望（Desire）</td><td>建立購買渴望</td><td>強調產品價值與獨特性，讓顧客產生想擁有的動機</td></tr>
+          <tr><td>行動（Action）</td><td>引導實際行為</td><td>鼓勵顧客下單、加入會員、分享或參與活動</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section id="application">
+      <h2>三、應用範圍</h2>
+      <ul>
+        <li><strong>代言人策略：</strong>New Balance 選擇具代表性人物吸引注意並建立品牌興趣。</li>
+        <li><strong>聯名合作操作：</strong>打造限量聯名商品激發潮流族群的購買慾望。</li>
+        <li><strong>社群與內容行銷：</strong>透過穿搭圖文、限時活動推動年輕人實際行動。</li>
+        <li><strong>產品敘事：</strong>將「舒適性」、「機能性」、「工藝精神」融入品牌故事提升認同感。</li>
+      </ul>
+      <p>透過 AIDA 模型，能清楚看出 New Balance 如何設計從「吸引注意」到「促成購買」的推廣流程。</p>
+    </section>
+
+    <section id="why">
+      <h2>四、為何選擇 AIDA 模型</h2>
+      <p>報告聚焦 New Balance 的產品與推廣策略，AIDA 模型能協助剖析代言、聯名、社群與敘事等手法如何引導消費者轉化行為。</p>
+      <p>它補足 STP 分析後「行銷執行階段」的理論基礎，讓整體策略報告更具邏輯與說服力。</p>
+    </section>
+  </main>
+
+  <footer>
+    1132運動行銷 - 哈士奇組製作<br>
+  </footer>
+
+</body>
+</html>
