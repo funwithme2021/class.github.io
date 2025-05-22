@@ -524,3 +524,72 @@ importFile.addEventListener("change",()=>{
 </script>
 </body>
 </html>
+
+let seed = 123456789;
+function seededRandom() {
+  seed = (seed * 9301 + 49297) % 233280;
+  return seed / 233280;
+}
+function randomChoice(arr) {
+  return arr[Math.floor(seededRandom() * arr.length)];
+}
+function shuffle(arr) {
+  for (let i = arr.length - 1; i > 0; i--) {
+    let j = Math.floor(seededRandom() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+}
+
+function genRandomChromosome(pool) {
+  let copy = pool.slice();
+  shuffle(copy);
+  let genes = copy.slice(0, 5).sort((a, b) => a - b);
+  return { genes, fitness: 0 };
+}
+
+
+
+
+
+const fixedSeed = 123456789; // 固定的種子
+let seed = fixedSeed; // 當前運行的種子
+
+// ✅ **使用線性同餘法（LCG）生成隨機數**
+function seededRandom() {
+  seed = (seed * 9301 + 49297) % 233280;
+  return seed / 233280;
+}
+
+// ✅ **每次洗牌或隨機選擇前重置 seed，確保結果不變**
+function resetSeed() {
+  seed = fixedSeed;
+}
+
+// ✅ **從陣列中選擇一個隨機元素**
+function randomChoice(arr) {
+  return arr[Math.floor(seededRandom() * arr.length)];
+}
+
+// ✅ **Fisher-Yates 洗牌演算法**
+function shuffle(arr) {
+  resetSeed(); // 確保洗牌順序一致
+  for (let i = arr.length - 1; i > 0; i--) {
+    let j = Math.floor(seededRandom() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+}
+
+// ✅ **產生固定的隨機組合**
+function genRandomChromosome(pool) {
+  resetSeed(); // 確保每次執行結果一致
+  let copy = pool.slice();
+  shuffle(copy);
+  let genes = copy.slice(0, 5).sort((a, b) => a - b);
+  return { genes, fitness: 0 };
+}
+
+// ✅ **測試：確保多次執行結果一致**
+console.log("第一次執行:", genRandomChromosome([1, 2, 3, 4, 5, 6, 7, 8, 9]));
+console.log("第二次執行:", genRandomChromosome([1, 2, 3, 4, 5, 6, 7, 8, 9]));
+console.log("第三次執行:", genRandomChromosome([1, 2, 3, 4, 5, 6, 7, 8, 9]));

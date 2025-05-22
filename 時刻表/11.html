@@ -383,7 +383,7 @@ document.getElementById("analyzeBtn").addEventListener("click", () => {
     }
   }
   singleArr.sort((a, b) => b.sc - a.sc);
-  let top10Numbers = singleArr.slice(0, 15).map(x => x.num);
+  let top10Numbers = singleArr.slice(0, 10).map(x => x.num);
   // 用 GA 產生最佳 5 號組合
   let bestSets = generateCandidatesByGA(sScores, {
     avoidAdjacent: true,
