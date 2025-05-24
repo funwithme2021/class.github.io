@@ -3122,66 +3122,61 @@ var trainSchedule = {
   console.log('stations:', stations);
   
 
-// ===== 3) 衝突解決：全站逐站迭代（同一時刻開車衝突自動 +1.5分鐘→向上取整2分鐘） =====
+// ===== 全站逐站迭代冲突修正（开车时间） =====
 ;(function(){
   const priorityTypes = [
     "普悠瑪","新自強","自強號(新)","自強號",
     "加班車","莒光號","復興號","區間快","區間車"
   ];
-  const interval = Math.ceil(1.5);  // 取整後 2 分鐘
+  // 1.5 分钟向上取整 = 2 分钟
+  const interval = Math.ceil(1.5);
 
-  function timeToMin(hm) {
-    const [H,M] = hm.split(':').map(n=>parseInt(n,10));
-    return H*60 + M;
-  }
-  function minToTime(m) {
-    m = ((m % 1440) + 1440) % 1440;
-    const H = Math.floor(m/60), M = m%60;
-    return `${String(H).padStart(2,'0')}:${String(M).padStart(2,'0')}`;
+  // HH:MM + N 分钟
+  function addMinutes(hhmm, minutes) {
+    let [h,m] = hhmm.split(":").map(Number);
+    let t = ((h*60 + m + minutes) % 1440 + 1440) % 1440;
+    let nh = Math.floor(t/60), nm = t % 60;
+    return `${String(nh).padStart(2,"0")}:${String(nm).padStart(2,"0")}`;
   }
 
   let changed;
   do {
     changed = false;
 
-    // 逐站檢查
+    // 按照 stations 顺序，一站一站来检查冲突
     for (const station of stations) {
-      // 收集「此站要開往下一站」的所有列車
-      const list = [];
+      // 收集这站所有“同时要开往下一站”的列车
+      const groups = {}; // { timeStr: [ { num, idx } ] }
       for (const num in trainSchedule) {
-        const sched = trainSchedule[num]['車站時間'];
-        sched.forEach(([st, tm], idx) => {
-          if (st === station && idx < sched.length - 1) {
-            list.push({ num, idx, t0: timeToMin(tm) });
+        trainSchedule[num]['車站時間'].forEach(([st, tm], idx) => {
+          if (st === station) {
+            (groups[tm] = groups[tm]||[]).push({ num, idx });
           }
         });
       }
-      if (list.length < 2) continue;
 
-      // 排序：先比車種優先，再比時間
-      list.sort((a,b) => {
-        const pa = priorityTypes.indexOf(trainSchedule[a.num]['車種']);
-        const pb = priorityTypes.indexOf(trainSchedule[b.num]['車種']);
-        if (pa !== pb) return pa - pb;
-        return a.t0 - b.t0;
-      });
+      // 处理每个时间点的冲突组
+      for (const time in groups) {
+        const list = groups[time];
+        if (list.length < 2) continue;
+        changed = true;
 
-      // 按順序分配「真實開車時間」
-      let last = -Infinity;
-      for (let i = 0; i < list.length; i++) {
-        const { num, idx, t0 } = list[i];
-        const assigned = Math.max(t0, last + interval);
-        if (assigned !== t0) {
-          // 若被推後，計算延遲並累加至後續所有站
-          const delta = assigned - t0;
-          const sched = trainSchedule[num]['車站時間'];
-          for (let k = idx; k < sched.length; k++) {
-            const m0 = timeToMin(sched[k][1]);
-            sched[k][1] = minToTime(m0 + delta);
+        // 按优先级排序：index 小的先开
+        list.sort((a,b) => {
+          return priorityTypes.indexOf(trainSchedule[a.num]['車種'])
+               - priorityTypes.indexOf(trainSchedule[b.num]['車種']);
+        });
+
+        // 第一辆保留，其它依序 +interval×rank 分钟
+        list.forEach((item, rank) => {
+          if (rank === 0) return;
+          const delay = interval * rank;
+          const sched = trainSchedule[item.num]['車站時間'];
+          // 从冲突站开始，后续所有站点都推后同样的 delay
+          for (let k = item.idx; k < sched.length; k++) {
+            sched[k][1] = addMinutes(sched[k][1], delay);
           }
-          changed = true;
-        }
-        last = assigned;
+        });
       }
     }
   } while (changed);
