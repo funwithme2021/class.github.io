@@ -3122,61 +3122,70 @@ var trainSchedule = {
   console.log('stations:', stations);
   
 
-
-// 2) 緊接著衝突修正，並更新 trainSchedule
+// ===== 3) 衝突解決：全站逐站迭代（同一時刻開車衝突自動 +1.5分鐘→向上取整2分鐘） =====
 ;(function(){
   const priorityTypes = [
     "普悠瑪","新自強","自強號(新)","自強號",
     "加班車","莒光號","復興號","區間快","區間車"
   ];
-  function addMinutes(hhmm, minutes) {
-    let [h,m] = hhmm.split(':').map(Number);
-    let t = ((h*60 + m + minutes) % 1440 + 1440) % 1440;
-    let nh = Math.floor(t/60), nm = t%60;
-    return `${String(nh).padStart(2,'0')}:${String(nm).padStart(2,'0')}`;
-  }
-  // 備份原始時間，避免多次重載累加
-  const original = {};
-  for (let num in trainSchedule) {
-    original[num] = trainSchedule[num]['車站時間'].map(p=>p[1]);
-  }
-  // 對每個站做衝突檢查
-  stations.forEach(station => {
-    // 收集「同站同時刻」群
-    const groups = {};
-    for (let num in trainSchedule) {
-      trainSchedule[num]['車站時間'].forEach(([st, tm], idx) => {
-        if (st !== station) return;
-        (groups[tm] = groups[tm]||[]).push({ num, idx });
-      });
-    }
-    // 處理超過1班的衝突
-    Object.values(groups).forEach(list => {
-      if (list.length < 2) return;
-      // 依優先順序排
-      list.sort((a,b)=>{
-        return priorityTypes.indexOf(trainSchedule[a.num].車種)
-             - priorityTypes.indexOf(trainSchedule[b.num].車種);
-      });
-      // 第一班保留，後面依序 +1, +2 ... 分
-      list.forEach((item, offset) => {
-        if (offset===0) return;
-        const sched = trainSchedule[item.num]['車站時間'];
-        for (let k = item.idx; k < sched.length; k++) {
-          sched[k][1] = addMinutes(original[item.num][k], offset);
-        }
-      });
-    });
-  });
-})();
+  const interval = Math.ceil(1.5);  // 取整後 2 分鐘
 
-// 3) 以下是你原本的所有 UI 生成、filter、render、modal...
-//    generateStationOptions();
-//    filterTrainScheduleByStation();
-//    buildStartEndHeader();
-//    renderStartEndTable();
-//    其它所有函式都放在這裡，不變動。
-// ===========================================
+  function timeToMin(hm) {
+    const [H,M] = hm.split(':').map(n=>parseInt(n,10));
+    return H*60 + M;
+  }
+  function minToTime(m) {
+    m = ((m % 1440) + 1440) % 1440;
+    const H = Math.floor(m/60), M = m%60;
+    return `${String(H).padStart(2,'0')}:${String(M).padStart(2,'0')}`;
+  }
+
+  let changed;
+  do {
+    changed = false;
+
+    // 逐站檢查
+    for (const station of stations) {
+      // 收集「此站要開往下一站」的所有列車
+      const list = [];
+      for (const num in trainSchedule) {
+        const sched = trainSchedule[num]['車站時間'];
+        sched.forEach(([st, tm], idx) => {
+          if (st === station && idx < sched.length - 1) {
+            list.push({ num, idx, t0: timeToMin(tm) });
+          }
+        });
+      }
+      if (list.length < 2) continue;
+
+      // 排序：先比車種優先，再比時間
+      list.sort((a,b) => {
+        const pa = priorityTypes.indexOf(trainSchedule[a.num]['車種']);
+        const pb = priorityTypes.indexOf(trainSchedule[b.num]['車種']);
+        if (pa !== pb) return pa - pb;
+        return a.t0 - b.t0;
+      });
+
+      // 按順序分配「真實開車時間」
+      let last = -Infinity;
+      for (let i = 0; i < list.length; i++) {
+        const { num, idx, t0 } = list[i];
+        const assigned = Math.max(t0, last + interval);
+        if (assigned !== t0) {
+          // 若被推後，計算延遲並累加至後續所有站
+          const delta = assigned - t0;
+          const sched = trainSchedule[num]['車站時間'];
+          for (let k = idx; k < sched.length; k++) {
+            const m0 = timeToMin(sched[k][1]);
+            sched[k][1] = minToTime(m0 + delta);
+          }
+          changed = true;
+        }
+        last = assigned;
+      }
+    }
+  } while (changed);
+})();
 
 
   // 動態生成車站下拉選單
@@ -3372,15 +3381,4 @@ var trainSchedule = {
   }
   
   
-  
-  // 新增幫助函數
-  function getArrivalTimeForStation(trainNumber, station) {
-    var stationTimes = trainSchedule[trainNumber]['車站時間'];
-    var stationIndex = stationTimes.findIndex(s => s[0] === station);
-    
-    if (stationIndex !== -1) {
-        return stationTimes[stationIndex][1];
-    }
-    return null;
-  }
   
