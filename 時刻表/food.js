@@ -1637,6 +1637,102 @@ const foodData = [
         others: 81,        // 其他
         gmapUrl: "https://maps.app.goo.gl/L9GTz8v6Hxbms48h6"
       },
+      {
+        time: "2025-04-20",
+        city: "台中市",
+        district: "北區",
+        storeName: "洄味牛肉麵崇德店",
+        category: "店面",
+        priceLevel: "$$$",
+         // 地圖用 (示例座標)
+        lat:  24.164376, 
+        lng:  120.6851715,
+        // 各細項評分 (0~100)
+        taste: 86,        // 口味
+        freshness: 85,    // 食材新鮮度
+        texture: 87,      // 口感
+        appearance: 83,   // 外觀
+        smell: 85,        // 氣味
+        portion: 83,      // 分量
+        uniqueness: 85,   // 獨特性
+        price: 81.5,        // 價格
+        environment: 75,  // 環境
+        attitude: 73.5,     // 態度
+        others: 70,        // 其他
+        gmapUrl: "https://maps.app.goo.gl/cPVUxjmTWKWgvYJT9"
+      },
+      {
+        time: "2025-04-20",
+        city: "台中市",
+        district: "西區",
+        storeName: "宏佳火雞肉飯-向上店",
+        category: "店面",
+        priceLevel: "$$",
+         // 地圖用 (示例座標)
+        lat:  24.146746, 
+        lng:  120.658769,
+        // 各細項評分 (0~100)
+        taste: 85.7,        // 口味
+        freshness: 87,    // 食材新鮮度
+        texture: 85,      // 口感
+        appearance: 85,   // 外觀
+        smell: 81.5,        // 氣味
+        portion: 81,      // 分量
+        uniqueness: 75,   // 獨特性
+        price: 84,        // 價格
+        environment: 80,  // 環境
+        attitude: 83,     // 態度
+        others: 83,        // 其他
+        gmapUrl: "https://maps.app.goo.gl/oSEdVsh26KJdwLJY9"
+      },
+      {
+        time: "2025-04-20",
+        city: "台中市",
+        district: "西區",
+        storeName: "moi x pho 哞一河粉",
+        category: "店面",
+        priceLevel: "$$$",
+         // 地圖用 (示例座標)
+        lat:  24.148371, 
+        lng:  120.660265,
+        // 各細項評分 (0~100)
+        taste: 88,        // 口味
+        freshness: 90,    // 食材新鮮度
+        texture: 85,      // 口感
+        appearance: 89,   // 外觀
+        smell: 85,        // 氣味
+        portion: 79,      // 分量
+        uniqueness: 78,   // 獨特性
+        price: 79,        // 價格
+        environment: 85,  // 環境
+        attitude: 81.5,     // 態度
+        others: 81,        // 其他
+        gmapUrl: "https://maps.app.goo.gl/acG2x5R7bMNWrG2JA"
+      },
+      {
+        time: "2025-04-20",
+        city: "台中市",
+        district: "西區",
+        storeName: "打盹nap&knife -義大利麵專賣",
+        category: "店面",
+        priceLevel: "$$$",
+         // 地圖用 (示例座標)
+        lat:  24.1546071, 
+        lng:  120.66133,
+        // 各細項評分 (0~100)
+        taste: 90,        // 口味
+        freshness: 88,    // 食材新鮮度
+        texture: 83.5,      // 口感
+        appearance: 90,   // 外觀
+        smell: 82.5,        // 氣味
+        portion: 77,      // 分量
+        uniqueness: 75,   // 獨特性
+        price: 78.5,        // 價格
+        environment: 88,  // 環境
+        attitude: 84,     // 態度
+        others: 83,        // 其他
+        gmapUrl: "https://maps.app.goo.gl/4kXn2auBtVYomt938"
+      },
     
   ];
   
