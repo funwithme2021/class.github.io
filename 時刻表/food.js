@@ -1733,6 +1733,150 @@ const foodData = [
         others: 83,        // 其他
         gmapUrl: "https://maps.app.goo.gl/4kXn2auBtVYomt938"
       },
+      {
+        time: "2025-06-01",
+        city: "台中市",
+        district: "北屯區",
+        storeName: "徐家莊手打麵",
+        category: "店面",
+        priceLevel: "$$$",
+         // 地圖用 (示例座標)
+        lat:  24.1711337, 
+        lng:  120.6801843,
+        // 各細項評分 (0~100)
+        taste: 86.5,        // 口味
+        freshness: 84.5,    // 食材新鮮度
+        texture: 90,      // 口感
+        appearance: 81,   // 外觀
+        smell: 86,        // 氣味
+        portion: 84,      // 分量
+        uniqueness: 83,   // 獨特性
+        price: 80,        // 價格
+        environment: 70.1,  // 環境
+        attitude: 82,     // 態度
+        others: 80,        // 其他
+        gmapUrl: "https://maps.app.goo.gl/jnTrYsb5W7UdR1PP8"
+      },
+      {
+        time: "2025-06-01",
+        city: "台北市",
+        district: "萬華區",
+        storeName: "樂麵屋 西門店",
+        category: "店面",
+        priceLevel: "$$$",
+         // 地圖用 (示例座標)
+        lat:  25.0448011, 
+        lng:  121.5053743,
+        // 各細項評分 (0~100)
+        taste: 87.5,        // 口味
+        freshness: 86,    // 食材新鮮度
+        texture: 83,      // 口感
+        appearance: 84.5,   // 外觀
+        smell: 82,        // 氣味
+        portion: 88,      // 分量
+        uniqueness: 85,   // 獨特性
+        price: 83,        // 價格
+        environment: 82.5,  // 環境
+        attitude: 82,     // 態度
+        others: 80,        // 其他
+        gmapUrl: "https://maps.app.goo.gl/XLLuJZkrdHrL4ajP9"
+      },
+      {
+        time: "2025-06-01",
+        city: "台北市",
+        district: "萬華區",
+        storeName: "海天香餃",
+        category: "店面",
+        priceLevel: "$$",
+         // 地圖用 (示例座標)
+        lat:  25.0352088, 
+        lng:  121.4981112,
+        // 各細項評分 (0~100)
+        taste: 84.5,        // 口味
+        freshness: 85,    // 食材新鮮度
+        texture: 82.5,      // 口感
+        appearance: 82.5,   // 外觀
+        smell: 80,        // 氣味
+        portion: 83,      // 分量
+        uniqueness: 78,   // 獨特性
+        price: 80,        // 價格
+        environment: 84,  // 環境
+        attitude: 81,     // 態度
+        others: 82,        // 其他
+        gmapUrl: "https://maps.app.goo.gl/W576355qyxP8a2CC8"
+      },
+      {
+        time: "2025-06-01",
+        city: "台北市",
+        district: "萬華區",
+        storeName: "原汁排骨湯 和平本舖",
+        category: "店面",
+        priceLevel: "$$",
+         // 地圖用 (示例座標)
+        lat:  25.0352277, 
+        lng:  121.4978081,
+        // 各細項評分 (0~100)
+        taste: 86,        // 口味
+        freshness: 86.5,    // 食材新鮮度
+        texture: 84,      // 口感
+        appearance: 82,   // 外觀
+        smell: 82,        // 氣味
+        portion: 84.5,      // 分量
+        uniqueness: 81,   // 獨特性
+        price: 82,        // 價格
+        environment: 77.5,  // 環境
+        attitude: 80,     // 態度
+        others: 82.5,        // 其他
+        gmapUrl: "https://maps.app.goo.gl/w8uHkrp1RZsuDktv7"
+      },
+      {
+        time: "2025-06-01",
+        city: "台北市",
+        district: "萬華區",
+        storeName: "陳記腸蚵專業麵線",
+        category: "店面",
+        priceLevel: "$$",
+         // 地圖用 (示例座標)
+        lat:  25.0352277, 
+        lng:  121.4982168,
+        // 各細項評分 (0~100)
+        taste: 85.5,        // 口味
+        freshness: 90,    // 食材新鮮度
+        texture: 83.5,      // 口感
+        appearance: 85,   // 外觀
+        smell: 82,        // 氣味
+        portion: 79,      // 分量
+        uniqueness: 78,   // 獨特性
+        price: 77,        // 價格
+        environment: 76.5,  // 環境
+        attitude: 80,     // 態度
+        others: 82.5,        // 其他
+        gmapUrl: "https://maps.app.goo.gl/Gpd6W37XREzXhh3TA"
+      },
+      {
+        time: "2025-06-01",
+        city: "台北市",
+        district: "萬華區",
+        storeName: "梧州街原汁排骨湯",
+        category: "店面",
+        priceLevel: "$$",
+         // 地圖用 (示例座標)
+        lat:  25.0362991, 
+        lng:  121.4975774,
+        // 各細項評分 (0~100)
+        taste: 87,        // 口味
+        freshness: 86,    // 食材新鮮度
+        texture: 85,      // 口感
+        appearance: 82,   // 外觀
+        smell: 82,        // 氣味
+        portion: 83.5,      // 分量
+        uniqueness: 81,   // 獨特性
+        price: 80,        // 價格
+        environment: 68.5,  // 環境
+        attitude: 81,     // 態度
+        others: 82.7,        // 其他
+        gmapUrl: "https://maps.app.goo.gl/c3oqeRdL7Y3WPot47"
+      },
     
   ];
   
