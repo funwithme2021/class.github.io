@@ -1,94 +1,755 @@
 <!DOCTYPE html>
 <html lang="zh-Hant">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>AIDA 行銷操作</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>颱風預測路徑繪圖系統 (連續誤差範圍)</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
   <style>
     body {
-      font-family: "Noto Sans TC", sans-serif;
-      background-color: #ebebe7;
-      padding: 60px 30px;
+      margin: 0;
+      padding: 0;
+      font-family: "Microsoft JhengHei", sans-serif;
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
     }
-
-    h1 {
-      text-align: center;
-      color: #b71c1c;
-      font-size: 2.2rem;
-      margin-bottom: 40px;
+    #map {
+      flex: 1;
+      width: 100%;
+      position: relative;
     }
-
-    .grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-      gap: 24px;
-      max-width: 1000px;
-      margin: 0 auto;
+    .controls-container {
+      background-color: white;
+      padding: 15px;
+      border-radius: 5px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+      width: 100%;
     }
-
-    .card {
-      background: #fff;
-      border-radius: 16px;
-      padding: 20px 24px;
-      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+    .controls-container h3 {
+      margin-top: 0;
     }
-
-    .card h2 {
-      font-size: 1.3rem;
+    .controls-container button,
+    .controls-container input[type="checkbox"] {
+      margin-right: 10px;
       margin-bottom: 10px;
-      color: #222;
     }
-
-    .card h2::before {
-      content: "💡 ";
+    .custom-label {
+      border-radius: 5px;
+      white-space: nowrap;
+      text-align: center;
+      font-weight: bold;
+      font-size: 17px;
     }
-
-    .card:nth-child(1) h2::before { content: "🎯 "; }
-    .card:nth-child(2) h2::before { content: "💬 "; }
-    .card:nth-child(3) h2::before { content: "🤝 "; }
-    .card:nth-child(4) h2::before { content: "📱 "; }
-
-    ul {
-      padding-left: 1.4em;
-      font-size: 1.1rem;
-      line-height: 1.8;
+    /* 取消地圖上的日期底框，使用深色文字 */
+    .date-label {
+      background: none !important;
+      box-shadow: none !important;
+      text-shadow: none !important;
+      color: #333 !important;
+      padding: 0;
+      border-radius: 0;
+      font-weight: bold;
+      font-size: 0.9rem;
+      white-space: nowrap;
     }
   </style>
 </head>
 <body>
-
-  <h1>AIDA 對應行銷策略操作</h1>
-
-  <div class="grid">
-    <div class="card">
-      <h2>代言人策略</h2>
-      <ul>
-        <li>選擇低調但具代表性人物</li>
-        <li>引起消費者「注意」</li>
-      </ul>
-    </div>
-    <div class="card">
-      <h2>產品敘事</h2>
-      <ul>
-        <li>將品牌價值融入內容</li>
-        <li>提升對產品的「興趣」與認同</li>
-      </ul>
-    </div>
-    <div class="card">
-      <h2>聯名合作操作</h2>
-      <ul>
-        <li>與其他知名品牌合作系列</li>
-        <li>營造「慾望」情境，吸引潮流族群搶購與收藏</li>
-      </ul>
-    </div>
-    <div class="card">
-      <h2>社群與內容行銷</h2>
-      <ul>
-        <li>利用社群平台推送穿搭圖與介紹、限時活動</li>
-        <li>促使「行動」產生</li>
-      </ul>
-    </div>
+  <div id="map"></div>
+  <div class="controls-container">
+    <h3>繪製控制</h3>
+    <button onclick="toggleDrawErrorRange()">繪製誤差範圍</button>
+    <button onclick="deleteLastErrorVertex()">刪除最後一個點</button>
+    <button onclick="finishDrawErrorRange()">完成繪製</button>
+    <br>
+    <h3>顯示選項</h3>
+    <label>
+      <input type="checkbox" id="showErrorCircles" onchange="toggleErrorCircles()" checked>
+      顯示連續誤差範圍
+    </label>
   </div>
 
+  <!-- Leaflet JS -->
+  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+  <!-- 範例 GeoJSON 資料 (請自行替換為實際路徑) -->
+  <script src="your-cities.geojson"></script>
+
+  <script>
+    // ===== 變數宣告 =====
+    var map = L.map('map').setView([23.5, 121], 6);
+
+    // 存放動態「連續誤差範圍多邊形」圖層
+    var errorRegionLayers = [];
+
+    // 手動繪製誤差範圍所需
+    var drawnErrorPolygon = null;
+    var drawnErrorVertices = [];
+    var drawErrorMode = false;
+
+    // 標記、線條
+    var currentMarker = null;
+    var futureMarkers = [];
+    var labelMarkers = [];
+    var connectingLines = [];
+
+    // 是否顯示「連續誤差範圍」
+    var showErrorCircles = true;
+
+    // 縣市高亮
+    var drawnCityPolygons = [];
+
+    // 過去路徑 (模擬資料)
+    var pastPath = [
+      [7.5, 147.5],[9.8, 144.6],[11.3, 140.6],[12.4, 137.8],[12.3, 136.4],[12.8, 134.9],[13.5, 133.6],
+      [14.0, 131.9],[14.2, 130.4],[14.6, 129.0],[14.9, 128.3],[15.5, 126.4],[16.2, 125.3],[16.6, 123.9],
+      [16.8, 123.5],[17.2, 123.1],[17.6, 122.6],[17.9, 122.1],[18.2, 121.9],[18.6, 121.4],[19.1, 121.1],
+      [19.6, 120.7]
+    ];
+
+    // 現在位置 (模擬資料，errorRadius 取未來第一筆的誤差)
+    var currentPosition = {
+      coords: [19.6, 120.7],
+      intensity: 'ST',
+      time: '現在位置',
+      // 將第一個未來點的誤差當作當前圓心誤差
+      errorRadius: 50000  
+    };
+
+    // 未來路徑 (模擬資料)
+    var futurePath = [
+      {
+        coords: [21.0, 119.8],
+        radius7: { northeast:120, northwest:120, southeast:120, southwest:120 },
+        radius10: { northeast:40, northwest:40, southeast:40, southwest:40 },
+        errorRadius: 50000,
+        showIcon: true,
+        intensity: 'TS',
+        time: '15日14時'
+      },
+      {
+        coords: [21.7, 120.0],
+        radius7: { northeast:100, northwest:100, southeast:100, southwest:100 },
+        radius10: { northeast:0, northwest:0, southeast:0, southwest:0 },
+        errorRadius: 90000,
+        showIcon: true,
+        intensity: 'TS',
+        time: '16日02時'
+      },
+      {
+        coords: [22.1, 120.5],
+        radius7: { northeast:80, northwest:80, southeast:80, southwest:80 },
+        radius10: { northeast:0, northwest:0, southeast:0, southwest:0 },
+        errorRadius: 120000,
+        showIcon: true,
+        intensity: 'TS',
+        time: '16日14時'
+      },
+      {
+        coords: [22.3, 121.1],
+        radius7: { northeast:80, northwest:80, southeast:80, southwest:80 },
+        radius10: { northeast:0, northwest:0, southeast:0, southwest:0 },
+        errorRadius: 150000,
+        showIcon: true,
+        intensity: 'TS',
+        time: '17日02時'
+      },
+      {
+        coords: [22.3, 121.5],
+        radius7: { northeast:0, northwest:0, southeast:0, southwest:0 },
+        radius10: { northeast:0, northwest:0, southeast:0, southwest:0 },
+        errorRadius: 190000,
+        showIcon: true,
+        intensity: 'TD',
+        time: '17日14時'
+      }
+    ];
+
+    // ===== Leaflet 地圖初始化 =====
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+      maxZoom: 18,
+      attribution: 'Map tiles by CartoDB, CC BY 3.0',
+    }).addTo(map);
+
+    // ===== 工具函式 =====
+
+    // 公尺轉 Pixel 半徑 (Leaflet layer point)
+    function meterToPixelRadius(latlng, meter) {
+      var latOffset = meter / 111320;
+      var pOri = map.latLngToLayerPoint(latlng);
+      var pN   = map.latLngToLayerPoint([latlng[0] + latOffset, latlng[1]]);
+      return pOri.distanceTo(pN);
+    }
+
+    // 計算兩圓外切點 (pixel-space)
+    function getExternalTangentPoints(P1, r1pix, P2, r2pix) {
+      var dx = P2.x - P1.x;
+      var dy = P2.y - P1.y;
+      var d2 = dx*dx + dy*dy;
+      var d  = Math.sqrt(d2);
+      var results = [];
+      [ +1, -1 ].forEach(function(sign) {
+        var dr = r1pix - sign * r2pix;
+        var h2 = d2 - dr*dr;
+        if (h2 < 0) return; // 無外切線
+        var h = Math.sqrt(h2);
+        var ux = (dx * dr + sign * dy * h) / d2;
+        var uy = (dy * dr - sign * dx * h) / d2;
+        var tA = L.point(P1.x + r1pix * ux, P1.y + r1pix * uy);
+        var tB = L.point(P2.x + (sign * r2pix) * ux, P2.y + (sign * r2pix) * uy);
+        results.push([ tA, tB ]);
+      });
+      return results; // 可能有 2 組切點
+    }
+
+    // Circle 弧段 (pixel-space)
+    function buildArcPoints(centerPt, radiusPix, tPt1, tPt2) {
+      var cx = centerPt.x, cy = centerPt.y;
+      var x1 = tPt1.x - cx, y1 = tPt1.y - cy;
+      var x2 = tPt2.x - cx, y2 = tPt2.y - cy;
+      function normalizeAngle(a) {
+        while (a < -Math.PI) a += 2*Math.PI;
+        while (a >  Math.PI) a -= 2*Math.PI;
+        return a;
+      }
+      var ang1 = normalizeAngle(Math.atan2(y1, x1));
+      var ang2 = normalizeAngle(Math.atan2(y2, x2));
+      var diff = normalizeAngle(ang2 - ang1);
+      var steps = 40;
+      var arcPoints = [];
+      for (var i = 0; i <= steps; i++) {
+        var frac = i / steps;
+        var theta = ang1 + frac * diff;
+        var px = cx + radiusPix * Math.cos(theta);
+        var py = cy + radiusPix * Math.sin(theta);
+        arcPoints.push(L.point(px, py));
+      }
+      return arcPoints;
+    }
+
+    // 畫出從 current → future 一連串「外切誤差區域」
+    function drawContinuousErrorRegion(circles) {
+      // circles: 陣列 [ {latlng: [lat,lng], radius: m}, ... ]
+      // 清除舊有
+      errorRegionLayers.forEach(function(layer) {
+        map.removeLayer(layer);
+      });
+      errorRegionLayers = [];
+
+      if (circles.length < 2) return;
+
+      // (1) 檢查首尾包含情況：若首尾被包含，直接畫最大圓
+      function drawSolidCircle(circle) {
+        var polyLatLngs = [];
+        for (var a = 0; a < 360; a += 6) {
+          var rad = a * Math.PI/180;
+          var latOff = (circle.radius * Math.cos(rad)) / 111320;
+          var lngOff = (circle.radius * Math.sin(rad)) / 
+                       (111320 * Math.cos(circle.latlng[0] * Math.PI/180));
+          polyLatLngs.push([circle.latlng[0] + latOff, circle.latlng[1] + lngOff]);
+        }
+        var poly = L.polygon(polyLatLngs, {
+          color: 'blue',
+          weight: 1,
+          fillColor: 'blue',
+          fillOpacity: 0.15,
+          pane: 'overlayPane'
+        }).addTo(map);
+        errorRegionLayers.push(poly);
+      }
+
+      // 先定位每個圓的中心 pixel 與 pixel 半徑
+      var pts = circles.map(c => map.latLngToLayerPoint(c.latlng));
+      var rpix = circles.map(c => meterToPixelRadius(c.latlng, c.radius));
+
+      // 把每一對相鄰圓連成「外切多邊形」
+      for (var i = 0; i < circles.length - 1; i++) {
+        var cA = circles[i], cB = circles[i+1];
+        var latlngA = L.latLng(cA.latlng), latlngB = L.latLng(cB.latlng);
+        var d_m = latlngA.distanceTo(latlngB);
+        var rA = cA.radius, rB = cB.radius;
+        // 如果圓 A 完全包含圓 B，或 B 包含 A，就直接畫較大圓
+        if (d_m + Math.min(rA, rB) <= Math.max(rA, rB)) {
+          var larger = (rA >= rB ? cA : cB);
+          drawSolidCircle(larger);
+          continue;
+        }
+
+        // 否則取外切線
+        var P1 = pts[i], P2 = pts[i+1];
+        var r1pix = rpix[i], r2pix = rpix[i+1];
+        var tangentPairs = getExternalTangentPoints(P1, r1pix, P2, r2pix);
+        if (tangentPairs.length < 2) {
+          // 無法構成兩條完整外切線 → 畫較大圓
+          var larger = (rA >= rB ? cA : cB);
+          drawSolidCircle(larger);
+          continue;
+        }
+
+        // 我們選第一組外切線為「外圍」，第二組為「內部」→ 面積取外圍
+        var tA0 = tangentPairs[0][0], tB0 = tangentPairs[0][1];
+        var tA1 = tangentPairs[1][0], tB1 = tangentPairs[1][1];
+
+        // 組成「外側圓 A 弧 (tA0→tA1) → 切線 (tA1→tB1) → 外側圓 B 弧 (tB1→tB0) → 切線 (tB0→tA0)」
+        var arcA = buildArcPoints(P1, r1pix, tA0, tA1);
+        var arcB = buildArcPoints(P2, r2pix, tB1, tB0);
+        var pixPoly = [];
+        arcA.forEach(pt => pixPoly.push(pt));
+        pixPoly.push(tB1);
+        arcB.forEach(pt => pixPoly.push(pt));
+        pixPoly.push(tA0);
+
+        // pixel → latlng
+        var latlngPoly = pixPoly.map(pt => map.layerPointToLatLng(pt));
+        var poly = L.polygon(latlngPoly, {
+          color: 'blue',
+          weight: 1,
+          fillColor: 'blue',
+          fillOpacity: 0.15,
+          pane: 'overlayPane'
+        }).addTo(map);
+        errorRegionLayers.push(poly);
+      }
+    }
+
+    // ===== 繪製功能 =====
+
+    // 切換手動繪製誤差範圍模式
+    function toggleDrawErrorRange() {
+      drawErrorMode = !drawErrorMode;
+      if (drawErrorMode) {
+        alert('點擊地圖來繪製誤差範圍，完成後點擊"完成繪製"按鈕。');
+        map.getContainer().classList.add('crosshair-cursor');
+        if (drawnErrorPolygon) { map.removeLayer(drawnErrorPolygon); }
+        drawnErrorPolygon = null;
+        drawnErrorVertices = [];
+      } else {
+        map.getContainer().classList.remove('crosshair-cursor');
+      }
+    }
+
+    // 地圖點擊事件：繪製手動誤差範圍頂點
+    map.on('click', function(e) {
+      if (drawErrorMode) {
+        if (!drawnErrorPolygon) {
+          drawnErrorPolygon = L.polygon([], {
+            color: 'transparent',
+            fillColor: 'blue',
+            fillOpacity: 0.3,
+            lineCap: 'round',
+            renderer: L.canvas(),
+            zIndexOffset: -2000
+          }).addTo(map);
+        }
+        drawnErrorVertices.push(e.latlng);
+        updateDrawnErrorPolygon();
+      }
+    });
+
+    // 更新手動畫出的多邊形
+    function updateDrawnErrorPolygon() {
+      if (drawnErrorPolygon) {
+        drawnErrorPolygon.setLatLngs(drawnErrorVertices);
+      }
+    }
+
+    // 刪除最後一個頂點
+    function deleteLastErrorVertex() {
+      if (drawnErrorVertices.length > 0) {
+        drawnErrorVertices.pop();
+        updateDrawnErrorPolygon();
+      }
+    }
+
+    // 完成手動繪製
+    function finishDrawErrorRange() {
+      if (drawnErrorPolygon && drawnErrorVertices.length >= 3) {
+        map.removeLayer(drawnErrorPolygon);
+        drawnErrorPolygon = L.polygon(drawnErrorVertices, {
+          color: 'transparent',
+          fillColor: 'blue',
+          fillOpacity: 0.15,
+          lineCap: 'round',
+          renderer: L.canvas(),
+          zIndexOffset: -2000
+        }).addTo(map);
+        drawnErrorVertices = [];
+      } else {
+        alert('請至少添加三個點以繪製多邊形。');
+      }
+      drawErrorMode = false;
+      map.getContainer().classList.remove('crosshair-cursor');
+    }
+
+    // 切換是否顯示「連續誤差範圍」
+    function toggleErrorCircles() {
+      showErrorCircles = document.getElementById('showErrorCircles').checked;
+      redrawPaths();
+    }
+
+    // 高亮縣市 (範例 GeoJSON)
+    function highlightCities() {
+      drawnCityPolygons.forEach(layer => map.removeLayer(layer));
+      drawnCityPolygons = [];
+      var selectedCities = ["臺北市", "新北市", "桃園市"];
+      geojsonData.features.forEach(function(feature) {
+        if (selectedCities.includes(feature.properties.name)) {
+          var poly = L.geoJSON(feature, {
+            style: {
+              color: 'transparent',
+              fillColor: 'red',
+              fillOpacity: 0.1,
+              lineCap: 'round',
+              renderer: L.canvas(),
+              zIndexOffset: -2000
+            }
+          }).addTo(map);
+          drawnCityPolygons.push(poly);
+        }
+      });
+    }
+
+    // 繪製不對稱風圈
+    function drawAsymmetricWindCircle(center, windData, color) {
+      var points = [];
+      var quadrants = [
+        { radius: windData.northeast, startAngle: 0, endAngle: 90 },
+        { radius: windData.northwest, startAngle: 90, endAngle: 180 },
+        { radius: windData.southwest, startAngle: 180, endAngle: 270 },
+        { radius: windData.southeast, startAngle: 270, endAngle: 360 }
+      ];
+      quadrants.forEach(function(q) {
+        var radius = q.radius * 1000;
+        for (var angle = q.startAngle; angle <= q.endAngle; angle += 5) {
+          var radian = (angle * Math.PI) / 180;
+          var lat = center[0] + (radius / 111320) * Math.cos(radian);
+          var lng = center[1] + (radius / (40075000 * Math.cos(center[0] * Math.PI / 180) / 360)) * Math.sin(radian);
+          points.push([lat, lng]);
+        }
+      });
+      points.push(points[0]);
+      L.polygon(points, {
+        color: color,
+        weight: 1,
+        fillOpacity: 0.1,
+        fillColor: color,
+        pane: 'overlayPane'
+      }).addTo(map);
+    }
+
+    // 重繪所有路徑、風圈、連續誤差範圍
+    function redrawPaths() {
+      // 1. 清除除底圖以外的所有圖層
+      map.eachLayer(function(layer) {
+        if (
+          layer instanceof L.Polyline ||
+          layer instanceof L.Circle ||
+          layer instanceof L.Marker ||
+          layer instanceof L.Polygon
+        ) {
+          map.removeLayer(layer);
+        }
+      });
+      // 重新加入底圖
+      L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+        maxZoom: 18,
+        attribution: 'Map tiles by CartoDB, CC BY 3.0',
+      }).addTo(map);
+
+      // 2. 過去路徑 + 現在位置→未來路徑連線
+      if (pastPath.length > 0) {
+        L.polyline([...pastPath, currentPosition.coords], {
+          color: 'black',
+          lineCap: 'round'
+        }).addTo(map);
+      }
+
+      // 3. 畫現在位置風圈
+      drawAsymmetricWindCircle(currentPosition.coords, { 
+        northeast: futurePath[0].errorRadius / 1000,
+        northwest: futurePath[0].errorRadius / 1000,
+        southeast: futurePath[0].errorRadius / 1000,
+        southwest: futurePath[0].errorRadius / 1000
+      }, 'blue');
+
+      // 4. 現在位置圖示 + 標籤
+      var cIcon = L.icon({
+        iconUrl: getIntensityIcon(currentPosition.intensity),
+        iconSize: [22,22],
+        iconAnchor: [11,11]
+      });
+      currentMarker = L.marker(currentPosition.coords, { icon: cIcon }).addTo(map);
+      addDraggableLabel(currentPosition.coords, currentPosition.time);
+
+      // 5. 畫未來路徑風圈與圖示
+        // 5. 畫未來路徑風圈與圖示
+        futureMarkers = [];
+        labelMarkers = [];
+        connectingLines = [];
+        for (var i = 0; i < futurePath.length; i++) {
+          var pt = futurePath[i];
+          // 畫 7 級風圈（橘色）
+          drawAsymmetricWindCircle(pt.coords, pt.radius7, 'orange');
+          // 畫 10 級風圈（紅色）
+          drawAsymmetricWindCircle(pt.coords, pt.radius10, 'red');
+          // 如果要顯示圖示，就把對應強度的圖示放到地圖上
+          if (pt.showIcon) {
+            var icon = L.icon({
+              iconUrl: getIntensityIcon(pt.intensity),
+              iconSize: [22, 22],
+              iconAnchor: [11, 11]
+            });
+            var m = L.marker(pt.coords, { icon: icon }).addTo(map);
+            futureMarkers.push(m);
+            addDraggableLabel(pt.coords, pt.time);
+          }
+        }
+
+        // 6. 如果要顯示「連續誤差範圍」，就把 currentPosition + 所有 futurePath 當成 circles 串成一條線再計算外切面積
+        if (showErrorCircles) {
+          var circles = [];
+          // (a) 先把現在位置視為第一個圓
+          circles.push({
+            latlng: currentPosition.coords,
+            radius: currentPosition.errorRadius
+          });
+          // (b) 再把所有未來路徑的圓依序推進陣列
+          futurePath.forEach(function(pt) {
+            circles.push({
+              latlng: pt.coords,
+              radius: pt.errorRadius
+            });
+          });
+          // (c) 呼叫剛剛定義的函式，一次畫出連續外切區域
+          drawContinuousErrorRegion(circles);
+        }
+
+        // 7. 高亮縣市
+        highlightCities();
+      }
+      // ===== redrawPaths() 結束 =====
+
+
+      // ========== 下面是其餘所需函式，請確保這些都在 <script> 區段內同一層級 ==========
+
+      // 在 pixel-space 計算兩圓外切點
+      function getExternalTangentPoints(P1, r1pix, P2, r2pix) {
+        var dx = P2.x - P1.x;
+        var dy = P2.y - P1.y;
+        var d2 = dx * dx + dy * dy;
+        var d = Math.sqrt(d2);
+        var results = [];
+        [ +1, -1 ].forEach(function(sign) {
+          var dr = r1pix - sign * r2pix;
+          var h2 = d2 - dr * dr;
+          if (h2 < 0) return; // 無外切線
+          var h = Math.sqrt(h2);
+          var ux = (dx * dr + sign * dy * h) / d2;
+          var uy = (dy * dr - sign * dx * h) / d2;
+          var tA = L.point(P1.x + r1pix * ux, P1.y + r1pix * uy);
+          var tB = L.point(P2.x + (sign * r2pix) * ux, P2.y + (sign * r2pix) * uy);
+          results.push([ tA, tB ]);
+        });
+        return results;
+      }
+
+      // 建立 pixel-space 的圓弧 (tPt1 → tPt2)
+      function buildArcPoints(centerPt, radiusPix, tPt1, tPt2) {
+        var cx = centerPt.x, cy = centerPt.y;
+        var x1 = tPt1.x - cx, y1 = tPt1.y - cy;
+        var x2 = tPt2.x - cx, y2 = tPt2.y - cy;
+        function normalizeAngle(a) {
+          while (a < -Math.PI) a += 2 * Math.PI;
+          while (a >  Math.PI) a -= 2 * Math.PI;
+          return a;
+        }
+        var ang1 = normalizeAngle(Math.atan2(y1, x1));
+        var ang2 = normalizeAngle(Math.atan2(y2, x2));
+        var diff = normalizeAngle(ang2 - ang1);
+        var steps = 40;
+        var arcPoints = [];
+        for (var i = 0; i <= steps; i++) {
+          var frac = i / steps;
+          var theta = ang1 + frac * diff;
+          var px = cx + radiusPix * Math.cos(theta);
+          var py = cy + radiusPix * Math.sin(theta);
+          arcPoints.push(L.point(px, py));
+        }
+        return arcPoints;
+      }
+
+      // 畫「連續誤差區域」：傳入 [ {latlng, radius}, ... ] 陣列
+      function drawContinuousErrorRegion(circles) {
+        // 清除舊圖層
+        errorRegionLayers.forEach(function(layer) {
+          map.removeLayer(layer);
+        });
+        errorRegionLayers = [];
+
+        if (circles.length < 2) return;
+
+        // 將每個圓心轉為 pixel-space 座標，並計算 pixel 半徑
+        var pts = circles.map(c => map.latLngToLayerPoint(c.latlng));
+        var rpix = circles.map(c => meterToPixelRadius(c.latlng, c.radius));
+
+        // 針對相鄰兩個圓，計算外切面積，或若包含情況直接畫大圓
+        for (var i = 0; i < circles.length - 1; i++) {
+          var cA = circles[i], cB = circles[i + 1];
+          var latA = L.latLng(cA.latlng), latB = L.latLng(cB.latlng);
+          var d_m = latA.distanceTo(latB); // 公尺
+          var rA = cA.radius, rB = cB.radius;
+
+          // 如果一圓完全被另一圓包住 → 直接畫較大圓
+          if (d_m + Math.min(rA, rB) <= Math.max(rA, rB)) {
+            var larger = (rA >= rB ? cA : cB);
+            var polyLL = [];
+            for (var a = 0; a < 360; a += 6) {
+              var rad = a * Math.PI / 180;
+              var latOff = (larger.radius * Math.cos(rad)) / 111320;
+              var lngOff = (larger.radius * Math.sin(rad)) / (111320 * Math.cos(larger.latlng[0] * Math.PI / 180));
+              polyLL.push([ larger.latlng[0] + latOff, larger.latlng[1] + lngOff ]);
+            }
+            var poly = L.polygon(polyLL, {
+              color: 'blue',
+              weight: 1,
+              fillColor: 'blue',
+              fillOpacity: 0.15,
+              pane: 'overlayPane'
+            }).addTo(map);
+            errorRegionLayers.push(poly);
+            continue;
+          }
+
+          // 否則計算外切線
+          var P1 = pts[i], P2 = pts[i + 1];
+          var r1pix = rpix[i], r2pix = rpix[i + 1];
+          var tangentPairs = getExternalTangentPoints(P1, r1pix, P2, r2pix);
+          if (tangentPairs.length < 2) {
+            // 若無法成對外切線 → 直接畫較大圓
+            var larger = (rA >= rB ? cA : cB);
+            var polyLL = [];
+            for (var a = 0; a < 360; a += 6) {
+              var rad = a * Math.PI / 180;
+              var latOff = (larger.radius * Math.cos(rad)) / 111320;
+              var lngOff = (larger.radius * Math.sin(rad)) / (111320 * Math.cos(larger.latlng[0] * Math.PI / 180));
+              polyLL.push([ larger.latlng[0] + latOff, larger.latlng[1] + lngOff ]);
+            }
+            var poly = L.polygon(polyLL, {
+              color: 'blue',
+              weight: 1,
+              fillColor: 'blue',
+              fillOpacity: 0.15,
+              pane: 'overlayPane'
+            }).addTo(map);
+            errorRegionLayers.push(poly);
+            continue;
+          }
+
+          // 取兩組切點，並用第一組組「外側」外切面積
+          var tA0 = tangentPairs[0][0], tB0 = tangentPairs[0][1];
+          var tA1 = tangentPairs[1][0], tB1 = tangentPairs[1][1];
+
+          var arcA = buildArcPoints(P1, r1pix, tA0, tA1);
+          var arcB = buildArcPoints(P2, r2pix, tB1, tB0);
+
+          // 組成 pixel-space 多邊形
+          var pixPoly = [];
+          arcA.forEach(pt => pixPoly.push(pt));
+          pixPoly.push(tB1);
+          arcB.forEach(pt => pixPoly.push(pt));
+          pixPoly.push(tA0);
+
+          // pixel → latlng
+          var latlngPoly = pixPoly.map(pt => map.layerPointToLatLng(pt));
+          var poly = L.polygon(latlngPoly, {
+            color: 'blue',
+            weight: 1,
+            fillColor: 'blue',
+            fillOpacity: 0.15,
+            pane: 'overlayPane'
+          }).addTo(map);
+          errorRegionLayers.push(poly);
+        }
+      }
+
+            // ===== redrawPaths() 之外的輔助函式 =====
+
+      // 添加可拖動標籤並連線到圖示
+      function addDraggableLabel(coords, labelText) {
+        var labelMarker = L.marker(
+          [coords[0], coords[1] + 0.1],
+          {
+            draggable: true,
+            icon: L.divIcon({
+              className: 'custom-label',
+              html: `<div>${labelText}</div>`
+            })
+          }
+        ).addTo(map);
+
+        var line = L.polyline(
+          [ coords, [coords[0], coords[1] + 0.1] ],
+          { color: 'black', weight: 1 }
+        ).addTo(map);
+
+        labelMarkers.push(labelMarker);
+        connectingLines.push(line);
+
+        labelMarker.on('drag', function(e) {
+          var newPos = e.target.getLatLng();
+          line.setLatLngs([ coords, newPos ]);
+        });
+      }
+
+      // 根據強度 (intensity) 回傳相應的圖示 URL
+      function getIntensityIcon(intensity) {
+        switch (intensity) {
+          case 'TD':
+            return 'td1.png';
+          case 'TS':
+            return 'ts1.png';
+          case 'ST':
+            return 'st1.png';
+          case 'TY':
+            return 'ty.png';
+          default:
+            return 'default.png';
+        }
+      }
+
+      // 高亮顯示特定縣市 (使用已載入的 GeoJSON 資料)
+      function highlightCities() {
+        // 先移除舊的縣市圖層
+        drawnCityPolygons.forEach(function(layer) {
+          map.removeLayer(layer);
+        });
+        drawnCityPolygons = [];
+
+        var selectedCities = ["臺北市", "新北市", "桃園市"];
+        geojsonData.features.forEach(function(feature) {
+          if (selectedCities.includes(feature.properties.name)) {
+            var poly = L.geoJSON(feature, {
+              style: {
+                color: 'transparent',
+                fillColor: 'red',
+                fillOpacity: 0.1,
+                lineCap: 'round',
+                renderer: L.canvas(),
+                pane: 'overlayPane'
+              }
+            }).addTo(map);
+            drawnCityPolygons.push(poly);
+          }
+        });
+      }
+
+      // 已在上方提供，若尚未定義則補上
+      function meterToPixelRadius(latlng, meter) {
+        var latOffset = meter / 111320;
+        var pOri = map.latLngToLayerPoint(latlng);
+        var pN   = map.latLngToLayerPoint([latlng[0] + latOffset, latlng[1]]);
+        return pOri.distanceTo(pN);
+      }
+    </script>
 </body>
 </html>

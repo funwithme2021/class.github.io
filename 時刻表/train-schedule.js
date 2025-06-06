@@ -458,14 +458,14 @@ var trainSchedule = {
   '169': {
   '車種': '自強號',
   '車站時間': [
-    ['臺東','22:25'], ['鹿野','22:41'], ['關山','23:01'], ['池上','23:17'], ['富里','23:24'], ['玉里','23:48'], ['瑞穗','00:06'], 
-    ['光復','00:37'], ['鳳林','00:53'], ['壽豐','01:04'], ['志學','01:12'], ['吉安','01:23'], ['花蓮','01:31'], ['新城','01:44'], 
-    ['南澳','02:17'], ['蘇澳新','02:32'], ['羅東','02:42'], ['宜蘭','02:52'], ['礁溪','03:01'], ['頭城','03:09'], ['雙溪','03:37'], 
-    ['瑞芳','03:53'], ['七堵','04:07'], ['松山','04:23'], ['臺北','04:32'], ['萬華','04:38'], ['板橋','04:45'], ['樹林','04:57'], 
-    ['桃園','05:17'], ['中壢','05:27'], ['新竹','05:57'], ['竹南','06:13'], ['苗栗','06:25'], ['后里','06:45'], ['豐原','06:55'], 
-    ['臺中','07:07'], ['新烏日','07:16'], ['彰化','07:27'], ['員林','07:39'], ['田中','07:48'], ['斗六','08:04'], ['斗南','08:11'], 
-    ['嘉義','08:28'], ['新營','08:43'], ['臺南','09:09'], ['岡山','09:27'], ['新左營','09:39'], ['高雄','09:50'], ['鳳山','09:57'], 
-    ['屏東','10:10'], ['潮州','10:25']
+    ['臺東','22:25'], ['鹿野','22:41'], ['瑞源','22:50'], ['關山','23:01'], ['池上','23:17'], ['富里','23:24'], ['東竹','23:31'], 
+    ['東里','23:38'], ['玉里','23:48'], ['瑞穗','00:06'], ['富源','00:27'], ['光復','00:37'], ['萬榮','00:45'], ['鳳林','00:53'], 
+    ['壽豐','01:04'], ['志學','01:12'], ['吉安','01:23'], ['花蓮','01:31'], ['新城','01:44'], ['南澳','02:17'], ['蘇澳新','02:32'], 
+    ['羅東','02:42'], ['宜蘭','02:52'], ['礁溪','03:01'], ['頭城','03:09'], ['雙溪','03:38'], ['瑞芳','03:54'], ['七堵','04:08'], 
+    ['松山','04:24'], ['臺北','04:33'], ['萬華','04:39'], ['板橋','04:46'], ['樹林','04:58'], ['桃園','05:18'], ['中壢','05:28'], 
+    ['新竹','05:58'], ['竹南','06:15'], ['苗栗','06:27'], ['后里','06:47'], ['豐原','06:57'], ['臺中','07:10'], ['新烏日','07:19'], 
+    ['彰化','07:30'], ['員林','07:43'], ['田中','07:52'], ['斗六','08:08'], ['斗南','08:15'], ['嘉義','08:32'], ['新營','08:48'], 
+    ['臺南','09:14'], ['岡山','09:32'], ['新左營','09:44'], ['高雄','09:55'], ['鳳山','10:02'], ['屏東','10:15'], ['潮州','10:31']
   ]
 },
 '171': {
@@ -746,7 +746,7 @@ var trainSchedule = {
         ['冬山', '22:41'], ['羅東', '22:50'],
         ['宜蘭', '23:00'], ['礁溪', '23:08'], ['頭城', '23:15'], ['福隆', '23:34'], ['雙溪', '23:44'],
         ['瑞芳', '23:51'], ['七堵', '00:03'], ['汐止', '00:11'], ['松山', '00:21'],
-        ['臺北', '00:29'], ['萬華', '00:34'], ['板橋', '00:39'], ['樹林', '00:46']
+        ['臺北', '00:29']
       ]
     },
     '2101': {
@@ -2494,7 +2494,7 @@ var trainSchedule = {
     '車種': '區間車',
     '車站時間': [
       ['彰化', '05:00'], ['員林', '05:16'], ['社頭', '05:24'],
-      ['田中', '05:29'], ['二水', '05:35'], ['斗六', '05:50'], ['斗南', '05:57'], ['民雄', '07:11'], ['嘉義', '07:21']         
+      ['田中', '05:29'], ['二水', '05:35'], ['斗六', '05:50'], ['斗南', '05:57'], ['民雄', '06:11'], ['嘉義', '06:21']         
     ]
   },
   '1835': {
@@ -3151,6 +3151,7 @@ var trainSchedule = {
   console.log('stations:', stations);
   
 // ===== 全站逐站迭代冲突修正（开车时间 + 最小2分钟间隔） =====
+// ===== 全站逐站迭代冲突修正（开车时间 + 最小2分钟间隔 + 中间站同秒冲突） =====
 ;(function(){
   const priorityTypes = [
     "普悠瑪","新自強","自強號(新)","自強號",
@@ -3161,15 +3162,65 @@ var trainSchedule = {
 
   // HH:MM + N 分钟
   function addMinutes(hhmm, minutes) {
-    let [h,m] = hhmm.split(":").map(Number);
-    let t = ((h*60 + m + minutes) % 1440 + 1440) % 1440;
-    let nh = Math.floor(t/60), nm = t%60;
-    return `${String(nh).padStart(2,"0")}:${String(nm).padStart(2,"0")}`;
+    let [h, m] = hhmm.split(":").map(Number);
+    let t = ((h * 60 + m + minutes) % 1440 + 1440) % 1440;
+    let nh = Math.floor(t / 60), nm = t % 60;
+    return `${String(nh).padStart(2, "0")}:${String(nm).padStart(2, "0")}`;
   }
   // 字符串 "HH:MM" → 整数分钟
   function parseTime(hhmm) {
-    let [h,m] = hhmm.split(":").map(Number);
-    return h*60 + m;
+    let [h, m] = hhmm.split(":").map(Number);
+    return h * 60 + m;
+  }
+
+  // 生成每列车在所有经过站的通過时间（以整数分钟计），包括未停靠的中间站
+  function computeAllPassageTimes() {
+    // 返回：{ trainId: [ { station, timeMin, stopIdx } , ... ] }
+    const result = {};
+    for (const num in trainSchedule) {
+      const stops = trainSchedule[num]['車站時間'];
+      // 首先把已停靠站的 index（在 stations 数组中的位置）与时间（分钟）记录
+      const stopIndices = stops.map(([st, tm]) => ({
+        idx: stations.indexOf(st),
+        time: parseTime(tm)
+      }));
+      const passages = [];
+      for (let s = 0; s < stopIndices.length - 1; s++) {
+        const { idx: idxA, time: tA } = stopIndices[s];
+        const { idx: idxB, time: tB } = stopIndices[s + 1];
+        const spanIdx = idxB - idxA;
+        // 这两个停靠站之间，包含 endpoints，共有 spanIdx 段
+        for (let offset = 0; offset <= spanIdx; offset++) {
+          const stationIndex = idxA + offset;
+          const stationName = stations[stationIndex];
+          // 线性插值计算经过该站的时间
+          const ratio = offset / spanIdx;
+          const rawTime = tA + Math.round((tB - tA) * ratio);
+          passages.push({
+            station: stationName,
+            timeMin: rawTime,
+            stopIdx: s + (offset > 0 ? 1 : 0) // 归属后续 stopIdx 用于延迟时定位
+          });
+        }
+      }
+      // 只有一个停靠站的列车，直接记录该站
+      if (stopIndices.length === 1) {
+        passages.push({
+          station: stops[0][0],
+          timeMin: stopIndices[0].time,
+          stopIdx: 0
+        });
+      }
+      // 去重（同一站可能重复，但时间相同，只保留一次）
+      const seen = new Set();
+      result[num] = passages.filter(p => {
+        const key = `${p.station}|${p.timeMin}`;
+        if (seen.has(key)) return false;
+        seen.add(key);
+        return true;
+      });
+    }
+    return result;
   }
 
   let changed;
@@ -3182,7 +3233,7 @@ var trainSchedule = {
       for (const num in trainSchedule) {
         trainSchedule[num]['車站時間'].forEach(([st, tm], idx) => {
           if (st === station) {
-            (groups[tm] = groups[tm]||[]).push({ num, idx });
+            (groups[tm] = groups[tm] || []).push({ num, idx });
           }
         });
       }
@@ -3190,7 +3241,7 @@ var trainSchedule = {
         const list = groups[tm];
         if (list.length < 2) continue;
         // 有冲突：先按优先级排
-        list.sort((a,b) => {
+        list.sort((a, b) => {
           return priorityTypes.indexOf(trainSchedule[a.num]['車種'])
                - priorityTypes.indexOf(trainSchedule[b.num]['車種']);
         });
@@ -3219,10 +3270,10 @@ var trainSchedule = {
         });
       }
       // 按实际时间排序
-      departures.sort((a,b) => parseTime(a.time) - parseTime(b.time));
+      departures.sort((a, b) => parseTime(a.time) - parseTime(b.time));
       // 检查相邻两车
       for (let i = 1; i < departures.length; i++) {
-        const prev = departures[i-1], curr = departures[i];
+        const prev = departures[i - 1], curr = departures[i];
         const tPrev = parseTime(prev.time), tCurr = parseTime(curr.time);
         if (tCurr - tPrev < interval) {
           // 不够间隔：推后 curr 及其后所有站点
@@ -3236,8 +3287,50 @@ var trainSchedule = {
       }
     }
 
+    // (3) 新增：中间站“同时通过”冲突
+    // 先计算所有列车在各站的经过时间
+    const allPassages = computeAllPassageTimes();
+    // 对每个站点，收集所有列车经过该站的时间，再检查优先级
+    for (const station of stations) {
+      // 收集此站所有车次经过信息
+      const passes = [];
+      for (const num in allPassages) {
+        allPassages[num].forEach(p => {
+          if (p.station === station) {
+            passes.push({ num, timeMin: p.timeMin, stopIdx: p.stopIdx });
+          }
+        });
+      }
+      // 若不到两辆则跳过
+      if (passes.length < 2) continue;
+      // 按通过时间排序
+      passes.sort((a, b) => a.timeMin - b.timeMin);
+      // 比对相邻两辆：若高优列车与低优列车时间差 ≤ 1 分钟，则延迟低优
+      for (let i = 1; i < passes.length; i++) {
+        const higher = passes[i - 1], lower = passes[i];
+        // 判断优先级：higher 必须优先级更高
+        const priHigh = priorityTypes.indexOf(trainSchedule[higher.num]['車種']);
+        const priLow  = priorityTypes.indexOf(trainSchedule[lower.num]['車種']);
+        if (priHigh < priLow && Math.abs(lower.timeMin - higher.timeMin) <= 1) {
+          // 需要延迟 lower 列车，使其通過时间 = higher.timeMin + 1
+          const desired = higher.timeMin + 1;
+          const currTime = lower.timeMin;
+          const diff = desired - currTime;
+          if (diff > 0) {
+            // 推后 lower 列车从停靠站 lower.stopIdx 及之后的所有停靠站
+            const sched = trainSchedule[lower.num]['車站時間'];
+            for (let k = lower.stopIdx; k < sched.length; k++) {
+              sched[k][1] = addMinutes(sched[k][1], diff);
+            }
+            changed = true;
+          }
+        }
+      }
+    }
+
   } while (changed);
 })();
+
 
 
 

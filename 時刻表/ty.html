@@ -9,8 +9,25 @@
   <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
 
   <style>
+    /* ===== 全域變數 ===== */
+    :root {
+      --bg-color: #f6f8ff;
+      --topbar-bg: #333;
+      --topbar-button-bg: #555;
+      --topbar-button-hover: #777;
+      --sidebar-bg: #1f2d3d;
+      --sidebar-accent: #ffeb3b;
+      --panel-bg: rgba(0, 0, 0, 0.7);
+      --storm-card-bg: rgba(255, 255, 255, 0.1);
+      --storm-card-hover: rgba(255, 255, 255, 0.15);
+      --font-color: #fff;
+      --transition-speed: 0.3s;
+    }
+
     * {
-      margin: 0; padding: 0; box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
       font-family: "Microsoft JhengHei", sans-serif;
     }
     body {
@@ -18,112 +35,163 @@
       flex-direction: column;
       height: 100vh;
       overflow: hidden;
+      background-color: var(--bg-color);
     }
 
-    /* 1. 頂部工具列 (含按鈕) */
+    /* ===== 1. 頂部工具列 ===== */
     .topbar {
       flex: 0 0 auto;
-      background-color: #333;
-      color: #fff;
+      background-color: var(--topbar-bg);
+      color: var(--font-color);
       padding: 6px 10px;
       display: flex;
       align-items: center;
       gap: 10px;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+      z-index: 1000;
     }
     .topbar button {
-      background: #555;
+      background: var(--topbar-button-bg);
       border: none;
-      color: #fff;
+      color: var(--font-color);
       padding: 6px 12px;
       border-radius: 4px;
       cursor: pointer;
       font-size: 0.85rem;
+      transition: background-color var(--transition-speed), transform var(--transition-speed);
     }
     .topbar button:hover {
-      background: #777;
+      background: var(--topbar-button-hover);
+      transform: translateY(-1px);
+    }
+    .topbar button:active {
+      transform: translateY(1px);
     }
 
-    /* 2. 主要內容區：左側欄 + 地圖 */
+    /* ===== 2. 主要內容：左側欄 + 地圖 ===== */
     .main {
       flex: 1 1 0;
       display: flex;
       overflow: hidden;
     }
 
-    /* 左側側邊欄 (可顯示/隱藏) */
+    /* ===== 左側側邊欄 ===== */
     .sidebar {
       width: 320px;
-      background-color: #1f2d3d;
-      color: #fff;
+      background-color: var(--sidebar-bg);
       overflow-y: auto;
       padding: 15px;
-      transition: all 0.3s;
+      transition: all var(--transition-speed) ease;
+      border-right: 2px solid var(--sidebar-accent);
     }
     .sidebar.hidden {
-      display: none; /* 隱藏 */
+      display: none; /* 隱藏時取消佔位，讓地圖全寬 */
     }
     .sidebar h2 {
-      margin-bottom: 1rem;
+      margin-bottom: 0.5rem;
       text-align: center;
-      color: #ffeb3b; /* 些許亮色 */
+      color: var(--sidebar-accent);
+      font-size: 1.3rem;
+      letter-spacing: 1px;
+    }
+    .filter-container {
+      margin-bottom: 12px;
+    }
+    .filter-container input,
+    .filter-container select {
+      width: 100%;
+      padding: 6px 8px;
+      margin-top: 4px;
+      border: none;
+      border-radius: 4px;
+      font-size: 0.9rem;
     }
     .storm-item {
-      background: rgba(255,255,255,0.1);
+      background-color: var(--storm-card-bg);
       padding: 10px;
       margin-bottom: 10px;
       border-radius: 6px;
+      transition: background-color var(--transition-speed);
     }
-    .storm-item h3 {
-      margin-bottom: 5px;
-      font-size: 1rem;
+    .storm-item:hover {
+      background-color: var(--storm-card-hover);
     }
-    .storm-item p {
-      margin: 4px 0;
-      font-size: 0.85rem;
-    }
-    .storm-item label {
+    .storm-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
       cursor: pointer;
     }
-    .storm-item input[type="checkbox"] {
-      margin-right: 6px;
+    .storm-header h3 {
+      font-size: 1rem;
+      color: var(--font-color);
+      margin-left: 6px;
+    }
+    .storm-header input[type="checkbox"] {
       transform: scale(1.2);
-      vertical-align: middle;
+      accent-color: var(--sidebar-accent);
+      margin-right: 4px;
+    }
+    .storm-details {
+      margin-top: 8px;
+      display: none; /* 隱藏詳細資訊 */
+    }
+    .storm-details p {
+      margin: 4px 0;
+      font-size: 0.85rem;
+      color: #dfe6e9;
+      line-height: 1.4;
+      padding-left: 24px;
     }
 
-    /* 地圖容器 */
+    /* ===== 地圖容器 ===== */
     #map {
       flex: 1;
       position: relative;
+      transition: all var(--transition-speed);
     }
 
-    /* 浮動面板(圖例 / 說明) - 右上角，預設隱藏 */
+    /* ===== 浮動面板 (圖例 / 說明) ===== */
     .floating-panel {
       position: absolute;
       top: 10px;
       right: 10px;
       min-width: 200px;
       max-width: 250px;
-      background: rgba(0,0,0,0.7);
-      color: #fff;
+      background: var(--panel-bg);
+      color: var(--font-color);
       padding: 10px 15px;
       border-radius: 6px;
       z-index: 999;   /* 蓋在地圖上 */
       display: none;  /* 預設隱藏 */
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
     }
     .floating-panel h4 {
       margin-bottom: 6px;
       font-size: 1rem;
+      color: var(--sidebar-accent);
+      border-bottom: 1px solid rgba(236, 240, 241, 0.3);
+      padding-bottom: 4px;
     }
     .floating-panel p {
       font-size: 0.85rem;
       line-height: 1.4;
     }
+    .floating-panel img {
+      width: 100%;
+      border-radius: 4px;
+      border: 1px solid #aaa;
+      margin-top: 6px;
+    }
 
-    /* 日期或現在位置的小標籤 */
+    /* ===== 日期 / 現在位置 標籤 (無底框，用深色文字) ===== */
     .date-label {
-      background: rgba(255,255,255, 0);
-      border-radius: 3px;
-      padding: 1px 17px;
+      background: none !important;    /* 取消底色 */
+      box-shadow: none !important;    /* 取消陰影 */
+      text-shadow: none !important;   /* 取消文字陰影 */
+      color: #333 !important;         /* 原本的深色 */
+      padding: 0;                     /* 移除內邊距 */
+      border-radius: 0;               /* 取消圓角 */
       font-weight: bold;
       font-size: 0.9rem;
       white-space: nowrap;
@@ -141,11 +209,30 @@
     <button onclick="exportMapAsImage()">下載地圖</button>
   </div>
 
-  <!-- 主要區：左邊sidebar + 右邊地圖 -->
+  <!-- 主要區域：左邊 sidebar + 右邊 地圖 -->
   <div class="main">
-    <!-- 側邊欄(可隱藏/顯示) -->
+    <!-- 側邊欄 (可隱藏/顯示) -->
     <div class="sidebar" id="sidebar">
       <h2>颱風清單</h2>
+
+      <!-- 搜尋框 -->
+      <div class="filter-container">
+        <label for="searchInput" style="color: #ccc; font-size:0.9rem;">搜尋名稱：</label>
+        <input type="text" id="searchInput" placeholder="輸入颱風名稱..." oninput="applyFilters()" />
+      </div>
+
+      <!-- 強度篩選 -->
+      <div class="filter-container">
+        <label for="intensityFilter" style="color: #ccc; font-size:0.9rem;">強度篩選：</label>
+        <select id="intensityFilter" onchange="applyFilters()">
+          <option value="">全部強度</option>
+          <option value="TD">TD (熱帶性低氣壓以上)</option>
+          <option value="TS">TS (熱帶性風暴以上)</option>
+          <option value="ST">ST (強烈熱帶風暴以上)</option>
+          <option value="TY">TY (颱風)</option>
+        </select>
+      </div>
+
       <div id="stormList"></div>
     </div>
 
@@ -153,14 +240,14 @@
     <div id="map">
       <!-- 圖例 (覆蓋右上角) -->
       <div class="floating-panel" id="legendPanel">
-        <h4></h4>
-        <img src="pic.png" style="width:100%; border:1px solid #aaa;" />
+        <h4>圖例</h4>
+        <img src="pic.png" alt="圖例示意" />
       </div>
       <!-- 說明 (覆蓋右上角) -->
-      <div class="floating-panel" id="infoPanel" style="top:150px;">
+      <div class="floating-panel" id="infoPanel" style="top: 150px;">
         <h4>說明</h4>
         <p>此範例可隱藏/顯示左側清單、圖例、以及本說明面板。</p>
-        <p>過去路徑只顯示每日首個位置的日期標籤；現在位置顯示四象限暴風圈。</p>
+        <p>過去路徑僅顯示每日首個位置的日期標籤；現在位置顯示四象限暴風圈。</p>
       </div>
     </div>
   </div>
@@ -176,27 +263,21 @@
      ***************************************/
     function toggleSidebar() {
       const sb = document.getElementById("sidebar");
+      const mapEl = document.getElementById("map");
+      sb.classList.toggle("hidden");
       if (sb.classList.contains("hidden")) {
-        sb.classList.remove("hidden");
+        mapEl.style.flex = "1 1 100%";
       } else {
-        sb.classList.add("hidden");
+        mapEl.style.flex = "1";
       }
     }
     function toggleLegend() {
       const panel = document.getElementById("legendPanel");
-      if (panel.style.display === "block") {
-        panel.style.display = "none";
-      } else {
-        panel.style.display = "block";
-      }
+      panel.style.display = (panel.style.display === "block") ? "none" : "block";
     }
     function toggleInfo() {
       const panel = document.getElementById("infoPanel");
-      if (panel.style.display === "block") {
-        panel.style.display = "none";
-      } else {
-        panel.style.display = "block";
-      }
+      panel.style.display = (panel.style.display === "block") ? "none" : "block";
     }
 
     function exportMapAsImage() {
@@ -220,81 +301,21 @@
     baseLayer.addTo(map);
 
     /***************************************
-     * 2. 模擬多個颱風的資料
+     * 2. 模擬多個颱風的資料（「1421海葵」放最上面）
      ***************************************/
     let storms = [
-      {
-        name: "1420天兔(USAGI)-中度颱風",
-        show: true,
-        centerPressure: 1000,
-        windSpeed: 15,
-        gust: 23,
-        seven:100,
-        ten:50,
-        movement: "東北 23 公里/時",
-        time:"2025/01/25 02:00",
-        pastPath: [
-        { coords: [7.5, 147.5], intensity: 'TD', time: '10日02時' },{ coords: [9.8, 144.6], intensity: 'TD', time: '10日14時' }, 
-            { coords: [11.3, 140.6], intensity: 'TD', time: '11日02時' },{ coords: [12.4, 137.8], intensity: 'TD', time: '11日14時' },
-            { coords: [12.3, 136.4], intensity: 'TD', time: '11日20時' },{ coords: [12.8, 134.9], intensity: 'TS', time: '12日02時' },  
-            { coords: [13.5, 133.6], intensity: 'TS', time: '12日08時' }, 
-            { coords: [14.0, 131.9], intensity: 'TS', time: '12日14時' },
-            { coords: [14.2, 130.4], intensity: 'TS', time: '12日20時' },
-            { coords: [14.6, 129.0], intensity: 'TS', time: '13日02時' },
-            { coords: [14.9, 128.3], intensity: 'ST', time: '13日08時' },
-            { coords: [15.5, 126.4], intensity: 'ST', time: '13日14時' }, 
-            { coords: [16.2, 125.3], intensity: 'ST', time: '13日20時' },
-            { coords: [16.6, 123.9], intensity: 'ST', time: '14日02時' },
-            { coords: [16.8, 123.5], intensity: 'ST', time: '14日05時' },
-            { coords: [17.2, 123.1], intensity: 'ST', time: '14日08時' }, 
-            { coords: [17.6, 122.6], intensity: 'ST', time: '14日11時' },
-            { coords: [17.9, 122.1], intensity: 'ST', time: '14日14時' },
-            { coords: [18.2, 121.9], intensity: 'ST', time: '14日17時' },
-            { coords: [18.6, 121.4], intensity: 'ST', time: '14日20時' },
-            { coords: [19.1, 121.1], intensity: 'ST', time: '14日23時' },
-            { coords: [19.6, 120.7], intensity: 'ST', time: '15日02時' },
-            { coords: [20.0, 120.4], intensity: 'TS', time: '15日05時' },
-            { coords: [20.2, 120.1], intensity: 'TS', time: '15日08時' },
-            { coords: [20.8, 119.8], intensity: 'TS', time: '15日11時' },
-            { coords: [21.2, 119.7], intensity: 'TS', time: '15日14時' },
-            { coords: [21.4, 119.8], intensity: 'TS', time: '15日17時' },
-            { coords: [21.7, 119.8], intensity: 'TS', time: '15日20時' },
-            { coords: [21.9, 119.9], intensity: 'TS', time: '15日23時' },
-            { coords: [22.2, 119.9], intensity: 'TS', time: '16日02時' },
-            { coords: [22.2, 120.1], intensity: 'TS', time: '16日05時' },
-            { coords: [22.2, 120.2], intensity: 'TS', time: '16日08時' },
-            { coords: [22.1, 120.5], intensity: 'TD', time: '16日11時' },
-            { coords: [22.1, 120.6], intensity: 'TD', time: '16日14時' },
-        ],
-        currentData: {
-          coords:[22.1, 120.6],
-          intensity: "TD",
-          r7:  { ne:0, nw:0, se:0, sw:0 },
-          r10: { ne:0, nw:0, se:0, sw:0 },
-          time:"現在位置"
-        },
-        futurePath: [
-          {
-            coords:[22.6, 121.2],
-            intensity: "TD",
-            time:"16日23時",
-            r7:{ ne:0, nw:0, se:0, sw:0 },
-            r10:{ ne:0, nw:0, se:0, sw:0 }
-          }
-        ]
-      },
       {
         name: "1421海葵(HAIKUI)-中度颱風",
         show: true,
         centerPressure: 985,
         windSpeed: 25,
         gust: 38,
-        seven:100,
-        ten:50,
+        seven: 100,
+        ten: 50,
         movement: "東北 15 公里/時",
-        time:"2025/01/25 02:00",
+        time: "2025/01/25 02:00",
         pastPath: [
-        { coords:[11.3, 140.6], intensity:"TD", time:"11日02時" },
+          { coords:[11.3, 140.6], intensity:"TD", time:"11日02時" },
           { coords:[12.8, 134.9], intensity:"TS", time:"12日02時" },
           { coords:[15.5, 126.4], intensity:"ST", time:"13日14時" },
           { coords:[17.6, 122.6], intensity:"ST", time:"14日11時" },
@@ -304,52 +325,159 @@
         currentData: {
           coords: [20.0,127.0],
           intensity: "TY",
-          r7: { ne:120, nw:150, se:100, sw:110 },
-          r10:{ ne:70,  nw:80,  se:60,  sw:50 },
-          time:"現在"
+          r7:  { ne:120, nw:150, se:100, sw:110 },
+          r10: { ne:70,  nw:80,  se:60,  sw:50  },
+          time: "現在"
         },
         futurePath: [
           {
             coords:[21.3,125.5],
             intensity:"TY",
             time:"16日20時",
-            r7:{ ne:120, nw:150, se:100, sw:100 },
-            r10:{ ne:70,  nw:80,  se:60,  sw:50 }
+            r7: { ne:120, nw:150, se:100, sw:100 },
+            r10:{ ne:70,  nw:80,  se:60,  sw:50  }
           },
           {
             coords:[22.5,124.0],
             intensity:"ST",
             time:"17日08時",
-            r7:{ ne:100, nw:90, se:80, sw:70 },
-            r10:{ ne:50,  nw:40, se:40,  sw:30 }
+            r7: { ne:100, nw:90, se:80, sw:70  },
+            r10:{ ne:50,  nw:40, se:40,  sw:30  }
+          }
+        ]
+      },
+      {
+        name: "1420天兔(USAGI)-中度颱風",
+        show: false,  // 沒有未來路徑就不預設勾選
+        centerPressure: 1000,
+        windSpeed: 15,
+        gust: 23,
+        seven: 100,
+        ten: 50,
+        movement: "東北 23 公里/時",
+        time: "2025/01/25 02:00",
+        pastPath: [
+          { coords: [7.5, 147.5], intensity: 'TD', time: '10日02時' },
+          { coords: [9.8, 144.6], intensity: 'TD', time: '10日14時' },
+          { coords: [11.3, 140.6], intensity: 'TD', time: '11日02時' },
+          { coords: [12.4, 137.8], intensity: 'TD', time: '11日14時' },
+          { coords: [12.3, 136.4], intensity: 'TD', time: '11日20時' },
+          { coords: [12.8, 134.9], intensity: 'TS', time: '12日02時' },
+          { coords: [13.5, 133.6], intensity: 'TS', time: '12日08時' },
+          { coords: [14.0, 131.9], intensity: 'TS', time: '12日14時' },
+          { coords: [14.2, 130.4], intensity: 'TS', time: '12日20時' },
+          { coords: [14.6, 129.0], intensity: 'TS', time: '13日02時' },
+          { coords: [14.9, 128.3], intensity: 'ST', time: '13日08時' },
+          { coords: [15.5, 126.4], intensity: 'ST', time: '13日14時' },
+          { coords: [16.2, 125.3], intensity: 'ST', time: '13日20時' },
+          { coords: [16.6, 123.9], intensity: 'ST', time: '14日02時' },
+          { coords: [16.8, 123.5], intensity: 'ST', time: '14日05時' },
+          { coords: [17.2, 123.1], intensity: 'ST', time: '14日08時' },
+          { coords: [17.6, 122.6], intensity: 'ST', time: '14日11時' },
+          { coords: [17.9, 122.1], intensity: 'ST', time: '14日14時' },
+          { coords: [18.2, 121.9], intensity: 'ST', time: '14日17時' },
+          { coords: [18.6, 121.4], intensity: 'ST', time: '14日20時' },
+          { coords: [19.1, 121.1], intensity: 'ST', time: '14日23時' },
+          { coords: [19.6, 120.7], intensity: 'ST', time: '15日02時' },
+          { coords: [20.0, 120.4], intensity: 'TS', time: '15日05時' },
+          { coords: [20.2, 120.1], intensity: 'TS', time: '15日08時' },
+          { coords: [20.8, 119.8], intensity: 'TS', time: '15日11時' },
+          { coords: [21.2, 119.7], intensity: 'TS', time: '15日14時' },
+          { coords: [21.4, 119.8], intensity: 'TS', time: '15日17時' },
+          { coords: [21.7, 119.8], intensity: 'TS', time: '15日20時' },
+          { coords: [21.9, 119.9], intensity: 'TS', time: '15日23時' },
+          { coords: [22.2, 119.9], intensity: 'TS', time: '16日02時' },
+          { coords: [22.2, 120.1], intensity: 'TS', time: '16日05時' },
+          { coords: [22.2, 120.2], intensity: 'TS', time: '16日08時' },
+          { coords: [22.1, 120.5], intensity: 'TD', time: '16日11時' },
+          { coords: [22.1, 120.6], intensity: 'TD', time: '16日14時' },
+        ],
+        currentData: {
+          coords:[22.1, 120.6],
+          intensity: "TD",
+          r7:  { ne:0, nw:0, se:0, sw:0 },
+          r10: { ne:0, nw:0, se:0, sw:0 },
+          time:"現在位置"
+        },
+        futurePath: [ 
+          {
+            coords:[22.6, 121.2],
+            intensity: "TD",
+            time:"16日23時",
+            r7:{ ne:0, nw:0, se:0, sw:0 },
+            r10:{ ne:0, nw:0, se:0, sw:0 }
           }
         ]
       }
     ];
 
     /***************************************
-     * 3. 渲染左側清單
+     * 3. 渲染左側清單 (含搜尋 & 強度篩選)
      ***************************************/
     const stormListEl = document.getElementById("stormList");
     function renderStormList() {
       stormListEl.innerHTML = "";
+      const kw = document.getElementById("searchInput").value.trim().toLowerCase();
+      const intensityFilter = document.getElementById("intensityFilter").value;
+
       storms.forEach((storm, idx) => {
+        // 搜尋關鍵字過濾
+        if (kw && !storm.name.toLowerCase().includes(kw)) return;
+        // 強度篩選：只顯示「現在位置」強度 >= 選項
+        if (intensityFilter) {
+          const curr = storm.currentData.intensity;
+          const order = ["TD","TS","ST","TY"];
+          if (order.indexOf(curr) < order.indexOf(intensityFilter)) return;
+        }
+
         const div = document.createElement("div");
         div.className = "storm-item";
-        div.innerHTML = `
-          <label>
-            <input type="checkbox" ${storm.show ? "checked" : ""} onchange="toggleStorm(${idx}, this.checked)" />
-            <strong>${storm.name}</strong>
+
+        // 標題（颱風名稱＋勾選框），點擊即可展開 / 收合
+        const header = document.createElement("div");
+        header.className = "storm-header";
+        // 只有有 futurePath 才顯示 checkbox
+        const hasFuture = storm.futurePath && storm.futurePath.length > 0;
+        header.innerHTML = `
+          <label style="display: flex; align-items: center;">
+            ${ hasFuture 
+              ? `<input type="checkbox" ${storm.show ? "checked" : ""} onchange="toggleStorm(${idx}, this.checked)" />`
+              : ``
+            }
+            <h3>${storm.name}</h3>
           </label>
+          <span style="font-size:0.9rem; color:#ccc;">▾</span>
+        `;
+        div.appendChild(header);
+
+        // 詳細資訊，預設隱藏
+        const details = document.createElement("div");
+        details.className = "storm-details";
+        details.innerHTML = `
           <p>中心氣壓: ${storm.centerPressure} hPa</p>
           <p>最大風速(陣風): ${storm.windSpeed}(${storm.gust}) m/s</p>
           <p>七級(十級)暴風圈半徑: ${storm.seven}(${storm.ten}) km</p>
-          <p>未來路徑: ${storm.movement}</p>
+          <p>路徑移動: ${storm.movement}</p>
           <p>更新時間: ${storm.time}</p>
         `;
+        div.appendChild(details);
+
+        // 點擊 header 時，切換 details 顯示／隱藏
+        header.addEventListener("click", (e) => {
+          if (e.target.tagName.toLowerCase() === "input") return;
+          const isShowing = details.style.display === "block";
+          details.style.display = isShowing ? "none" : "block";
+          header.querySelector("span").textContent = isShowing ? "▾" : "▴";
+        });
+
         stormListEl.appendChild(div);
       });
     }
+
+    function applyFilters() {
+      renderStormList();
+    }
+
     function toggleStorm(idx, isShow) {
       storms[idx].show = isShow;
       drawAllStorms();
@@ -379,10 +507,10 @@
         // 過去路徑線
         if (i > 0) {
           L.polyline([ pPath[i-1].coords, pt.coords], {
-            color:"black", weight:2
+            color: "black", weight: 2
           }).addTo(map);
         }
-        // 強度圖示
+        // 強度圖示 + 座標 tooltip
         addTyphoonIcon(pt.coords, pt.intensity);
         // 每日首個位置加日期標籤 ("14日08時" => "14")
         const dayStr = pt.time.substring(0, pt.time.indexOf("日"));
@@ -396,22 +524,24 @@
       if (storm.currentData && storm.currentData.coords) {
         const c = storm.currentData;
         addTyphoonIcon(c.coords, c.intensity);
-        // 非正圓風圈 7級
+        // 非正圓風圈 7級 + 10級，並綁定 radius tooltip
         if (c.r7) {
           drawAsymmetricWindCircle(c.coords, c.r7, "orange");
         }
-        // 10級
         if (c.r10) {
           drawAsymmetricWindCircle(c.coords, c.r10, "red");
         }
         // "現在"標籤
-        const nowLabel = L.divIcon({ className: "date-label", html: c.time });
-        L.marker([c.coords[0]+0.3, c.coords[1]], { icon: nowLabel }).addTo(map);
+        const nowLabel = L.divIcon({
+          className: "date-label",
+          html: c.time
+        });
+        L.marker([c.coords[0] + 0.3, c.coords[1]], { icon: nowLabel }).addTo(map);
 
         // 過去最後點 -> 現在
         if (pPath.length > 0) {
-          const lastPast = pPath[pPath.length-1].coords;
-          L.polyline([ lastPast, c.coords], { color:"black", weight:2 }).addTo(map);
+          const lastPast = pPath[pPath.length - 1].coords;
+          L.polyline([ lastPast, c.coords], { color: "black", weight: 2 }).addTo(map);
         }
       }
 
@@ -419,11 +549,10 @@
       const fPath = storm.futurePath || [];
       for (let i = 0; i < fPath.length; i++) {
         const pt = fPath[i];
-        const prev = (i===0 && storm.currentData) ? storm.currentData.coords : fPath[i-1].coords;
-        // 連線 (虛線)
+        const prev = (i === 0 && storm.currentData) ? storm.currentData.coords : fPath[i - 1].coords;
         if (prev) {
           L.polyline([ prev, pt.coords ], {
-            color:"black", weight:2, dashArray:"5,5"
+            color: "black", weight: 2, dashArray: "5,5"
           }).addTo(map);
         }
         addTyphoonIcon(pt.coords, pt.intensity);
@@ -434,39 +563,53 @@
           drawAsymmetricWindCircle(pt.coords, pt.r10, "red", true);
         }
         // 時間標籤
-        const futLabel = L.divIcon({ className:"date-label", html: pt.time });
-        L.marker([pt.coords[0]+0.3, pt.coords[1]], { icon: futLabel }).addTo(map);
+        const futLabel = L.divIcon({
+          className:"date-label",
+          html: pt.time
+        });
+        L.marker([pt.coords[0] + 0.3, pt.coords[1]], { icon: futLabel }).addTo(map);
       }
     }
 
     /***************************************
      * 5. 非正圓風圈繪製
      ***************************************/
-    function drawAsymmetricWindCircle(center, rObj, color, isDashed=false) {
-      // rObj = { ne:120, nw:100, se:60, sw:50 }
+    function drawAsymmetricWindCircle(center, rObj, color, isDashed = false) {
       const lat0 = center[0], lng0 = center[1];
       const step = 5;
       let points = [];
-      // NE: 0~90
-      points = points.concat( getArcPoints(lat0, lng0, 0, 90, rObj.ne, step) );
-      // NW: 90~180
-      points = points.concat( getArcPoints(lat0, lng0, 90, 180, rObj.nw, step) );
-      // SW: 180~270
-      points = points.concat( getArcPoints(lat0, lng0, 180, 270, rObj.sw, step) );
-      // SE: 270~360
-      points = points.concat( getArcPoints(lat0, lng0, 270, 360, rObj.se, step) );
+      points = points.concat(getArcPoints(lat0, lng0, 0,   90,  rObj.ne, step)); // NE
+      points = points.concat(getArcPoints(lat0, lng0, 90,  180, rObj.nw, step)); // NW
+      points = points.concat(getArcPoints(lat0, lng0, 180, 270, rObj.sw, step)); // SW
+      points = points.concat(getArcPoints(lat0, lng0, 270, 360, rObj.se, step)); // SE
       points.push(points[0]);
-      L.polygon(points, {
+
+      const poly = L.polygon(points, {
         color, weight: 1, fillColor: color, fillOpacity: 0.1,
         dashArray: isDashed ? "5,5" : null
       }).addTo(map);
+
+      // 綁定風圈半徑 Tooltip (作為滑鼠移入顯示)
+      const tooltipText = `
+        NE: ${rObj.ne} km<br/>
+        NW: ${rObj.nw} km<br/>
+        SW: ${rObj.sw} km<br/>
+        SE: ${rObj.se} km
+      `;
+      poly.bindTooltip(tooltipText, {
+        direction: "center",
+        opacity: 0.9,
+        sticky: true,
+        offset: [0, 0]
+      });
     }
+
     function getArcPoints(lat0, lng0, startAngle, endAngle, radiusKm, stepDeg) {
       const ret = [];
       for (let a = startAngle; a <= endAngle; a += stepDeg) {
         const rad = a * Math.PI/180;
         const dLat = (radiusKm / 111) * Math.cos(rad);
-        const dLng = (radiusKm / (111 * Math.cos(lat0*Math.PI/180))) * Math.sin(rad);
+        const dLng = (radiusKm / (111 * Math.cos(lat0 * Math.PI/180))) * Math.sin(rad);
         const lat = lat0 + dLat;
         const lng = lng0 + dLng;
         ret.push([lat, lng]);
@@ -482,8 +625,16 @@
       const icon = L.icon({
         iconUrl, iconSize: [19, 19], iconAnchor: [9.5, 9.5]
       });
-      L.marker(coords, { icon }).addTo(map);
+      const marker = L.marker(coords, { icon }).addTo(map);
+      // 綁定座標 Tooltip (滑鼠移入顯示)
+      const coordText = `Lat: ${coords[0].toFixed(2)}, Lng: ${coords[1].toFixed(2)}`;
+      marker.bindTooltip(coordText, {
+        direction: "top",
+        opacity: 0.9,
+        offset: [0, -10]
+      });
     }
+
     function getIconUrl(intensity) {
       switch (intensity) {
         case "TD": return "td1.png";
@@ -502,7 +653,7 @@
         className: "date-label",
         html: dayStr
       });
-      L.marker([coords[0]+0.3, coords[1]], { icon: labelIcon }).addTo(map);
+      L.marker([coords[0] + 0.5, coords[1]], { icon: labelIcon }).addTo(map);
     }
 
     /***************************************
