@@ -1,755 +1,390 @@
 <!DOCTYPE html>
-<html lang="zh-Hant">
+<html lang="zh-TW">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>颱風預測路徑繪圖系統 (連續誤差範圍)</title>
-  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+  <meta charset="UTF-8"/>
+  <title>可刪除&拖曳站序 + 自動排點 </title>
   <style>
-    body {
-      margin: 0;
-      padding: 0;
-      font-family: "Microsoft JhengHei", sans-serif;
-      display: flex;
-      flex-direction: column;
-      height: 100vh;
-    }
-    #map {
-      flex: 1;
-      width: 100%;
-      position: relative;
-    }
-    .controls-container {
-      background-color: white;
-      padding: 15px;
-      border-radius: 5px;
-      box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
-      width: 100%;
-    }
-    .controls-container h3 {
-      margin-top: 0;
-    }
-    .controls-container button,
-    .controls-container input[type="checkbox"] {
-      margin-right: 10px;
-      margin-bottom: 10px;
-    }
-    .custom-label {
-      border-radius: 5px;
-      white-space: nowrap;
-      text-align: center;
-      font-weight: bold;
-      font-size: 17px;
-    }
-    /* 取消地圖上的日期底框，使用深色文字 */
-    .date-label {
-      background: none !important;
-      box-shadow: none !important;
-      text-shadow: none !important;
-      color: #333 !important;
-      padding: 0;
-      border-radius: 0;
-      font-weight: bold;
-      font-size: 0.9rem;
-      white-space: nowrap;
-    }
+    body {margin:0;padding:0;font-family:"Microsoft JhengHei",sans-serif;
+      background:linear-gradient(120deg,#fdfbfb,#ebedee);}
+    header{background:#4e77b6;color:#fff;padding:1rem;text-align:center;}
+    .container{max-width:800px;margin:2rem auto;background:#fff;
+      padding:1.5rem;border-radius:8px;box-shadow:0 0 10px rgba(0,0,0,0.1);}
+    label{display:inline-block;width:80px;margin-right:10px;font-weight:bold;}
+    input,select,button{font-size:.8rem;padding:1px;margin-bottom:1px;}
+    .stations-list{margin:1rem 0;padding:0;list-style:none;
+      border:1px solid #ccc;border-radius:6px;background:#f9f9f9;}
+    .station-item{display:flex;align-items:center;gap:10px;
+      padding:.5rem;border-bottom:1px solid #ddd;cursor:move;}
+    .station-item:last-child{border-bottom:none;}
+    .station-item.dragging{opacity:.5;background:#d0ebff;}
+    .station-item select{flex:1;}
+    .remove-btn{background:#cc3333;color:#fff;border:none;
+      border-radius:4px;cursor:pointer;padding:2px 3px;}
+    .remove-btn:hover{background:#aa0000;}
+    button.btn-primary{background:#4e77b6;color:#fff;border:none;
+      border-radius:4px;cursor:pointer;margin-right:10px;padding:.4rem .8rem;}
+    button:disabled{opacity:.5;cursor:not-allowed;}
+    .result-area{margin-top:1rem;background:#f8f8f8;
+      padding:1rem;border-radius:6px;border:1px solid #ccc;}
+    pre{background:#fff;border:1px solid #ddd;padding:10px;
+      border-radius:4px;max-height:300px;overflow:auto;}
   </style>
 </head>
 <body>
-  <div id="map"></div>
-  <div class="controls-container">
-    <h3>繪製控制</h3>
-    <button onclick="toggleDrawErrorRange()">繪製誤差範圍</button>
-    <button onclick="deleteLastErrorVertex()">刪除最後一個點</button>
-    <button onclick="finishDrawErrorRange()">完成繪製</button>
-    <br>
-    <h3>顯示選項</h3>
-    <label>
-      <input type="checkbox" id="showErrorCircles" onchange="toggleErrorCircles()" checked>
-      顯示連續誤差範圍
-    </label>
+
+<header><h1>可刪除&拖曳站序 + 自動排點 </h1></header>
+<div class="container">
+
+  <!-- (A) 車次輸入 + 載入 -->
+  <div>
+    <label for="trainId">車次：</label>
+    <input list="trainIdList" id="trainId" placeholder="例如: 353">
+    <datalist id="trainIdList"></datalist>
+    <button class="btn-primary" onclick="loadStationList()">載入站點</button>
   </div>
 
-  <!-- Leaflet JS -->
-  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
-  <!-- 範例 GeoJSON 資料 (請自行替換為實際路徑) -->
-  <script src="your-cities.geojson"></script>
+  <!-- (B) 車種 & 起站時間 -->
+  <div>
+    <label for="trainType">車種：</label>
+    <select id="trainType">
+      <option>自強號</option><option>普悠瑪</option><option>新自強</option>
+      <option>自強號(新)</option><option>加班車</option><option>莒光號</option>
+      <option>復興號</option><option>區間快</option><option>區間車</option>
+    </select>
+  </div>
+  <div>
+    <label for="startTime">起站時間：</label>
+    <input type="time" id="startTime" value="08:00">
+  </div>
 
-  <script>
-    // ===== 變數宣告 =====
-    var map = L.map('map').setView([23.5, 121], 6);
+  <hr>
 
-    // 存放動態「連續誤差範圍多邊形」圖層
-    var errorRegionLayers = [];
+  <!-- (C) 動態站點清單 + 新增 -->
+  <ul class="stations-list" id="stationList"></ul>
+  <button class="btn-primary" onclick="onAddClick()">新增站點</button>
+  <small>可按住站點拖曳上下交換順序</small>
 
-    // 手動繪製誤差範圍所需
-    var drawnErrorPolygon = null;
-    var drawnErrorVertices = [];
-    var drawErrorMode = false;
+  <hr>
 
-    // 標記、線條
-    var currentMarker = null;
-    var futureMarkers = [];
-    var labelMarkers = [];
-    var connectingLines = [];
+  <!-- (D) 操作按鈕 -->
+  <button class="btn-primary" onclick="autoSchedule()">自動排點</button>
+  <button class="btn-primary" onclick="saveConfig()">儲存配置</button>
+  <button class="btn-primary" onclick="loadConfig()">載入配置</button>
+  <button id="undoBtn" class="btn-primary" onclick="undo()" disabled>Undo</button>
+  <button id="redoBtn" class="btn-primary" onclick="redo()" disabled>Redo</button>
 
-    // 是否顯示「連續誤差範圍」
-    var showErrorCircles = true;
+  <div class="result-area">
+    <h3>排點結果</h3>
+    <div id="scheduleOutput"></div>
+    <h4>可複製的程式碼：</h4>
+    <pre id="codeOutput"></pre>
+  </div>
 
-    // 縣市高亮
-    var drawnCityPolygons = [];
+</div>
 
-    // 過去路徑 (模擬資料)
-    var pastPath = [
-      [7.5, 147.5],[9.8, 144.6],[11.3, 140.6],[12.4, 137.8],[12.3, 136.4],[12.8, 134.9],[13.5, 133.6],
-      [14.0, 131.9],[14.2, 130.4],[14.6, 129.0],[14.9, 128.3],[15.5, 126.4],[16.2, 125.3],[16.6, 123.9],
-      [16.8, 123.5],[17.2, 123.1],[17.6, 122.6],[17.9, 122.1],[18.2, 121.9],[18.6, 121.4],[19.1, 121.1],
-      [19.6, 120.7]
-    ];
+<script src="train-schedule.js"></script>
+<script>
+// === 全域狀態 ==================================================
+const stationListUl = document.getElementById("stationList");
+let undoStack = [], redoStack = [];
 
-    // 現在位置 (模擬資料，errorRadius 取未來第一筆的誤差)
-    var currentPosition = {
-      coords: [19.6, 120.7],
-      intensity: 'ST',
-      time: '現在位置',
-      // 將第一個未來點的誤差當作當前圓心誤差
-      errorRadius: 50000  
-    };
+// (1) 初始化：在 datalist 填入所有車次
+const trainIdList = document.getElementById("trainIdList");
+Object.keys(trainSchedule).forEach(id=>{
+  const opt = document.createElement("option");
+  opt.value = id;
+  trainIdList.appendChild(opt);
+});
 
-    // 未來路徑 (模擬資料)
-    var futurePath = [
-      {
-        coords: [21.0, 119.8],
-        radius7: { northeast:120, northwest:120, southeast:120, southwest:120 },
-        radius10: { northeast:40, northwest:40, southeast:40, southwest:40 },
-        errorRadius: 50000,
-        showIcon: true,
-        intensity: 'TS',
-        time: '15日14時'
-      },
-      {
-        coords: [21.7, 120.0],
-        radius7: { northeast:100, northwest:100, southeast:100, southwest:100 },
-        radius10: { northeast:0, northwest:0, southeast:0, southwest:0 },
-        errorRadius: 90000,
-        showIcon: true,
-        intensity: 'TS',
-        time: '16日02時'
-      },
-      {
-        coords: [22.1, 120.5],
-        radius7: { northeast:80, northwest:80, southeast:80, southwest:80 },
-        radius10: { northeast:0, northwest:0, southeast:0, southwest:0 },
-        errorRadius: 120000,
-        showIcon: true,
-        intensity: 'TS',
-        time: '16日14時'
-      },
-      {
-        coords: [22.3, 121.1],
-        radius7: { northeast:80, northwest:80, southeast:80, southwest:80 },
-        radius10: { northeast:0, northwest:0, southeast:0, southwest:0 },
-        errorRadius: 150000,
-        showIcon: true,
-        intensity: 'TS',
-        time: '17日02時'
-      },
-      {
-        coords: [22.3, 121.5],
-        radius7: { northeast:0, northwest:0, southeast:0, southwest:0 },
-        radius10: { northeast:0, northwest:0, southeast:0, southwest:0 },
-        errorRadius: 190000,
-        showIcon: true,
-        intensity: 'TD',
-        time: '17日14時'
-      }
-    ];
+// (2) 預設建立兩站
+addStationItem(); addStationItem();
+recordState();
 
-    // ===== Leaflet 地圖初始化 =====
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
-      maxZoom: 18,
-      attribution: 'Map tiles by CartoDB, CC BY 3.0',
-    }).addTo(map);
+// ===================== Undo / Redo ============================
+function getCurrentRoute(){
+  return Array.from(stationListUl.children)
+    .map(li => li.querySelector("select").value);
+}
+function applyRoute(route){
+  stationListUl.innerHTML = "";
+  route.forEach(v => addStationItem(v));
+}
+function recordState(){
+  undoStack.push(getCurrentRoute());
+  if (undoStack.length > 100) undoStack.shift();
+  redoStack.length = 0;
+  updateUndoRedoButtons();
+}
+function undo(){
+  if (!undoStack.length) return;
+  redoStack.push(getCurrentRoute());
+  const prev = undoStack.pop();
+  applyRoute(prev);
+  updateUndoRedoButtons();
+}
+function redo(){
+  if (!redoStack.length) return;
+  undoStack.push(getCurrentRoute());
+  const nxt = redoStack.pop();
+  applyRoute(nxt);
+  updateUndoRedoButtons();
+}
+function updateUndoRedoButtons(){
+  document.getElementById("undoBtn").disabled = undoStack.length === 0;
+  document.getElementById("redoBtn").disabled = redoStack.length === 0;
+}
 
-    // ===== 工具函式 =====
+// ===================== 新增 / 刪除 ============================
+function onAddClick(){
+  recordState();
+  addStationItem();
+}
+function addStationItem(value){
+  if (!value) value = stations[0];
 
-    // 公尺轉 Pixel 半徑 (Leaflet layer point)
-    function meterToPixelRadius(latlng, meter) {
-      var latOffset = meter / 111320;
-      var pOri = map.latLngToLayerPoint(latlng);
-      var pN   = map.latLngToLayerPoint([latlng[0] + latOffset, latlng[1]]);
-      return pOri.distanceTo(pN);
-    }
+  const li = document.createElement("li");
+  li.className = "station-item";
+  li.draggable = true;
+  li.addEventListener("dragstart", onDragStart);
+  li.addEventListener("dragover",  onDragOver);
+  li.addEventListener("drop",      onDrop);
+  li.addEventListener("dragend",   onDragEnd);
 
-    // 計算兩圓外切點 (pixel-space)
-    function getExternalTangentPoints(P1, r1pix, P2, r2pix) {
-      var dx = P2.x - P1.x;
-      var dy = P2.y - P1.y;
-      var d2 = dx*dx + dy*dy;
-      var d  = Math.sqrt(d2);
-      var results = [];
-      [ +1, -1 ].forEach(function(sign) {
-        var dr = r1pix - sign * r2pix;
-        var h2 = d2 - dr*dr;
-        if (h2 < 0) return; // 無外切線
-        var h = Math.sqrt(h2);
-        var ux = (dx * dr + sign * dy * h) / d2;
-        var uy = (dy * dr - sign * dx * h) / d2;
-        var tA = L.point(P1.x + r1pix * ux, P1.y + r1pix * uy);
-        var tB = L.point(P2.x + (sign * r2pix) * ux, P2.y + (sign * r2pix) * uy);
-        results.push([ tA, tB ]);
+  const sel = document.createElement("select");
+  stations.forEach(s=>{
+    const o = document.createElement("option");
+    o.value = s;
+    o.textContent = s;
+    sel.appendChild(o);
+  });
+  sel.value = value;
+
+  const btn = document.createElement("button");
+  btn.className = "remove-btn";
+  btn.textContent = "X";
+  btn.addEventListener("click", ()=>{
+    recordState();
+    removeStationItem(li);
+  });
+
+  li.appendChild(sel);
+  li.appendChild(btn);
+  stationListUl.appendChild(li);
+}
+function removeStationItem(li){
+  if (stationListUl.children.length <= 2){
+    alert("最少保留兩個站!");
+    return;
+  }
+  stationListUl.removeChild(li);
+}
+
+// ===================== Drag & Drop ============================
+let dragSrc = null;
+function onDragStart(e){
+  dragSrc = e.currentTarget;
+  e.currentTarget.classList.add("dragging");
+}
+function onDragOver(e){ e.preventDefault(); }
+function onDrop(e){
+  e.preventDefault();
+  if (!dragSrc) return;
+  recordState();                        // 重排前記錄
+  const tgt = e.currentTarget;
+  if (dragSrc !== tgt){
+    const list = stationListUl;
+    const arr  = [...list.children];
+    const i1   = arr.indexOf(dragSrc);
+    const i2   = arr.indexOf(tgt);
+    if (i1 < i2) list.insertBefore(dragSrc, tgt.nextSibling);
+    else         list.insertBefore(dragSrc, tgt);
+  }
+}
+function onDragEnd(e){
+  e.currentTarget.classList.remove("dragging");
+  dragSrc = null;
+}
+
+// ===================== 載入現有車次站點 =======================
+function loadStationList(){
+  const id = document.getElementById("trainId").value.trim();
+  if (!trainSchedule[id]){
+    alert("找不到此車次："+id);
+    return;
+  }
+  recordState();
+  stationListUl.innerHTML = "";
+  trainSchedule[id]['車站時間'].forEach(pair=>{
+    addStationItem(pair[0]);
+  });
+}
+
+// ===================== 儲存 / 載入配置 ========================
+function saveConfig(){
+  const id = document.getElementById("trainId").value.trim() || "default";
+  const cfg = {
+    trainType: document.getElementById("trainType").value,
+    startTime: document.getElementById("startTime").value,
+    route: getCurrentRoute()
+  };
+  localStorage.setItem("route_"+id, JSON.stringify(cfg));
+  alert("已儲存配置："+id);
+}
+function loadConfig(){
+  const id = document.getElementById("trainId").value.trim() || "default";
+  const txt = localStorage.getItem("route_"+id);
+  if (!txt){ alert("無儲存配置："+id); return; }
+  const cfg = JSON.parse(txt);
+  recordState();
+  document.getElementById("trainType").value = cfg.trainType;
+  document.getElementById("startTime").value = cfg.startTime;
+  applyRoute(cfg.route);
+}
+
+// ===================== 自動排點核心 ===========================
+const priorityTypes = [
+  "普悠瑪","新自強","自強號(新)","自強號",
+  "加班車","莒光號","復興號","區間快","區間車"
+];
+
+function toMinutes(hm){
+  const [h,m] = hm.split(":").map(Number);
+  return h*60 + m;
+}
+function toHHMM(min){
+  const h = Math.floor(min/60)%24;
+  const m = min%60;
+  return `${String(h).padStart(2,"0")}:${String(m).padStart(2,"0")}`;
+}
+
+/* === ★ 取平均行車時間（由最接近主車種往後搜尋） ★ === */
+function getSegmentMinutes(mainType, A, B){
+  let start = priorityTypes.indexOf(mainType);
+  if (start < 0) start = 0;
+
+  for (let i = start; i < priorityTypes.length; i++){
+    const t    = priorityTypes[i];
+    const cand = [];
+
+    for (const id in trainSchedule){
+      const d = trainSchedule[id];
+      if (d.車種 !== t) continue;
+
+      const arr = d.車站時間;
+      let iA = -1, iB = -1;
+      arr.forEach((p,j)=>{
+        if (p[0] === A) iA = j;
+        if (p[0] === B) iB = j;
       });
-      return results; // 可能有 2 組切點
-    }
-
-    // Circle 弧段 (pixel-space)
-    function buildArcPoints(centerPt, radiusPix, tPt1, tPt2) {
-      var cx = centerPt.x, cy = centerPt.y;
-      var x1 = tPt1.x - cx, y1 = tPt1.y - cy;
-      var x2 = tPt2.x - cx, y2 = tPt2.y - cy;
-      function normalizeAngle(a) {
-        while (a < -Math.PI) a += 2*Math.PI;
-        while (a >  Math.PI) a -= 2*Math.PI;
-        return a;
-      }
-      var ang1 = normalizeAngle(Math.atan2(y1, x1));
-      var ang2 = normalizeAngle(Math.atan2(y2, x2));
-      var diff = normalizeAngle(ang2 - ang1);
-      var steps = 40;
-      var arcPoints = [];
-      for (var i = 0; i <= steps; i++) {
-        var frac = i / steps;
-        var theta = ang1 + frac * diff;
-        var px = cx + radiusPix * Math.cos(theta);
-        var py = cy + radiusPix * Math.sin(theta);
-        arcPoints.push(L.point(px, py));
-      }
-      return arcPoints;
-    }
-
-    // 畫出從 current → future 一連串「外切誤差區域」
-    function drawContinuousErrorRegion(circles) {
-      // circles: 陣列 [ {latlng: [lat,lng], radius: m}, ... ]
-      // 清除舊有
-      errorRegionLayers.forEach(function(layer) {
-        map.removeLayer(layer);
-      });
-      errorRegionLayers = [];
-
-      if (circles.length < 2) return;
-
-      // (1) 檢查首尾包含情況：若首尾被包含，直接畫最大圓
-      function drawSolidCircle(circle) {
-        var polyLatLngs = [];
-        for (var a = 0; a < 360; a += 6) {
-          var rad = a * Math.PI/180;
-          var latOff = (circle.radius * Math.cos(rad)) / 111320;
-          var lngOff = (circle.radius * Math.sin(rad)) / 
-                       (111320 * Math.cos(circle.latlng[0] * Math.PI/180));
-          polyLatLngs.push([circle.latlng[0] + latOff, circle.latlng[1] + lngOff]);
-        }
-        var poly = L.polygon(polyLatLngs, {
-          color: 'blue',
-          weight: 1,
-          fillColor: 'blue',
-          fillOpacity: 0.15,
-          pane: 'overlayPane'
-        }).addTo(map);
-        errorRegionLayers.push(poly);
-      }
-
-      // 先定位每個圓的中心 pixel 與 pixel 半徑
-      var pts = circles.map(c => map.latLngToLayerPoint(c.latlng));
-      var rpix = circles.map(c => meterToPixelRadius(c.latlng, c.radius));
-
-      // 把每一對相鄰圓連成「外切多邊形」
-      for (var i = 0; i < circles.length - 1; i++) {
-        var cA = circles[i], cB = circles[i+1];
-        var latlngA = L.latLng(cA.latlng), latlngB = L.latLng(cB.latlng);
-        var d_m = latlngA.distanceTo(latlngB);
-        var rA = cA.radius, rB = cB.radius;
-        // 如果圓 A 完全包含圓 B，或 B 包含 A，就直接畫較大圓
-        if (d_m + Math.min(rA, rB) <= Math.max(rA, rB)) {
-          var larger = (rA >= rB ? cA : cB);
-          drawSolidCircle(larger);
-          continue;
-        }
-
-        // 否則取外切線
-        var P1 = pts[i], P2 = pts[i+1];
-        var r1pix = rpix[i], r2pix = rpix[i+1];
-        var tangentPairs = getExternalTangentPoints(P1, r1pix, P2, r2pix);
-        if (tangentPairs.length < 2) {
-          // 無法構成兩條完整外切線 → 畫較大圓
-          var larger = (rA >= rB ? cA : cB);
-          drawSolidCircle(larger);
-          continue;
-        }
-
-        // 我們選第一組外切線為「外圍」，第二組為「內部」→ 面積取外圍
-        var tA0 = tangentPairs[0][0], tB0 = tangentPairs[0][1];
-        var tA1 = tangentPairs[1][0], tB1 = tangentPairs[1][1];
-
-        // 組成「外側圓 A 弧 (tA0→tA1) → 切線 (tA1→tB1) → 外側圓 B 弧 (tB1→tB0) → 切線 (tB0→tA0)」
-        var arcA = buildArcPoints(P1, r1pix, tA0, tA1);
-        var arcB = buildArcPoints(P2, r2pix, tB1, tB0);
-        var pixPoly = [];
-        arcA.forEach(pt => pixPoly.push(pt));
-        pixPoly.push(tB1);
-        arcB.forEach(pt => pixPoly.push(pt));
-        pixPoly.push(tA0);
-
-        // pixel → latlng
-        var latlngPoly = pixPoly.map(pt => map.layerPointToLatLng(pt));
-        var poly = L.polygon(latlngPoly, {
-          color: 'blue',
-          weight: 1,
-          fillColor: 'blue',
-          fillOpacity: 0.15,
-          pane: 'overlayPane'
-        }).addTo(map);
-        errorRegionLayers.push(poly);
+      if (iA >= 0 && iB > iA){
+        let s   = toMinutes(arr[iA][1]);
+        let e   = toMinutes(arr[iB][1]);
+        let tot = e - s;
+        if (tot < 0) tot += 1440;   // 跨夜
+        cand.push(tot);
       }
     }
 
-    // ===== 繪製功能 =====
-
-    // 切換手動繪製誤差範圍模式
-    function toggleDrawErrorRange() {
-      drawErrorMode = !drawErrorMode;
-      if (drawErrorMode) {
-        alert('點擊地圖來繪製誤差範圍，完成後點擊"完成繪製"按鈕。');
-        map.getContainer().classList.add('crosshair-cursor');
-        if (drawnErrorPolygon) { map.removeLayer(drawnErrorPolygon); }
-        drawnErrorPolygon = null;
-        drawnErrorVertices = [];
-      } else {
-        map.getContainer().classList.remove('crosshair-cursor');
-      }
+    // 找到候選就用「平均」；若沒有再往下一等級試
+    if (cand.length){
+      // 1. 由短到長排序
+      cand.sort((a,b) => a - b);
+      // 2. 取前 25 %（至少 1 筆）
+      const n = Math.max(1, Math.ceil(cand.length * 0.5));
+      const fast25 = cand.slice(0, n);
+      // 3. 算平均（若想改成「單純第 25 百分位值」可用 fast25[n-1]）
+      const avgFast25 = fast25.reduce((sum,v)=>sum+v,0) / fast25.length;
+      return Math.round(avgFast25);
     }
+  }
+  // 若最終仍無資料，回傳一個合理預設
+  return 30;
+}
 
-    // 地圖點擊事件：繪製手動誤差範圍頂點
-    map.on('click', function(e) {
-      if (drawErrorMode) {
-        if (!drawnErrorPolygon) {
-          drawnErrorPolygon = L.polygon([], {
-            color: 'transparent',
-            fillColor: 'blue',
-            fillOpacity: 0.3,
-            lineCap: 'round',
-            renderer: L.canvas(),
-            zIndexOffset: -2000
-          }).addTo(map);
-        }
-        drawnErrorVertices.push(e.latlng);
-        updateDrawnErrorPolygon();
-      }
+/* -------- 以下同舊版：衝突解決 & 輸出 -------- */
+// 1. 儲存每一站每一時刻的發車
+const departureMap = {};   // { [station]: { [time]: [ {...} ] } }
+
+// HH:MM + N 分鐘（跨夜安全處理）
+function addMinutes(hhmm, minutes){
+  const [h,m] = hhmm.split(":").map(Number);
+  let tot = h*60 + m + minutes;
+  tot = ((tot % 1440) + 1440) % 1440;
+  const nh = Math.floor(tot/60), nm = tot % 60;
+  return `${String(nh).padStart(2,"0")}:${String(nm).padStart(2,"0")}`;
+}
+
+// 登記一台列車完整排點
+function registerSchedule(trainId, trainType, schedule){
+  for (const [station,time] of schedule){
+    departureMap[station] = departureMap[station] || {};
+    departureMap[station][time] = departureMap[station][time] || [];
+    departureMap[station][time].push({
+      trainId,
+      trainType,
+      assignedTime: time
     });
+  }
+}
 
-    // 更新手動畫出的多邊形
-    function updateDrawnErrorPolygon() {
-      if (drawnErrorPolygon) {
-        drawnErrorPolygon.setLatLngs(drawnErrorVertices);
-      }
-    }
+// 解決同站同時衝突（依車種優先）
+function resolveConflicts(){
+  for (const station in departureMap){
+    const times = departureMap[station];
+    for (const time in times){
+      const list = times[time];
+      if (list.length <= 1) continue;
 
-    // 刪除最後一個頂點
-    function deleteLastErrorVertex() {
-      if (drawnErrorVertices.length > 0) {
-        drawnErrorVertices.pop();
-        updateDrawnErrorPolygon();
-      }
-    }
-
-    // 完成手動繪製
-    function finishDrawErrorRange() {
-      if (drawnErrorPolygon && drawnErrorVertices.length >= 3) {
-        map.removeLayer(drawnErrorPolygon);
-        drawnErrorPolygon = L.polygon(drawnErrorVertices, {
-          color: 'transparent',
-          fillColor: 'blue',
-          fillOpacity: 0.15,
-          lineCap: 'round',
-          renderer: L.canvas(),
-          zIndexOffset: -2000
-        }).addTo(map);
-        drawnErrorVertices = [];
-      } else {
-        alert('請至少添加三個點以繪製多邊形。');
-      }
-      drawErrorMode = false;
-      map.getContainer().classList.remove('crosshair-cursor');
-    }
-
-    // 切換是否顯示「連續誤差範圍」
-    function toggleErrorCircles() {
-      showErrorCircles = document.getElementById('showErrorCircles').checked;
-      redrawPaths();
-    }
-
-    // 高亮縣市 (範例 GeoJSON)
-    function highlightCities() {
-      drawnCityPolygons.forEach(layer => map.removeLayer(layer));
-      drawnCityPolygons = [];
-      var selectedCities = ["臺北市", "新北市", "桃園市"];
-      geojsonData.features.forEach(function(feature) {
-        if (selectedCities.includes(feature.properties.name)) {
-          var poly = L.geoJSON(feature, {
-            style: {
-              color: 'transparent',
-              fillColor: 'red',
-              fillOpacity: 0.1,
-              lineCap: 'round',
-              renderer: L.canvas(),
-              zIndexOffset: -2000
-            }
-          }).addTo(map);
-          drawnCityPolygons.push(poly);
-        }
+      list.sort((a,b)=> priorityTypes.indexOf(a.trainType)
+                          - priorityTypes.indexOf(b.trainType));
+      list.forEach((item,idx)=>{
+        item.assignedTime = addMinutes(time, idx);  // 第 0 個保留原時刻
       });
     }
+  }
+}
 
-    // 繪製不對稱風圈
-    function drawAsymmetricWindCircle(center, windData, color) {
-      var points = [];
-      var quadrants = [
-        { radius: windData.northeast, startAngle: 0, endAngle: 90 },
-        { radius: windData.northwest, startAngle: 90, endAngle: 180 },
-        { radius: windData.southwest, startAngle: 180, endAngle: 270 },
-        { radius: windData.southeast, startAngle: 270, endAngle: 360 }
-      ];
-      quadrants.forEach(function(q) {
-        var radius = q.radius * 1000;
-        for (var angle = q.startAngle; angle <= q.endAngle; angle += 5) {
-          var radian = (angle * Math.PI) / 180;
-          var lat = center[0] + (radius / 111320) * Math.cos(radian);
-          var lng = center[1] + (radius / (40075000 * Math.cos(center[0] * Math.PI / 180) / 360)) * Math.sin(radian);
-          points.push([lat, lng]);
-        }
-      });
-      points.push(points[0]);
-      L.polygon(points, {
-        color: color,
-        weight: 1,
-        fillOpacity: 0.1,
-        fillColor: color,
-        pane: 'overlayPane'
-      }).addTo(map);
-    }
+// === 自動排點主函式 ==========================================
+function autoSchedule(){
+  const trainId   = document.getElementById("trainId").value.trim() || "9999";
+  const trainType = document.getElementById("trainType").value;
+  let   current   = toMinutes(document.getElementById("startTime").value || "08:00");
 
-    // 重繪所有路徑、風圈、連續誤差範圍
-    function redrawPaths() {
-      // 1. 清除除底圖以外的所有圖層
-      map.eachLayer(function(layer) {
-        if (
-          layer instanceof L.Polyline ||
-          layer instanceof L.Circle ||
-          layer instanceof L.Marker ||
-          layer instanceof L.Polygon
-        ) {
-          map.removeLayer(layer);
-        }
-      });
-      // 重新加入底圖
-      L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
-        maxZoom: 18,
-        attribution: 'Map tiles by CartoDB, CC BY 3.0',
-      }).addTo(map);
+  // (1) 依路線建立原始 schedule
+  let schedule = [];
+  const route  = getCurrentRoute();
+  schedule.push([ route[0], toHHMM(current) ]);
+  for (let i = 0; i < route.length - 1; i++){
+    const seg = getSegmentMinutes(trainType, route[i], route[i+1]);
+    current  += seg;
+    schedule.push([ route[i+1], toHHMM(current) ]);
+  }
 
-      // 2. 過去路徑 + 現在位置→未來路徑連線
-      if (pastPath.length > 0) {
-        L.polyline([...pastPath, currentPosition.coords], {
-          color: 'black',
-          lineCap: 'round'
-        }).addTo(map);
-      }
+  // (2) 登記、(3) 解衝突
+  registerSchedule(trainId, trainType, schedule);
+  resolveConflicts();
 
-      // 3. 畫現在位置風圈
-      drawAsymmetricWindCircle(currentPosition.coords, { 
-        northeast: futurePath[0].errorRadius / 1000,
-        northwest: futurePath[0].errorRadius / 1000,
-        southeast: futurePath[0].errorRadius / 1000,
-        southwest: futurePath[0].errorRadius / 1000
-      }, 'blue');
+  // (4) 更新 schedule 中的 assignedTime（若被延後）
+  schedule = schedule.map(([station,origTime])=>{
+    const recs = departureMap[station] && departureMap[station][origTime];
+    if (!recs) return [station, origTime];
+    const me = recs.find(r => r.trainId === trainId);
+    return [station, me ? me.assignedTime : origTime];
+  });
 
-      // 4. 現在位置圖示 + 標籤
-      var cIcon = L.icon({
-        iconUrl: getIntensityIcon(currentPosition.intensity),
-        iconSize: [22,22],
-        iconAnchor: [11,11]
-      });
-      currentMarker = L.marker(currentPosition.coords, { icon: cIcon }).addTo(map);
-      addDraggableLabel(currentPosition.coords, currentPosition.time);
+  // (5) 輸出到頁面
+  document.getElementById("scheduleOutput").innerHTML =
+    schedule.map(p => `${p[0]} - ${p[1]}`).join("<br>");
 
-      // 5. 畫未來路徑風圈與圖示
-        // 5. 畫未來路徑風圈與圖示
-        futureMarkers = [];
-        labelMarkers = [];
-        connectingLines = [];
-        for (var i = 0; i < futurePath.length; i++) {
-          var pt = futurePath[i];
-          // 畫 7 級風圈（橘色）
-          drawAsymmetricWindCircle(pt.coords, pt.radius7, 'orange');
-          // 畫 10 級風圈（紅色）
-          drawAsymmetricWindCircle(pt.coords, pt.radius10, 'red');
-          // 如果要顯示圖示，就把對應強度的圖示放到地圖上
-          if (pt.showIcon) {
-            var icon = L.icon({
-              iconUrl: getIntensityIcon(pt.intensity),
-              iconSize: [22, 22],
-              iconAnchor: [11, 11]
-            });
-            var m = L.marker(pt.coords, { icon: icon }).addTo(map);
-            futureMarkers.push(m);
-            addDraggableLabel(pt.coords, pt.time);
-          }
-        }
+  const code = `'${trainId}': {
+  '車種': '${trainType}',
+  '車站時間': [
+    ${schedule.map(p => `['${p[0]}','${p[1]}']`).join(", ")}
+  ]
+},`;
+  document.getElementById("codeOutput").textContent = code;
+}
+</script>
 
-        // 6. 如果要顯示「連續誤差範圍」，就把 currentPosition + 所有 futurePath 當成 circles 串成一條線再計算外切面積
-        if (showErrorCircles) {
-          var circles = [];
-          // (a) 先把現在位置視為第一個圓
-          circles.push({
-            latlng: currentPosition.coords,
-            radius: currentPosition.errorRadius
-          });
-          // (b) 再把所有未來路徑的圓依序推進陣列
-          futurePath.forEach(function(pt) {
-            circles.push({
-              latlng: pt.coords,
-              radius: pt.errorRadius
-            });
-          });
-          // (c) 呼叫剛剛定義的函式，一次畫出連續外切區域
-          drawContinuousErrorRegion(circles);
-        }
-
-        // 7. 高亮縣市
-        highlightCities();
-      }
-      // ===== redrawPaths() 結束 =====
-
-
-      // ========== 下面是其餘所需函式，請確保這些都在 <script> 區段內同一層級 ==========
-
-      // 在 pixel-space 計算兩圓外切點
-      function getExternalTangentPoints(P1, r1pix, P2, r2pix) {
-        var dx = P2.x - P1.x;
-        var dy = P2.y - P1.y;
-        var d2 = dx * dx + dy * dy;
-        var d = Math.sqrt(d2);
-        var results = [];
-        [ +1, -1 ].forEach(function(sign) {
-          var dr = r1pix - sign * r2pix;
-          var h2 = d2 - dr * dr;
-          if (h2 < 0) return; // 無外切線
-          var h = Math.sqrt(h2);
-          var ux = (dx * dr + sign * dy * h) / d2;
-          var uy = (dy * dr - sign * dx * h) / d2;
-          var tA = L.point(P1.x + r1pix * ux, P1.y + r1pix * uy);
-          var tB = L.point(P2.x + (sign * r2pix) * ux, P2.y + (sign * r2pix) * uy);
-          results.push([ tA, tB ]);
-        });
-        return results;
-      }
-
-      // 建立 pixel-space 的圓弧 (tPt1 → tPt2)
-      function buildArcPoints(centerPt, radiusPix, tPt1, tPt2) {
-        var cx = centerPt.x, cy = centerPt.y;
-        var x1 = tPt1.x - cx, y1 = tPt1.y - cy;
-        var x2 = tPt2.x - cx, y2 = tPt2.y - cy;
-        function normalizeAngle(a) {
-          while (a < -Math.PI) a += 2 * Math.PI;
-          while (a >  Math.PI) a -= 2 * Math.PI;
-          return a;
-        }
-        var ang1 = normalizeAngle(Math.atan2(y1, x1));
-        var ang2 = normalizeAngle(Math.atan2(y2, x2));
-        var diff = normalizeAngle(ang2 - ang1);
-        var steps = 40;
-        var arcPoints = [];
-        for (var i = 0; i <= steps; i++) {
-          var frac = i / steps;
-          var theta = ang1 + frac * diff;
-          var px = cx + radiusPix * Math.cos(theta);
-          var py = cy + radiusPix * Math.sin(theta);
-          arcPoints.push(L.point(px, py));
-        }
-        return arcPoints;
-      }
-
-      // 畫「連續誤差區域」：傳入 [ {latlng, radius}, ... ] 陣列
-      function drawContinuousErrorRegion(circles) {
-        // 清除舊圖層
-        errorRegionLayers.forEach(function(layer) {
-          map.removeLayer(layer);
-        });
-        errorRegionLayers = [];
-
-        if (circles.length < 2) return;
-
-        // 將每個圓心轉為 pixel-space 座標，並計算 pixel 半徑
-        var pts = circles.map(c => map.latLngToLayerPoint(c.latlng));
-        var rpix = circles.map(c => meterToPixelRadius(c.latlng, c.radius));
-
-        // 針對相鄰兩個圓，計算外切面積，或若包含情況直接畫大圓
-        for (var i = 0; i < circles.length - 1; i++) {
-          var cA = circles[i], cB = circles[i + 1];
-          var latA = L.latLng(cA.latlng), latB = L.latLng(cB.latlng);
-          var d_m = latA.distanceTo(latB); // 公尺
-          var rA = cA.radius, rB = cB.radius;
-
-          // 如果一圓完全被另一圓包住 → 直接畫較大圓
-          if (d_m + Math.min(rA, rB) <= Math.max(rA, rB)) {
-            var larger = (rA >= rB ? cA : cB);
-            var polyLL = [];
-            for (var a = 0; a < 360; a += 6) {
-              var rad = a * Math.PI / 180;
-              var latOff = (larger.radius * Math.cos(rad)) / 111320;
-              var lngOff = (larger.radius * Math.sin(rad)) / (111320 * Math.cos(larger.latlng[0] * Math.PI / 180));
-              polyLL.push([ larger.latlng[0] + latOff, larger.latlng[1] + lngOff ]);
-            }
-            var poly = L.polygon(polyLL, {
-              color: 'blue',
-              weight: 1,
-              fillColor: 'blue',
-              fillOpacity: 0.15,
-              pane: 'overlayPane'
-            }).addTo(map);
-            errorRegionLayers.push(poly);
-            continue;
-          }
-
-          // 否則計算外切線
-          var P1 = pts[i], P2 = pts[i + 1];
-          var r1pix = rpix[i], r2pix = rpix[i + 1];
-          var tangentPairs = getExternalTangentPoints(P1, r1pix, P2, r2pix);
-          if (tangentPairs.length < 2) {
-            // 若無法成對外切線 → 直接畫較大圓
-            var larger = (rA >= rB ? cA : cB);
-            var polyLL = [];
-            for (var a = 0; a < 360; a += 6) {
-              var rad = a * Math.PI / 180;
-              var latOff = (larger.radius * Math.cos(rad)) / 111320;
-              var lngOff = (larger.radius * Math.sin(rad)) / (111320 * Math.cos(larger.latlng[0] * Math.PI / 180));
-              polyLL.push([ larger.latlng[0] + latOff, larger.latlng[1] + lngOff ]);
-            }
-            var poly = L.polygon(polyLL, {
-              color: 'blue',
-              weight: 1,
-              fillColor: 'blue',
-              fillOpacity: 0.15,
-              pane: 'overlayPane'
-            }).addTo(map);
-            errorRegionLayers.push(poly);
-            continue;
-          }
-
-          // 取兩組切點，並用第一組組「外側」外切面積
-          var tA0 = tangentPairs[0][0], tB0 = tangentPairs[0][1];
-          var tA1 = tangentPairs[1][0], tB1 = tangentPairs[1][1];
-
-          var arcA = buildArcPoints(P1, r1pix, tA0, tA1);
-          var arcB = buildArcPoints(P2, r2pix, tB1, tB0);
-
-          // 組成 pixel-space 多邊形
-          var pixPoly = [];
-          arcA.forEach(pt => pixPoly.push(pt));
-          pixPoly.push(tB1);
-          arcB.forEach(pt => pixPoly.push(pt));
-          pixPoly.push(tA0);
-
-          // pixel → latlng
-          var latlngPoly = pixPoly.map(pt => map.layerPointToLatLng(pt));
-          var poly = L.polygon(latlngPoly, {
-            color: 'blue',
-            weight: 1,
-            fillColor: 'blue',
-            fillOpacity: 0.15,
-            pane: 'overlayPane'
-          }).addTo(map);
-          errorRegionLayers.push(poly);
-        }
-      }
-
-            // ===== redrawPaths() 之外的輔助函式 =====
-
-      // 添加可拖動標籤並連線到圖示
-      function addDraggableLabel(coords, labelText) {
-        var labelMarker = L.marker(
-          [coords[0], coords[1] + 0.1],
-          {
-            draggable: true,
-            icon: L.divIcon({
-              className: 'custom-label',
-              html: `<div>${labelText}</div>`
-            })
-          }
-        ).addTo(map);
-
-        var line = L.polyline(
-          [ coords, [coords[0], coords[1] + 0.1] ],
-          { color: 'black', weight: 1 }
-        ).addTo(map);
-
-        labelMarkers.push(labelMarker);
-        connectingLines.push(line);
-
-        labelMarker.on('drag', function(e) {
-          var newPos = e.target.getLatLng();
-          line.setLatLngs([ coords, newPos ]);
-        });
-      }
-
-      // 根據強度 (intensity) 回傳相應的圖示 URL
-      function getIntensityIcon(intensity) {
-        switch (intensity) {
-          case 'TD':
-            return 'td1.png';
-          case 'TS':
-            return 'ts1.png';
-          case 'ST':
-            return 'st1.png';
-          case 'TY':
-            return 'ty.png';
-          default:
-            return 'default.png';
-        }
-      }
-
-      // 高亮顯示特定縣市 (使用已載入的 GeoJSON 資料)
-      function highlightCities() {
-        // 先移除舊的縣市圖層
-        drawnCityPolygons.forEach(function(layer) {
-          map.removeLayer(layer);
-        });
-        drawnCityPolygons = [];
-
-        var selectedCities = ["臺北市", "新北市", "桃園市"];
-        geojsonData.features.forEach(function(feature) {
-          if (selectedCities.includes(feature.properties.name)) {
-            var poly = L.geoJSON(feature, {
-              style: {
-                color: 'transparent',
-                fillColor: 'red',
-                fillOpacity: 0.1,
-                lineCap: 'round',
-                renderer: L.canvas(),
-                pane: 'overlayPane'
-              }
-            }).addTo(map);
-            drawnCityPolygons.push(poly);
-          }
-        });
-      }
-
-      // 已在上方提供，若尚未定義則補上
-      function meterToPixelRadius(latlng, meter) {
-        var latOffset = meter / 111320;
-        var pOri = map.latLngToLayerPoint(latlng);
-        var pN   = map.latLngToLayerPoint([latlng[0] + latOffset, latlng[1]]);
-        return pOri.distanceTo(pN);
-      }
-    </script>
 </body>
 </html>
