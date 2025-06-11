@@ -1877,6 +1877,78 @@ const foodData = [
         others: 82.7,        // 其他
         gmapUrl: "https://maps.app.goo.gl/c3oqeRdL7Y3WPot47"
       },
+      {
+        time: "2025-06-11",
+        city: "台中市",
+        district: "北區",
+        storeName: "浪金生魚片",
+        category: "店面",
+        priceLevel: "$$$",
+         // 地圖用 (示例座標)
+        lat:  24.1662206, 
+        lng:  120.6866692,
+        // 各細項評分 (0~100)
+        taste: 88.5,        // 口味
+        freshness: 90,    // 食材新鮮度
+        texture: 90,      // 口感
+        appearance: 90,   // 外觀
+        smell: 87,        // 氣味
+        portion: 84.5,      // 分量
+        uniqueness: 84,   // 獨特性
+        price: 83.5,        // 價格
+        environment: 83.5,  // 環境
+        attitude: 75,     // 態度
+        others: 82.5,        // 其他
+        gmapUrl: "https://maps.app.goo.gl/5yRqkyrt7Eg9mi9L8"
+      },
+      {
+        time: "2025-06-11",
+        city: "台中市",
+        district: "南區",
+        storeName: "宇匠屋《丼飯 壽司職人專門店》",
+        category: "店面",
+        priceLevel: "$$$",
+         // 地圖用 (示例座標)
+        lat:  24.1298153, 
+        lng:  120.6826311,
+        // 各細項評分 (0~100)
+        taste: 82,        // 口味
+        freshness: 82.6,    // 食材新鮮度
+        texture: 85,      // 口感
+        appearance: 83.5,   // 外觀
+        smell: 85,        // 氣味
+        portion: 82.2,      // 分量
+        uniqueness: 76,   // 獨特性
+        price: 83,        // 價格
+        environment: 83.5,  // 環境
+        attitude: 84.5,     // 態度
+        others: 70,        // 其他
+        gmapUrl: "https://maps.app.goo.gl/1nMTYYRAtXtAn3pc6"
+      },
+      {
+        time: "2025-06-11",
+        city: "台中市",
+        district: "南區",
+        storeName: "夜夜見來蛋包飯",
+        category: "店面",
+        priceLevel: "$$$",
+         // 地圖用 (示例座標)
+        lat:  24.1298153, 
+        lng:  120.6826311,
+        // 各細項評分 (0~100)
+        taste: 79,        // 口味
+        freshness: 77,    // 食材新鮮度
+        texture: 79,      // 口感
+        appearance: 80.5,   // 外觀
+        smell: 82,        // 氣味
+        portion: 86,      // 分量
+        uniqueness: 76,   // 獨特性
+        price: 84.5,        // 價格
+        environment: 78,  // 環境
+        attitude: 86,     // 態度
+        others: 80.3,        // 其他
+        gmapUrl: "https://maps.app.goo.gl/EijAFY2LurXKPF5A9"
+      },
     
   ];
   
