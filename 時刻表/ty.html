@@ -305,22 +305,91 @@
      ***************************************/
     let storms = [
       {
-        name: "2501蝴蝶(01W)-輕度颱風",
+        name: "2501蝴蝶(WUTIP)-輕度颱風",
         show: true,
-        centerPressure: 998,
-        windSpeed: 15,
-        gust: 23,
-        seven: 100,
+        centerPressure: 995,
+        windSpeed: 18,
+        gust: 25,
+        seven: 80,
         ten: 0,
-        movement: "西 4 公里/時",
-        time: "2025/06/11 02:00",
+        movement: "西北 28 公里/時",
+        time: "2025/06/11 14:00",
         pastPath: [
           { coords:[15.5, 115.0], intensity:"TD", time:"10日02時" },
           { coords:[15.3, 114.8], intensity:"TD", time:"10日14時" },
-          { coords:[15.3, 114.5], intensity:"TD", time:"10日20時" }
+          { coords:[15.3, 114.5], intensity:"TD", time:"10日20時" },
+          { coords:[15.3, 114.3], intensity:"TD", time:"11日02時" },
+          { coords:[15.5, 113.6], intensity:"TS", time:"11日08時" },
+          { coords:[16.6, 112.5], intensity:"TS", time:"11日14時" },
         ],
         currentData: {
-          coords: [15.3,114.3],
+          coords: [16.6,112.5],
+          intensity: "TS",
+          r7:  { ne:80, nw:80, se:80, sw:80 },
+          r10: { ne:0,  nw:0,  se:0,  sw:0  },
+          time: "現在"
+        },
+        futurePath: [
+          {
+            coords:[16.7,111.0],
+            intensity:"TS",
+            time:"12日02時",
+            r7: { ne:100, nw:100, se:100, sw:100 },
+            r10:{ ne:0,  nw:0,  se:0,  sw:0  }
+          },
+          {
+            coords:[17.2,110.1],
+            intensity:"TS",
+            time:"12日14時",
+            r7: { ne:120, nw:120, se:120, sw:120 },
+            r10:{ ne:0,  nw:0,  se:0,  sw:0  }
+          },
+          {
+            coords:[17.8,109.6],
+            intensity:"TS",
+            time:"13日02時",
+            r7: { ne:120, nw:120, se:120, sw:120 },
+            r10:{ ne:0,  nw:0,  se:0,  sw:0  }
+          },
+          {
+            coords:[19.0,109.2],
+            intensity:"TS",
+            time:"13日14時",
+            r7: { ne:120, nw:120, se:120, sw:120 },
+            r10:{ ne:0,  nw:0,  se:0,  sw:0  }
+          },
+          {
+            coords:[22.3,109.9],
+            intensity:"TS",
+            time:"14日14時",
+            r7: { ne:100, nw:100, se:100, sw:100 },
+            r10:{ ne:0,  nw:0,  se:0,  sw:0  }
+          },
+          {
+            coords:[25.6,112.9],
+            intensity:"TD",
+            time:"15日14時",
+            r7: { ne:0, nw:0, se:0, sw:0 },
+            r10:{ ne:0,  nw:0,  se:0,  sw:0  }
+          },  
+        ]
+      },
+      {
+        name: "94W-(-)--",
+        show: true,
+        centerPressure: 1005,
+        windSpeed: 15,
+        gust: 18,
+        seven: 0,
+        ten: 0,
+        movement: "西北 - 公里/時",
+        time: "2025/06/11 14:00",
+        pastPath: [
+          { coords:[15.2, 127.5], intensity:"TD", time:"11日14時" },
+          { coords:[15.7, 126.9], intensity:"TD", time:"11日14時" },
+        ],
+        currentData: {
+          coords: [15.7,126.9],
           intensity: "TD",
           r7:  { ne:0, nw:0, se:0, sw:0 },
           r10: { ne:0,  nw:0,  se:0,  sw:0  },
@@ -328,47 +397,14 @@
         },
         futurePath: [
           {
-            coords:[16.0,112.4],
+            coords:[15.7,126.9],
             intensity:"TD",
             time:"11日14時",
             r7: { ne:0, nw:0, se:0, sw:0 },
             r10:{ ne:0,  nw:0,  se:0,  sw:0  }
           },
-          {
-            coords:[16.4,111.5],
-            intensity:"TS",
-            time:"12日02時",
-            r7: { ne:80, nw:80, se:80, sw:80 },
-            r10:{ ne:0,  nw:0,  se:0,  sw:0  }
-          },
-          {
-            coords:[17.6,109.6],
-            intensity:"TS",
-            time:"13日02時",
-            r7: { ne:80, nw:80, se:80, sw:80 },
-            r10:{ ne:0,  nw:0,  se:0,  sw:0  }
-          },
-          {
-            coords:[20.3,109.4],
-            intensity:"TS",
-            time:"14日02時",
-            r7: { ne:100, nw:100, se:100, sw:100 },
-            r10:{ ne:0,  nw:0,  se:0,  sw:0  }
-          },
-          {
-            coords:[23.8,110.7],
-            intensity:"TS",
-            time:"15日02時",
-            r7: { ne:80, nw:80, se:80, sw:80 },
-            r10:{ ne:0,  nw:0,  se:0,  sw:0  }
-          },
-          {
-            coords:[26.6,115.3],
-            intensity:"TS",
-            time:"15日02時",
-            r7: { ne:80, nw:80, se:80, sw:80 },
-            r10:{ ne:0,  nw:0,  se:0,  sw:0  }
-          },
+          
+          
         ]
       },
       
