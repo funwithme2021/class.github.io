@@ -289,7 +289,7 @@ function getSegmentMinutes(mainType, A, B){
     if (cand.length){
       // 1. 由短到長排序
       cand.sort((a,b) => a - b);
-      // 2. 取前 25 %（至少 1 筆）
+      // 2. 取前 50 %（至少 1 筆）
       const n = Math.max(1, Math.ceil(cand.length * 0.5));
       const fast25 = cand.slice(0, n);
       // 3. 算平均（若想改成「單純第 25 百分位值」可用 fast25[n-1]）
