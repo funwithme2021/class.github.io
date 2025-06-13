@@ -73,7 +73,7 @@
                           區間快:'green',復興號:'#0080FF',區間車:'black','自強號(新)':'brown'}[t]||'#34495e');
     const parseMin=t=>{if(!t) return 99999; const [h,m]=t.split(':').map(Number); return h*60+m;};
 
-    /* —— 海線判定：車次編號含 A —— */
+    /* ——— 海線標註：車次編號含 A ——— */
     const isSea=id=>id.includes('A');
 
     /* ===== 初始化選單 ===== */
@@ -101,13 +101,17 @@
       const range=stations.slice(sIdx,eIdx+1);
       pivots.forEach(pv=>{if(pv.value && !range.includes(pv.value)) pv.value='';});
 
-      /* ---- collect IDs ---- */
+      /* ---------- collect IDs ---------- */
       const resIds=[], nonIds=[];
       for(const id in trainSchedule){
         const t=trainSchedule[id];
         if(t.車種==='加班車') continue;
-        const hasStop=t.車站時間.some(([s])=>range.includes(s));
-        if(!hasStop && !nonReserved.includes(t.車種)) continue;
+
+        // ➜ 先判斷此車在範圍內是否至少停靠一次
+        const hasStop = t.車站時間.some(([s])=>range.includes(s));
+        if(!hasStop) continue;             // 不論對號 / 非對號，沒停靠就略過
+
+        // 分類
         (nonReserved.includes(t.車種)?nonIds:resIds).push(id);
       }
       const allIds=[...resIds,...nonIds];
