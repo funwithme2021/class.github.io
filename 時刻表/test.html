@@ -10,9 +10,8 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700&display=swap" rel="stylesheet" />
 
-  <!-- jsPDF & html2canvas -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <!-- SheetJS for Excel export -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 
   <style>
     body{font-family:'Noto Sans TC',sans-serif;background:#f5f5f5;margin:0;color:#333}
@@ -21,8 +20,8 @@
 
     #controls{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;margin:16px 0}
     #controls select,#controls button{font-size:15px;padding:6px 10px}
-    #exportAllBtn{background:#2980b9;color:#fff;border:none;border-radius:4px;cursor:pointer}
-    #exportAllBtn:hover{background:#2573a6}
+    #exportAllBtn{background:#27ae60;color:#fff;border:none;border-radius:4px;cursor:pointer}
+    #exportAllBtn:hover{background:#229954}
 
     .scheduleContainer{overflow:auto;padding:20px;margin-bottom:40px;background:#fff;box-shadow:0 2px 6px rgba(0,0,0,.08)}
 
@@ -54,7 +53,7 @@
     <label>基準⑤：<select id="pivot5"><option value="">（空）</option></select></label>
 
     <button id="applyRangeBtn">套用</button>
-    <button id="exportAllBtn">📄 匯出 PDF</button>
+    <button id="exportAllBtn">📄 匯出 Excel</button>
   </div>
 
   <div id="reservedWrapper"></div>
@@ -71,7 +70,7 @@
     const nonReserved=['區間快','區間車'];
     const typeColor=t=>({新自強:'#8600FF',普悠瑪:'#FF1493',自強號:'red',莒光號:'orange',
                           區間快:'green',復興號:'#0080FF',區間車:'black','自強號(新)':'brown'}[t]||'#34495e');
-    const parseMin=t=>{if(!t) return 99999; const [h,m]=t.split(':').map(Number); return h*60+m;};
+    const parseMin=t=>{if(!t) return 999999; const [h,m]=t.split(':').map(Number); return h*60+m;};
 
     /* ——— 海線標註：車次編號含 A ——— */
     const isSea=id=>id.includes('A');
@@ -107,18 +106,18 @@
         const t=trainSchedule[id];
         if(t.車種==='加班車') continue;
 
-        // ➜ 先判斷此車在範圍內是否至少停靠一次
+        // 先判斷此車在範圍內是否至少停靠一次
         const hasStop = t.車站時間.some(([s])=>range.includes(s));
-        if(!hasStop) continue;             // 不論對號 / 非對號，沒停靠就略過
+        if(!hasStop) continue;
 
-        // 分類
         (nonReserved.includes(t.車種)?nonIds:resIds).push(id);
       }
       const allIds=[...resIds,...nonIds];
 
-      /* ---- 區段內最多車次停靠的站 ---- */
+      /* ---- 區段內最多車次停靠的站（僅看對號車） ---- */
+      const refIds = resIds.length ? resIds : allIds;
       const stopCount={}; range.forEach(st=>stopCount[st]=0);
-      allIds.forEach(id=>{
+      refIds.forEach(id=>{
         trainSchedule[id].車站時間.forEach(([st])=>{
           if(range.includes(st)) stopCount[st]++;
         });
@@ -246,15 +245,24 @@
       cont.appendChild(tbl);
     }
 
-    /* ===== 匯出 PDF ===== */
-    document.getElementById('exportAllBtn').addEventListener('click',async()=>{
-      await document.fonts.ready;
-      const canvas=await html2canvas(document.body,{scale:2,useCORS:true});
-      const pdf=new jspdf.jsPDF('l','mm','a4');
-      const w=pdf.internal.pageSize.getWidth(),
-            h=canvas.height*w/canvas.width;
-      pdf.addImage(canvas.toDataURL('image/png'),'PNG',0,0,w,h);
-      pdf.save('時刻表_矩陣版.pdf');
+    /* ===== 匯出 Excel ===== */
+    document.getElementById('exportAllBtn').addEventListener('click',()=>{
+      const wb = XLSX.utils.book_new();
+
+      const resTable=document.querySelector('#reservedContainer table');
+      if(resTable){
+        const wsRes=XLSX.utils.table_to_sheet(resTable,{raw:true});
+        XLSX.utils.book_append_sheet(wb,wsRes,'對號列車');
+      }
+      const nonTable=document.querySelector('#nonReservedContainer table');
+      if(nonTable){
+        const wsNon=XLSX.utils.table_to_sheet(nonTable,{raw:true});
+        XLSX.utils.book_append_sheet(wb,wsNon,'非對號列車');
+      }
+      if(!resTable && !nonTable){
+        alert('目前沒有資料可匯出'); return;
+      }
+      XLSX.writeFile(wb,'時刻表_矩陣版.xlsx');
     });
   });
   </script>
