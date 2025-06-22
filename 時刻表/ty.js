@@ -1,6 +1,67 @@
 /* ty.js ── 颱風資料 */
 const storms = [
     {
+    name: "25TD03(NONAME)-熱帶性低氣壓",
+    centerPressure: 1006,
+    windSpeed: 10,
+    gust: 23,
+    seven: 0,
+    ten: 0,
+    movement: "北北西 10 公里/時",
+    time: "2025/06/23 02:00",
+    pastPath: [
+      { coords: [23.0, 146.0], intensity: "TD", time: "22日14時" },
+      { coords: [23.5, 145.8], intensity: "TD", time: "22日20時" },
+      { coords: [23.9, 145.2], intensity: "TD", time: "23日02時" },
+    ],
+    currentData: {
+      coords: [23.9, 145.2],
+      intensity: "TD",
+      r7:  { ne: 0, nw: 0, se: 0, sw: 0 },/* ne: 東北, nw: 東南, se: 西北, sw: 西南 */
+      r10: { ne: 0,  nw: 0,  se: 0,  sw: 0  },
+      time: "現在"
+    },
+    futurePath: [
+      {
+        coords:[25.2,144.0],
+        intensity:"TD",
+        time:"23日08時",
+        r7:{ne:0,nw:0,se:0,sw:0},
+        r10:{ne:0,nw:0,se:0,sw:0}
+      },
+      {
+        coords:[26.2,143.0],
+        intensity:"TD",
+        time:"23日14時",
+        r7:{ne:0,nw:0,se:0,sw:0},
+        r10:{ne:0,nw:0,se:0,sw:0}
+      },
+      {
+        coords:[27.4,141.9],
+        intensity:"TS",
+        time:"23日20時",
+        r7:{ne:80,nw:80,se:80,sw:80},
+        r10:{ne:0,nw:0,se:0,sw:0}
+      },
+      {
+        coords:[29.2,140.7],
+        intensity:"TS",
+        time:"24日08時",
+        r7:{ne:80,nw:80,se:80,sw:80},
+        r10:{ne:0,nw:0,se:0,sw:0}
+      },
+      {
+        coords:[31.2,139.6],
+        intensity:"TD",
+        time:"24日20時",
+        r7:{ne:0,nw:0,se:0,sw:0},
+        r10:{ne:0,nw:0,se:0,sw:0}
+      },
+
+
+    ]
+  },
+    {
     name: "25TD02(NONAME)-熱帶性低氣壓",
     centerPressure: 1005,
     windSpeed: 10,
@@ -43,58 +104,15 @@ const storms = [
       { coords: [17.0, 109.6], intensity: "TS", time: "12日14時" },
       { coords: [17.4, 109.2], intensity: "TS", time: "12日20時" },
       { coords: [17.8, 108.9], intensity: "TS", time: "13日02時" },
+      { coords: [18.3, 108.7], intensity: "TS", time: "13日08時" },
+      { coords: [18.8, 108.3], intensity: "TS", time: "13日14時" },
+      { coords: [19.3, 108.4], intensity: "TS", time: "13日20時" },
+      { coords: [19.8, 108.7], intensity: "TS", time: "14日02時" },
+      { coords: [20.6, 109.1], intensity: "TS", time: "14日08時" },
+      { coords: [21.5, 109.8], intensity: "TS", time: "14日14時" },
+      { coords: [22.3, 110.4], intensity: "TS", time: "14日20時" },
+      { coords: [23.2, 111.1], intensity: "TD", time: "15日02時" },
     ],
-    currentData: {
-      coords: [17.8, 108.9],
-      intensity: "TS",
-      r7:  { ne: 100, nw: 140, se: 100, sw: 120 },/* ne: 東北, nw: 東南, se: 西北, sw: 西南 */
-      r10: { ne: 0,  nw: 0,  se: 0,  sw: 0  },
-      time: "現在"
-    },
-    futurePath: [
-      {
-        coords:[18.8,108.5],
-        intensity:"TS",
-        time:"13日14時",
-        r7:{ne:120,nw:120,se:120,sw:120},
-        r10:{ne:0,nw:0,se:0,sw:0}
-      },
-      {
-        coords:[19.3,108.5],
-        intensity:"TS",
-        time:"13日20時",
-        r7:{ne:120,nw:120,se:120,sw:120},
-        r10:{ne:0,nw:0,se:0,sw:0}
-      },
-      {
-        coords:[19.8,108.7],
-        intensity:"TS",
-        time:"14日02時",
-        r7:{ne:120,nw:120,se:120,sw:120},
-        r10:{ne:0,nw:0,se:0,sw:0}
-      },
-      {
-        coords:[21.5,109.7],
-        intensity:"TS",
-        time:"14日14時",
-        r7:{ne:100,nw:100,se:100,sw:100},
-        r10:{ne:0,nw:0,se:0,sw:0}
-      },
-      {
-        coords:[23.2,111.1],
-        intensity:"TS",
-        time:"15日02時",
-        r7:{ne:80,nw:80,se:80,sw:80},
-        r10:{ne:0,nw:0,se:0,sw:0}
-      },
-      {
-        coords:[27.1,117.3],
-        intensity:"TD",
-        time:"16日02時",
-        r7:{ne:0,nw:0,se:0,sw:0},
-        r10:{ne:0,nw:0,se:0,sw:0}
-      }
-    ]
   },
   
 ];
