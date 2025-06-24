@@ -1,21 +1,28 @@
 /* ty.js ── 颱風資料 */
 const storms = [
     {
-    name: "25TD03(NONAME)-熱帶性低氣壓",
-    centerPressure: 1006,
-    windSpeed: 10,
+    name: "2502聖帕(SEPAT)-輕度颱風",
+    centerPressure: 1002,
+    windSpeed: 15,
     gust: 23,
-    seven: 0,
+    seven: 80,
     ten: 0,
-    movement: "北北西 10 公里/時",
-    time: "2025/06/23 02:00",
+    movement: "北西 9 公里/時",
+    time: "2025/06/25 02:00",
     pastPath: [
       { coords: [23.0, 146.0], intensity: "TD", time: "22日14時" },
       { coords: [23.5, 145.8], intensity: "TD", time: "22日20時" },
-      { coords: [23.9, 145.2], intensity: "TD", time: "23日02時" },
+      { coords: [24.0, 145.2], intensity: "TD", time: "23日02時" },
+      { coords: [26.0, 143.8], intensity: "TS", time: "23日14時" },
+      { coords: [27.1, 143.4], intensity: "TS", time: "23日20時" },
+      { coords: [28.6, 142.1], intensity: "TS", time: "24日02時" },
+      { coords: [29.3, 141.0], intensity: "TS", time: "24日08時" },
+      { coords: [29.9, 140.5], intensity: "TS", time: "24日14時" },
+      { coords: [30.6, 140.1], intensity: "TS", time: "24日20時" },
+      { coords: [31.0, 140.0], intensity: "TD", time: "25日02時" },
     ],
     currentData: {
-      coords: [23.9, 145.2],
+      coords: [31.0, 140.0],
       intensity: "TD",
       r7:  { ne: 0, nw: 0, se: 0, sw: 0 },/* ne: 東北, nw: 東南, se: 西北, sw: 西南 */
       r10: { ne: 0,  nw: 0,  se: 0,  sw: 0  },
@@ -23,41 +30,12 @@ const storms = [
     },
     futurePath: [
       {
-        coords:[25.2,144.0],
+        coords:[31.0, 140.0],
         intensity:"TD",
-        time:"23日08時",
+        time:"25日02時",
         r7:{ne:0,nw:0,se:0,sw:0},
         r10:{ne:0,nw:0,se:0,sw:0}
       },
-      {
-        coords:[26.2,143.0],
-        intensity:"TD",
-        time:"23日14時",
-        r7:{ne:0,nw:0,se:0,sw:0},
-        r10:{ne:0,nw:0,se:0,sw:0}
-      },
-      {
-        coords:[27.4,141.9],
-        intensity:"TS",
-        time:"23日20時",
-        r7:{ne:80,nw:80,se:80,sw:80},
-        r10:{ne:0,nw:0,se:0,sw:0}
-      },
-      {
-        coords:[29.2,140.7],
-        intensity:"TS",
-        time:"24日08時",
-        r7:{ne:80,nw:80,se:80,sw:80},
-        r10:{ne:0,nw:0,se:0,sw:0}
-      },
-      {
-        coords:[31.2,139.6],
-        intensity:"TD",
-        time:"24日20時",
-        r7:{ne:0,nw:0,se:0,sw:0},
-        r10:{ne:0,nw:0,se:0,sw:0}
-      },
-
 
     ]
   },
