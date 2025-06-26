@@ -1,5 +1,20 @@
 /* ty.js ── 颱風資料 */
 const storms = [
+  {
+    name: "25TD04(NONAME)-熱帶性低氣壓",
+    centerPressure: 1004,
+    windSpeed: 12,
+    gust: 20,
+    seven: 0,
+    ten: 0,
+    movement: "北西 21 公里/時",
+    time: "2025/06/26 08:00",
+    pastPath: [
+      { coords:[15.8, 116.7], intensity:"TD", time:"24日08時" },{ coords:[16.2, 116.0], intensity:"TD", time:"24日14時" },{ coords:[16.3, 116.0], intensity:"TD", time:"24日20時" },{ coords:[17.1, 115.1], intensity:"TD", time:"25日02時" },
+      { coords:[17.9, 114.5], intensity:"TD", time:"25日08時" },{ coords:[18.6, 113.3], intensity:"TD", time:"25日14時" },{ coords:[19.0, 112.5], intensity:"TD", time:"25日20時" },{ coords:[19.3, 111.5], intensity:"TD", time:"26日02時" },
+      { coords:[20.0, 110.8], intensity:"TD", time:"26日08時" },
+    ],
+  },
     {
     name: "2502聖帕(SEPAT)-輕度颱風",
     centerPressure: 1002,
