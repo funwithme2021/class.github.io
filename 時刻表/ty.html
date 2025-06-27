@@ -282,7 +282,7 @@
     }
     /* 圖示 & 標籤 */
     function addTyphoonIcon(coords,intensity){
-      const icon=L.icon({iconUrl:getIconUrl(intensity),iconSize:[19,19],iconAnchor:[9.5,9.5]});
+      const icon=L.icon({iconUrl:getIconUrl(intensity),iconSize:[14,14],iconAnchor:[7,7]});
       const m=L.marker(coords,{icon}).addTo(map);
       m.bindTooltip(`Lat:${coords[0].toFixed(2)}, Lng:${coords[1].toFixed(2)}`,
                     {direction:"top",opacity:.9,offset:[0,-10]});
