@@ -1,6 +1,99 @@
 /* ty.js ── 颱風資料 */
 const storms = [
   {
+    name: "2503聖帕(SEPAT)-輕度颱風",
+    centerPressure: 1002,
+    windSpeed: 18,
+    gust: 25,
+    seven: 80,
+    ten: 0,
+    movement: "北西 20 公里/時",
+    time: "2025/07/03 02:00",
+    pastPath: [
+      { coords: [22.5, 148.7], intensity: "TD", time: "01日14時" },
+      { coords: [23.5, 148.3], intensity: "TD", time: "01日20時" },
+      { coords: [23.8, 148.1], intensity: "TD", time: "02日02時" },
+      { coords: [24.4, 147.1], intensity: "TD", time: "02日08時" },
+      { coords: [25.5, 146.8], intensity: "TD", time: "02日14時" },
+      { coords: [26.2, 146.4], intensity: "TD", time: "02日20時" },
+      { coords: [26.8, 145.6], intensity: "TS", time: "03日02時" },
+
+    ],
+    currentData: {
+      coords: [26.8, 145.6],
+      intensity: "TS",
+      r7:  { ne: 80, nw: 80, se: 80, sw: 80 },/* ne: 東北, nw: 東南, se: 西北, sw: 西南 */
+      r10: { ne: 0,  nw: 0,  se: 0,  sw: 0  },
+      time: "現在"
+    },
+    futurePath: [
+      {
+        coords:[27.8, 145.0],
+        intensity:"TS",
+        time:"03日08時",
+        r7:{ne:80,nw:80,se:80,sw:80},
+        r10:{ne:0,nw:0,se:0,sw:0}
+      },
+      {
+        coords:[27.8, 145.0],
+        intensity:"TS",
+        time:"03日14時",
+        r7:{ne:80,nw:80,se:80,sw:80},
+        r10:{ne:0,nw:0,se:0,sw:0}
+      },
+      {
+        coords:[29.1, 144.9],
+        intensity:"TS",
+        time:"03日20時",
+        r7:{ne:80,nw:80,se:80,sw:80},
+        r10:{ne:0,nw:0,se:0,sw:0}
+      },
+      {
+        coords:[29.1, 144.9],
+        intensity:"TS",
+        time:"04日02時",
+        r7:{ne:80,nw:80,se:80,sw:80},
+        r10:{ne:0,nw:0,se:0,sw:0}
+      },
+      {
+        coords:[30.8, 146.0],
+        intensity:"TS",
+        time:"04日14時",
+        r7:{ne:80,nw:80,se:80,sw:80},
+        r10:{ne:0,nw:0,se:0,sw:0}
+      },
+      {
+        coords:[30.8, 146.0],
+        intensity:"TS",
+        time:"05日02時",
+        r7:{ne:80,nw:80,se:80,sw:80},
+        r10:{ne:0,nw:0,se:0,sw:0}
+      },
+      {
+        coords:[32.2, 148.9],
+        intensity:"TS",
+        time:"06日02時",
+        r7:{ne:80,nw:80,se:80,sw:80},
+        r10:{ne:0,nw:0,se:0,sw:0}
+      },
+      {
+        coords:[35.8, 150.3],
+        intensity:"TS",
+        time:"07日02時",
+        r7:{ne:80,nw:80,se:80,sw:80},
+        r10:{ne:0,nw:0,se:0,sw:0}
+      },
+      {
+        coords:[40.1, 150.8],
+        intensity:"TS",
+        time:"08日02時",
+        r7:{ne:80,nw:80,se:80,sw:80},
+        r10:{ne:0,nw:0,se:0,sw:0}
+      },
+
+    ]
+  },
+  {
     name: "25TD04(NONAME)-熱帶性低氣壓",
     centerPressure: 1004,
     windSpeed: 12,
@@ -36,23 +129,6 @@ const storms = [
       { coords: [30.6, 140.1], intensity: "TS", time: "24日20時" },
       { coords: [31.0, 140.0], intensity: "TD", time: "25日02時" },
     ],
-    currentData: {
-      coords: [31.0, 140.0],
-      intensity: "TD",
-      r7:  { ne: 0, nw: 0, se: 0, sw: 0 },/* ne: 東北, nw: 東南, se: 西北, sw: 西南 */
-      r10: { ne: 0,  nw: 0,  se: 0,  sw: 0  },
-      time: "現在"
-    },
-    futurePath: [
-      {
-        coords:[31.0, 140.0],
-        intensity:"TD",
-        time:"25日02時",
-        r7:{ne:0,nw:0,se:0,sw:0},
-        r10:{ne:0,nw:0,se:0,sw:0}
-      },
-
-    ]
   },
     {
     name: "25TD02(NONAME)-熱帶性低氣壓",
