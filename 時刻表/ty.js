@@ -1,124 +1,121 @@
 /* ty.js ── 颱風資料 */
 const storms = [
   {
-    name: "2504丹納斯(MUN)-輕度颱風",
-    centerPressure: 1000,
-    windSpeed: 15,
-    gust: 23,
-    seven: 0,
+    name: "2504丹娜斯(DANAS)-輕度颱風",
+    centerPressure: 998,
+    windSpeed: 18,
+    gust: 25,
+    seven: 80,
     ten: 0,
-    movement: "北北西 6 公里/時",
-    time: "2025/07/04 14:00",
+    movement: "北北西 12 公里/時",
+    time: "2025/07/05 08:00",
     pastPath: [
       { coords: [19.8, 121.1], intensity: "TD", time: "03日20時" },
       { coords: [19.2, 120.0], intensity: "TD", time: "04日02時" },
       { coords: [19.3, 118.7], intensity: "TD", time: "04日08時" },
       { coords: [19.6, 118.6], intensity: "TD", time: "04日14時" },
+      { coords: [19.6, 118.2], intensity: "TD", time: "04日20時" },
+      { coords: [19.9, 117.6], intensity: "TS", time: "04日02時" },
+      { coords: [20.1, 117.5], intensity: "TS", time: "04日08時" },
+
 
     ],
     currentData: {
-      coords: [19.6, 118.6],
-      intensity: "TD",
-      r7:  { ne: 0, nw: 0, se: 00, sw: 00 },/* ne: 東北, nw: 東南, se: 西北, sw: 西南 */
+      coords: [20.1, 117.5],
+      intensity: "TS",
+      r7:  { ne: 50, nw: 100, se: 50, sw: 100 },/* ne: 東北, nw: 東南, se: 西北, sw: 西南 */
       r10: { ne: 0,  nw: 0,  se: 0,  sw: 0  },
-      time: "準 丹娜斯"
+      time: "丹娜斯"
     },
     futurePath: [
       {
-        coords:[20.1, 118.3],
-        intensity:"TS",
-        time:"04日20時",
-        r7:{ne:80,nw:80,se:80,sw:80},
-        r10:{ne:0,nw:0,se:0,sw:0}
-      },
-      {
-        coords:[20.2, 117.9],
-        intensity:"TS",
-        time:"05日02時",
-        r7:{ne:80,nw:80,se:80,sw:80},
-        r10:{ne:0,nw:0,se:0,sw:0}
-      },
-      {
-        coords:[20.3, 117.8],
-        intensity:"TS",
-        time:"05日08時",
-        r7:{ne:80,nw:80,se:80,sw:80},
-        r10:{ne:0,nw:0,se:0,sw:0}
-      },
-      {
-        coords:[20.5, 117.8],
+        coords:[20.5, 117.5],
         intensity:"TS",
         time:"05日14時",
         r7:{ne:100,nw:100,se:100,sw:100},
         r10:{ne:0,nw:0,se:0,sw:0}
       },
       {
-        coords:[20.8, 117.9],
+        coords:[20.9, 117.6],
         intensity:"TS",
         time:"05日20時",
         r7:{ne:100,nw:100,se:100,sw:100},
         r10:{ne:0,nw:0,se:0,sw:0}
       },
       {
-        coords:[21.0, 118.0],
+        coords:[21.3, 117.8],
         intensity:"TS",
         time:"06日02時",
         r7:{ne:100,nw:100,se:100,sw:100},
         r10:{ne:0,nw:0,se:0,sw:0}
       },
       {
-        coords:[21.8, 118.6],
+        coords:[21.8, 118.1],
         intensity:"TS",
         time:"06日08時",
-        r7:{ne:100,nw:100,se:100,sw:100},
+        r7:{ne:120,nw:120,se:120,sw:120},
         r10:{ne:0,nw:0,se:0,sw:0}
       },
       {
-        coords:[22.5, 119.1],
+        coords:[22.5, 118.6],
         intensity:"TS",
         time:"06日14時",
-        r7:{ne:100,nw:100,se:100,sw:100},
+        r7:{ne:120,nw:120,se:120,sw:120},
         r10:{ne:0,nw:0,se:0,sw:0}
       },
       {
-        coords:[23.5, 119.5],
+        coords:[23.2, 119.0],
         intensity:"TS",
         time:"06日20時",
-        r7:{ne:100,nw:100,se:100,sw:100},
+        r7:{ne:120,nw:120,se:120,sw:120},
         r10:{ne:0,nw:0,se:0,sw:0}
       },
       {
-        coords:[24.5, 120.0],
+        coords:[24.1, 119.5],
         intensity:"TS",
         time:"07日02時",
-        r7:{ne:100,nw:100,se:100,sw:100},
+        r7:{ne:120,nw:120,se:120,sw:120},
         r10:{ne:0,nw:0,se:0,sw:0}
       },
       {
-        coords:[25.4, 120.4],
+        coords:[24.6, 119.8],
         intensity:"TS",
         time:"07日08時",
-        r7:{ne:100,nw:100,se:100,sw:100},
+        r7:{ne:120,nw:120,se:120,sw:120},
         r10:{ne:0,nw:0,se:0,sw:0}
       },
       {
-        coords:[26.4, 120.8],
+        coords:[25.6, 120.3],
         intensity:"TS",
         time:"07日14時",
+        r7:{ne:120,nw:120,se:120,sw:120},
+        r10:{ne:0,nw:0,se:0,sw:0}
+      },
+      {
+        coords:[26.4, 120.6],
+        intensity:"TS",
+        time:"07日20時",
+        r7:{ne:120,nw:120,se:120,sw:120},
+        r10:{ne:0,nw:0,se:0,sw:0}
+      },
+      {
+        coords:[27.8, 121.2],
+        intensity:"TS",
+        time:"08日08時",
         r7:{ne:80,nw:80,se:80,sw:80},
         r10:{ne:0,nw:0,se:0,sw:0}
       },
       {
-        coords:[29.3, 119.3],
+        coords:[29.2, 119.2],
         intensity:"TD",
-        time:"08日14時",
+        time:"09日08時",
         r7:{ne:0,nw:0,se:0,sw:0},
         r10:{ne:0,nw:0,se:0,sw:0}
       },
       {
-        coords:[29.8, 116.7],
+        coords:[29.5, 116.8],
         intensity:"TD",
-        time:"09日14時",
+        time:"10日08時",
         r7:{ne:0,nw:0,se:0,sw:0},
         r10:{ne:0,nw:0,se:0,sw:0}
       },
@@ -132,7 +129,7 @@ const storms = [
     seven: 120,
     ten: 0,
     movement: "北北東 10 公里/時",
-    time: "2025/07/04 14:00",
+    time: "2025/07/05 02:00",
     pastPath: [
       { coords: [22.5, 148.7], intensity: "TD", time: "01日14時" },
       { coords: [23.5, 148.3], intensity: "TD", time: "01日20時" },
@@ -146,25 +143,19 @@ const storms = [
       { coords: [28.4, 145.4], intensity: "TS", time: "03日20時" },
       { coords: [29.0, 145.0], intensity: "TS", time: "04日02時" },
       { coords: [29.5, 145.0], intensity: "TS", time: "04日08時" },
-      { coords: [29.9, 145.1], intensity: "TS", time: "04日08時" },
+      { coords: [29.9, 145.1], intensity: "TS", time: "04日14時" },
+      { coords: [30.6, 145.6], intensity: "TS", time: "04日20時" },
+      { coords: [31.0, 145.7], intensity: "TS", time: "05日02時" },
 
     ],
     currentData: {
-      coords: [29.9, 145.1],
+      coords: [31.0, 145.7],
       intensity: "TS",
       r7:  { ne: 100, nw: 150, se: 100, sw: 100 },/* ne: 東北, nw: 東南, se: 西北, sw: 西南 */
       r10: { ne: 0,  nw: 0,  se: 0,  sw: 0  },
       time: "木恩"
     },
     futurePath: [
-
-      {
-        coords:[30.3, 145.6],
-        intensity:"TS",
-        time:"05日02時",
-        r7:{ne:120,nw:120,se:120,sw:120},
-        r10:{ne:0,nw:0,se:0,sw:0}
-      },
       {
         coords:[32.2, 149.4],
         intensity:"TS",
