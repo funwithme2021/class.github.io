@@ -8,7 +8,7 @@ const storms = [
     seven: 100,
     ten: 0,
     movement: "西北 19 公里/時",
-    time: "2025/07/18 11:00",
+    time: "2025/07/18 14:00",
     pastPath: [
       { coords: [12.1, 134.3], intensity: "TD", time: "15日08時" },
       { coords: [13.0, 134.0], intensity: "TD", time: "15日20時" },
@@ -21,22 +21,16 @@ const storms = [
       { coords: [16.8, 125.0], intensity: "TS", time: "18日02時" },
       { coords: [17.5, 124.2], intensity: "TS", time: "18日08時" },
       { coords: [17.7, 123.7], intensity: "TS", time: "18日11時" },
+      { coords: [18.0, 123.2], intensity: "TS", time: "18日14時" },
     ],
     currentData: {
-      coords: [17.7, 123.7],
+      coords: [18.0, 123.2],
       intensity: "TS",
       r7:  { ne: 120, nw: 120, se: 80, sw: 80 },/* ne: 東北, nw: 東南, se: 西北, sw: 西南 */
       r10: { ne: 0,  nw: 0,  se: 0,  sw: 0  },
       time: "薇帕"
     },
     futurePath: [
-      {
-        coords:[18.2, 123.4],
-        intensity:"TS",
-        time:"18日14時",
-        r7:{ne:100,nw:100,se:100,sw:100},
-        r10:{ne:0,nw:0,se:0,sw:0}
-      },
       {
         coords:[19.0, 122.4],
         intensity:"TS",
