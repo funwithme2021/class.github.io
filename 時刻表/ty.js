@@ -7,8 +7,8 @@ const storms = [
     gust: 28,
     seven: 100,
     ten: 0,
-    movement: "西北 19 公里/時",
-    time: "2025/07/18 14:00",
+    movement: "西北 33 公里/時",
+    time: "2025/07/18 17:00",
     pastPath: [
       { coords: [12.1, 134.3], intensity: "TD", time: "15日08時" },
       { coords: [13.0, 134.0], intensity: "TD", time: "15日20時" },
@@ -22,9 +22,10 @@ const storms = [
       { coords: [17.5, 124.2], intensity: "TS", time: "18日08時" },
       { coords: [17.7, 123.7], intensity: "TS", time: "18日11時" },
       { coords: [18.0, 123.2], intensity: "TS", time: "18日14時" },
+      { coords: [18.7, 122.6], intensity: "TS", time: "18日17時" },
     ],
     currentData: {
-      coords: [18.0, 123.2],
+      coords: [18.7, 122.6],
       intensity: "TS",
       r7:  { ne: 120, nw: 120, se: 80, sw: 80 },/* ne: 東北, nw: 東南, se: 西北, sw: 西南 */
       r10: { ne: 0,  nw: 0,  se: 0,  sw: 0  },
@@ -32,66 +33,59 @@ const storms = [
     },
     futurePath: [
       {
-        coords:[19.0, 122.4],
-        intensity:"TS",
-        time:"18日20時",
-        r7:{ne:100,nw:100,se:100,sw:100},
-        r10:{ne:0,nw:0,se:0,sw:0}
-      },
-      {
-        coords:[19.4, 121.2],
+        coords:[19.5, 121.0],
         intensity:"TS",
         time:"19日02時",
         r7:{ne:120,nw:120,se:120,sw:120},
         r10:{ne:0,nw:0,se:0,sw:0}
       },
       {
-        coords:[19.8, 120.1],
+        coords:[20.0, 119.9],
         intensity:"TS",
         time:"19日08時",
         r7:{ne:120,nw:120,se:120,sw:120},
         r10:{ne:0,nw:0,se:0,sw:0}
       },
       {
-        coords:[20.6, 118.1],
+        coords:[21.0, 117.6],
         intensity:"TS",
         time:"19日20時",
-        r7:{ne:150,nw:150,se:150,sw:150},
+        r7:{ne:200,nw:200,se:200,sw:200},
         r10:{ne:0,nw:0,se:0,sw:0}
       },
       {
-        coords:[21.3, 116.0],
+        coords:[21.8, 115.0],
         intensity:"TS",
         time:"20日08時",
-        r7:{ne:180,nw:180,se:180,sw:180},
-        r10:{ne:0,nw:0,se:0,sw:0}
+        r7:{ne:220,nw:220,se:220,sw:220},
+        r10:{ne:70,nw:70,se:70,sw:70}
       },
       {
-        coords:[21.4, 113.8],
+        coords:[22.0, 112.5],
         intensity:"TS",
         time:"20日20時",
         r7:{ne:220,nw:220,se:220,sw:220},
         r10:{ne:70,nw:70,se:70,sw:70}
       },
       {
-        coords:[21.5, 111.6],
+        coords:[21.6, 110.2],
         intensity:"TS",
         time:"21日08時",
         r7:{ne:220,nw:220,se:220,sw:220},
         r10:{ne:70,nw:70,se:70,sw:70}
       },
       {
-        coords:[21.1, 108.6],
+        coords:[20.7, 107.3],
         intensity:"TS",
         time:"22日08時",
         r7:{ne:200,nw:200,se:200,sw:200},
-        r10:{ne:50,nw:50,se:50,sw:50}
+        r10:{ne:70,nw:70,se:70,sw:70}
       },
       {
-        coords:[20.6, 106.7],
+        coords:[20.1, 106.1],
         intensity:"TS",
         time:"23日08時",
-        r7:{ne:150,nw:150,se:150,sw:150},
+        r7:{ne:180,nw:180,se:180,sw:180},
         r10:{ne:0,nw:0,se:0,sw:0}
       },
 
