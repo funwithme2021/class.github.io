@@ -72,7 +72,7 @@ const storms = [
     currentData: {
       coords: [20.3, 130.2],
       intensity: "TS",
-      r7:  { ne: 80, nw: 80, se: 80, sw: 80 },/* ne: 東北, nw: 東南, se: 西北, sw: 西南 */
+      r7:  { ne: 100, nw: 60, se: 80, sw: 60 },/* ne: 東北, nw: 東南, se: 西北, sw: 西南 */
       r10: { ne: 0,  nw: 0,  se: 0,  sw: 0  },
       time: "范斯高"
     },
