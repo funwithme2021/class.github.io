@@ -2,269 +2,440 @@
 <html lang="zh-Hant">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>火車時刻表矩陣版</title>
-
-  <!-- Noto Sans TC -->
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700&display=swap" rel="stylesheet" />
-
-  <!-- SheetJS for Excel export -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Smart Web Researcher｜文字・新聞・圖片・影片 聚合搜尋</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;800&display=swap" rel="stylesheet">
   <style>
-    body{font-family:'Noto Sans TC',sans-serif;background:#f5f5f5;margin:0;color:#333}
-    header{background:#2c3e50;color:#fff;padding:16px;text-align:center;font-size:18px}
-    h2.section{margin:20px auto 10px;text-align:center;font-size:16px}
+    :root{ --bg:#0b0d10; --panel:#12161b; --card:#161b22; --muted:#7b8794; --text:#e8eef6; --primary:#4dabf7; --accent:#22c55e; --warn:#f59e0b; --danger:#ef4444; --shadow:0 8px 20px rgba(0,0,0,.35); --radius:14px; }
+    [data-theme="light"]{ --bg:#f6f7fb; --panel:#ffffff; --card:#ffffff; --muted:#667085; --text:#0b1220; --primary:#2563eb; --accent:#0ea5e9; --warn:#b45309; --danger:#b91c1c; --shadow:0 8px 20px rgba(0,0,0,.08); }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{margin:0;font-family:'Noto Sans TC',system-ui,-apple-system,Segoe UI,Roboto,'Helvetica Neue',Arial,'Apple LiGothic',sans-serif;background:linear-gradient(135deg,var(--bg),#0e1726);color:var(--text)}
+    a{color:var(--primary);text-decoration:none}
+    a:hover{text-decoration:underline}
+    .app{max-width:1280px;margin:0 auto;padding:18px}
 
-    #controls{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;margin:16px 0}
-    #controls select,#controls button{font-size:15px;padding:6px 10px}
-    #exportAllBtn{background:#27ae60;color:#fff;border:none;border-radius:4px;cursor:pointer}
-    #exportAllBtn:hover{background:#229954}
+    .header{display:flex;align-items:center;gap:14px;justify-content:space-between;margin-bottom:14px}
+    .brand{display:flex;align-items:center;gap:12px}
+    .logo{width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,var(--primary),var(--accent));box-shadow:var(--shadow)}
+    .title{font-weight:800;letter-spacing:.4px}
+    .subtitle{color:var(--muted);font-size:.9rem}
 
-    .scheduleContainer{overflow:auto;padding:20px;margin-bottom:40px;background:#fff;box-shadow:0 2px 6px rgba(0,0,0,.08)}
+    .controls{background:var(--panel);box-shadow:var(--shadow);border-radius:var(--radius);padding:14px}
+    .row{display:flex;flex-wrap:wrap;align-items:center;gap:10px}
+    .searchbar{display:flex;gap:10px;flex:1}
+    .input{flex:1;min-width:240px;border:1px solid #2b3440;background:var(--card);color:var(--text);padding:12px 14px;border-radius:12px;font-size:1rem;outline:none}
+    .btn{cursor:pointer;border:none;border-radius:12px;padding:12px 16px;font-weight:700;letter-spacing:.2px;color:white;background:linear-gradient(135deg,var(--primary),var(--accent));box-shadow:var(--shadow)}
+    .btn:disabled{opacity:.6;cursor:not-allowed}
+    .ghost{background:transparent;color:var(--text);border:1px solid #2b3440}
+    .chips{display:flex;flex-wrap:wrap;gap:8px}
+    .chip{display:inline-flex;align-items:center;gap:8px;border:1px solid #2b3440;background:var(--card);color:var(--text);padding:8px 10px;border-radius:999px;font-size:.9rem}
+    .chip input{transform:scale(1.1)}
 
-    table{border-collapse:collapse;width:100%;margin-bottom:40px}
-    th,td{border:1px solid #444;padding:6px;text-align:center;font-size:12px;white-space:nowrap}
+    details{margin-top:10px}
+    summary{cursor:pointer;color:var(--muted)}
 
-    .corner{writing-mode:vertical-rl;transform:rotate(180deg);width:44px;background:#eee}
-    .header-cell{height:150px;position:relative}
-    .header-cell>div{white-space:nowrap;width:100%}
+    .grid{display:grid;grid-template-columns:1.1fr 1.4fr;gap:16px;margin-top:14px}
+    @media (max-width: 980px){.grid{grid-template-columns:1fr}}
 
-    .station-cell{position:sticky;left:0;background:#fff;font-weight:700;z-index:1}
-    .sea-line{color:#2980b9;font-weight:700}
-    .arrow{color:#bbb}
+    .panel{background:var(--panel);border-radius:var(--radius);box-shadow:var(--shadow);padding:14px;min-height:120px}
+    .panel h3{margin:0 0 10px 0}
+    .empty{color:var(--muted);font-size:.95rem}
+
+    .card{background:var(--card);border:1px solid #2b3440;border-radius:14px;padding:14px;display:flex;gap:12px;align-items:flex-start}
+    .card + .card{margin-top:10px}
+    .favicon{width:22px;height:22px;border-radius:6px;flex:0 0 auto}
+    .meta{display:flex;gap:10px;align-items:center;color:var(--muted);font-size:.85rem;margin-top:6px}
+    .badge{padding:2px 8px;border-radius:999px;background:rgba(77,171,247,.12);border:1px solid rgba(77,171,247,.35);color:var(--primary);font-weight:700;font-size:.75rem}
+    .actions{display:flex;gap:8px;margin-left:auto}
+    .sm{padding:8px 10px;border-radius:10px;font-size:.85rem}
+
+    .bullets{display:flex;flex-direction:column;gap:8px}
+    .bullet{display:flex;gap:10px;align-items:flex-start;background:var(--card);border:1px dashed #2b3440;border-radius:12px;padding:10px}
+    .dot{width:8px;height:8px;border-radius:999px;background:var(--accent);margin-top:6px}
+    .tags{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+    .tag{border:1px solid #2b3440;background:var(--card);padding:6px 8px;border-radius:999px;font-size:.8rem;color:var(--muted)}
+
+    .loading{display:none;align-items:center;gap:8px;color:var(--muted)}
+    .spinner{width:16px;height:16px;border:3px solid #2b3440;border-top-color:var(--primary);border-radius:50%;animation:spin 1s linear infinite}
+    @keyframes spin{to{transform:rotate(360deg)}}
+
+    .modal{position:fixed;inset:0;background:rgba(0,0,0,.5);display:none;align-items:center;justify-content:center;padding:16px;z-index:50}
+    .dialog{max-width:960px;width:100%;background:var(--panel);border:1px solid #2b3440;border-radius:16px;box-shadow:var(--shadow);padding:16px}
+    .dialog header{display:flex;align-items:center;gap:10px;justify-content:space-between}
+    .dialog h4{margin:0}
+    .dialog .content{margin-top:10px;background:var(--card);border:1px solid #2b3440;border-radius:12px;padding:12px;max-height:60vh;overflow:auto;white-space:pre-wrap;line-height:1.6}
+
+    .footer{margin-top:18px;color:var(--muted);font-size:.85rem;display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:space-between}
+    .kbd{font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono","Courier New",monospace;font-size:.82rem;background:var(--card);border:1px solid #2b3440;border-bottom-width:3px;border-radius:8px;padding:2px 6px;color:var(--muted)}
+
+    /* 媒體格子 */
+    .media-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+    @media (min-width: 900px){.media-grid{grid-template-columns:repeat(3,minmax(0,1fr));}}
+    .imgcard,.vidcard{background:var(--card);border:1px solid #2b3440;border-radius:14px;overflow:hidden;display:flex;flex-direction:column}
+    .imgcard img,.vidthumb{width:100%;aspect-ratio:16/9;object-fit:cover;background:#0f141a}
+    .imgmeta,.vidmeta{padding:10px;display:flex;flex-direction:column;gap:6px}
+    .kicker{font-size:.75rem;color:var(--muted)}
+    .truncate{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
   </style>
 </head>
-
 <body>
-  <header>火車時刻表矩陣版（最多車次站 → 基準站排序 / 跨夜列車置後）</header>
+  <div class="app" id="app" data-theme="dark">
+    <div class="header">
+      <div class="brand">
+        <div class="logo" aria-hidden="true"></div>
+        <div>
+          <div class="title">Smart Web Researcher</div>
+          <div class="subtitle">一次搜尋 → 文字、新聞（Google News RSS）、圖片（Wikimedia Commons）、影片（YouTube RSS）全都來。</div>
+        </div>
+      </div>
+      <div class="row">
+        <button class="btn ghost sm" id="toggleTheme" title="切換深/淺色">🌗 主題</button>
+        <button class="btn ghost sm" id="exportMd">📝 匯出 Markdown</button>
+        <button class="btn ghost sm" id="clearAll">🧹 清空</button>
+      </div>
+    </div>
 
-  <!-- 控制列 -->
-  <div id="controls">
-    <label>起始站：<select id="rangeStart"></select></label>
-    <label>結束站：<select id="rangeEnd"></select></label>
+    <div class="controls">
+      <div class="row">
+        <div class="searchbar">
+          <input class="input" id="q" placeholder="想找什麼？例如：台灣高鐵 準點率、LSTM 需求預測、颱風誤差錐" />
+          <button class="btn" id="go">🔍 搜尋</button>
+        </div>
+        <div class="loading" id="loading"><div class="spinner"></div><span>正在整理資料…</span></div>
+      </div>
+      <div class="row" style="margin-top:10px">
+        <div class="chips" id="sources">
+          <label class="chip"><input type="checkbox" checked data-key="ddg"/> DuckDuckGo</label>
+          <label class="chip"><input type="checkbox" checked data-key="wzh"/> 維基百科(中文)</label>
+          <label class="chip"><input type="checkbox" data-key="wen"/> 維基百科(英文)</label>
+          <label class="chip"><input type="checkbox" data-key="so"/> Stack Overflow</label>
+          <label class="chip"><input type="checkbox" checked data-key="gnews"/> Google News (RSS)</label>
+          <label class="chip"><input type="checkbox" checked data-key="yt"/> YouTube (RSS)</label>
+          <label class="chip"><input type="checkbox" checked data-key="wmc"/> Wikimedia 圖片</label>
+        </div>
+      </div>
+      <details>
+        <summary>進階設定</summary>
+        <div class="row" style="margin-top:8px">
+          <label class="chip"><input id="maxItems" type="number" min="3" max="50" value="10" style="width:72px"/> 每來源最多筆數</label>
+          <label class="chip"><input id="langPref" type="text" value="zh" style="width:72px"/> 維基語言（zh / en）</label>
+          <span class="chip">快捷鍵：<span class="kbd">Enter</span> 搜尋、<span class="kbd">/</span> 聚焦輸入</span>
+        </div>
+        <div class="row" style="margin-top:8px">
+          <span class="chip">🔗 快速打開：
+            <a id="lnkGoogle" target="_blank" rel="noopener">Google</a> ·
+            <a id="lnkGImg" target="_blank" rel="noopener">圖片</a> ·
+            <a id="lnkGNews" target="_blank" rel="noopener">新聞</a> ·
+            <a id="lnkYT" target="_blank" rel="noopener">YouTube</a>
+          </span>
+          <span class="chip">（若 RSS/代理受限，可用這些連結直接查）</span>
+        </div>
+      </details>
+    </div>
 
-    <label>基準①：<select id="pivot1"><option value="">（空）</option></select></label>
-    <label>基準②：<select id="pivot2"><option value="">（空）</option></select></label>
-    <label>基準③：<select id="pivot3"><option value="">（空）</option></select></label>
-    <label>基準④：<select id="pivot4"><option value="">（空）</option></select></label>
-    <label>基準⑤：<select id="pivot5"><option value="">（空）</option></select></label>
+    <div class="grid">
+      <section class="panel" id="panel-summary">
+        <h3>重點摘要</h3>
+        <div id="summary" class="bullets"></div>
+        <div id="summaryEmpty" class="empty">👉 按「加入摘要」可把重要重點蒐集到這裡；或在閱讀模式中自動產生重點。</div>
+        <div class="tags" id="summaryTags"></div>
+      </section>
 
-    <button id="applyRangeBtn">套用</button>
-    <button id="exportAllBtn">📄 匯出 Excel</button>
+      <section class="panel">
+        <h3>文字結果</h3>
+        <div id="resultsText"></div>
+        <div id="emptyText" class="empty">尚未搜尋或沒有文字類結果。</div>
+      </section>
+
+      <section class="panel">
+        <h3>新聞</h3>
+        <div id="resultsNews"></div>
+        <div id="emptyNews" class="empty">尚未搜尋或沒有新聞結果。</div>
+      </section>
+
+      <section class="panel">
+        <h3>圖片</h3>
+        <div id="resultsImages" class="media-grid"></div>
+        <div id="emptyImages" class="empty">尚未搜尋或沒有圖片結果。</div>
+      </section>
+
+      <section class="panel">
+        <h3>影片</h3>
+        <div id="resultsVideos" class="media-grid"></div>
+        <div id="emptyVideos" class="empty">尚未搜尋或沒有影片結果。</div>
+      </section>
+    </div>
+
+    <div class="footer">
+      <div>⚠️ 本頁面使用免金鑰公開端點：DuckDuckGo、Wikipedia、Stack Exchange、Hacker News；並透過 Google News / YouTube RSS 與 Wikimedia API 取得新聞、影片、圖片。另使用 <code>r.jina.ai</code> 代理做閱讀模式與跨網域擷取。結果僅供參考，請自行驗證。</div>
+      <div>Made with ❤️ · LocalStorage自動保存</div>
+    </div>
   </div>
 
-  <div id="reservedWrapper"></div>
-  <div id="nonReservedWrapper"></div>
+  <!-- Reader Modal -->
+  <div class="modal" id="readerModal" aria-hidden="true">
+    <div class="dialog">
+      <header>
+        <h4 id="readerTitle">閱讀模式</h4>
+        <div class="row">
+          <button class="btn ghost sm" id="autoSumm">✨ 產生重點</button>
+          <button class="btn ghost sm" id="addAll">➕ 全部加到摘要</button>
+          <button class="btn ghost sm" id="closeReader">✖ 關閉</button>
+        </div>
+      </header>
+      <div class="content" id="readerContent">載入中…</div>
+    </div>
+  </div>
 
-  <!-- 列車時刻資料 -->
-  <script src="train-schedule.js"></script>
+  <template id="tpl-card">
+    <div class="card">
+      <img class="favicon" alt="" />
+      <div style="flex:1">
+        <div style="display:flex;gap:10px;align-items:flex-start;justify-content:space-between">
+          <div>
+            <a class="titleLink" target="_blank" rel="noopener"></a>
+            <div class="meta"><span class="badge source"></span><span class="domain"></span><span class="time"></span></div>
+          </div>
+          <div class="actions">
+            <button class="btn ghost sm btn-read">📖 閱讀模式</button>
+            <button class="btn ghost sm btn-pin">📌 加入摘要</button>
+          </div>
+        </div>
+        <div class="desc" style="margin-top:8px"></div>
+      </div>
+    </div>
+  </template>
+
   <script>
-  document.addEventListener('DOMContentLoaded',()=>{
-    const { trainSchedule, stations } = window;
-    if(!trainSchedule||!stations) return;
+    // ===== Utilities =====
+    const $ = sel => document.querySelector(sel);
+    const $$ = sel => Array.from(document.querySelectorAll(sel));
 
-    /* ===== 工具 ===== */
-    const nonReserved=['區間快','區間車'];
-    const typeColor=t=>({新自強:'#8600FF',普悠瑪:'#FF1493',自強號:'red',莒光號:'orange',
-                          區間快:'green',復興號:'#0080FF',區間車:'black','自強號(新)':'brown'}[t]||'#34495e');
-    const parseMin=t=>{if(!t) return 999999; const [h,m]=t.split(':').map(Number); return h*60+m;};
+    const state = { text: [], news: [], images: [], videos: [], pins: JSON.parse(localStorage.getItem('pins')||'[]'), tags: JSON.parse(localStorage.getItem('tags')||'[]'), lastQuery: localStorage.getItem('lastQuery')||'' };
+    function save(){ localStorage.setItem('pins', JSON.stringify(state.pins)); localStorage.setItem('tags', JSON.stringify(state.tags)); localStorage.setItem('lastQuery', state.lastQuery||''); }
+    function domainFrom(url){ try{ return new URL(url).hostname.replace(/^www\./,''); }catch{ return '' } }
+    function faviconFor(url){ const d = domainFrom(url); if(!d) return ''; return `https://www.google.com/s2/favicons?domain=${encodeURIComponent(d)}&sz=64`; }
+    function timeAgo(ts){ if(!ts) return ''; const s=Math.floor((Date.now()-ts)/1000); const units=[[31536000,'年'],[2592000,'月'],[604800,'週'],[86400,'天'],[3600,'小時'],[60,'分鐘']]; for(const [sec,l] of units){ if(s>=sec) return Math.floor(s/sec)+l+'前'; } return '剛剛'; }
+    function showLoading(on){ $('#loading').style.display = on ? 'flex':'none'; }
+    function setTheme(mode){ const app=$('#app'); app.dataset.theme=mode; localStorage.setItem('theme', mode); }
+    function toggleTheme(){ const app=$('#app'); setTheme(app.dataset.theme==='dark'?'light':'dark'); }
 
-    /* ——— 海線標註：車次編號含 A ——— */
-    const isSea=id=>id.includes('A');
+    // ===== Sources (No API key) =====
+    async function fetchDDG(q, max=10){
+      const url=`https://api.duckduckgo.com/?q=${encodeURIComponent(q)}&format=json&no_html=1&no_redirect=1`;
+      const r=await fetch(url); if(!r.ok) throw new Error('DDG 失敗');
+      const j=await r.json(); const arr=[];
+      function flat(rt){ for(const t of rt){ if(t.Topics){ flat(t.Topics); continue; } if(t.FirstURL && t.Text){ arr.push({ title:t.Text.split(' - ')[0], url:t.FirstURL, source:'DuckDuckGo', snippet:t.Text, ts:null }); } } }
+      flat(j.RelatedTopics||[]);
+      if(j.AbstractURL){ arr.unshift({ title:j.Heading||q, url:j.AbstractURL, source:'DuckDuckGo', snippet:j.AbstractText||'', ts:null }); }
+      return arr.slice(0,max);
+    }
+    async function fetchWiki(q, lang='zh', max=10){
+      const searchUrl=`https://${lang}.wikipedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(q)}&format=json&origin=*`;
+      const r=await fetch(searchUrl); if(!r.ok) throw new Error('Wikipedia 搜尋失敗');
+      const j=await r.json(); const pages=(j.query?.search||[]).slice(0,max); const out=[];
+      for(const p of pages){ const title=p.title; const sumUrl=`https://${lang}.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(title)}`; try{ const sr=await fetch(sumUrl); if(sr.ok){ const sj=await sr.json(); out.push({ title:sj.title||title, url:sj.content_urls?.desktop?.page||`https://${lang}.wikipedia.org/wiki/${encodeURIComponent(title)}`, source:`Wikipedia(${lang})`, snippet:sj.extract||p.snippet?.replace(/<[^>]+>/g,'')||'', ts:sj.timestamp?Date.parse(sj.timestamp):null, thumb:sj.thumbnail?.source||null }); } }catch{} }
+      return out;
+    }
+    async function fetchHN(q, max=10){ const url=`https://hn.algolia.com/api/v1/search?query=${encodeURIComponent(q)}&tags=story&hitsPerPage=${Math.min(max,50)}`; const r=await fetch(url); if(!r.ok) throw new Error('HN 失敗'); const j=await r.json(); return (j.hits||[]).map(h=>({ title:h.title, url:h.url||`https://news.ycombinator.com/item?id=${h.objectID}`, source:'Hacker News', snippet:h._highlightResult?.title?.value?.replace(/<[^>]+>/g,'')||'', ts:h.created_at_i? h.created_at_i*1000:null })); }
+    async function fetchSO(q, max=10){ const url=`https://api.stackexchange.com/2.3/search/advanced?order=desc&sort=relevance&q=${encodeURIComponent(q)}&site=stackoverflow&pagesize=${Math.min(max,50)}`; const r=await fetch(url); if(!r.ok) throw new Error('Stack Overflow 失敗'); const j=await r.json(); return (j.items||[]).map(it=>({ title:it.title, url:it.link, source:'Stack Overflow', snippet:`👍 分數 ${it.score}｜回答${it.answer_count}｜${it.is_answered?'已有解答':'尚未解答'}`, ts:it.creation_date? it.creation_date*1000:null })); }
 
-    /* ===== 初始化選單 ===== */
-    const selStart=document.getElementById('rangeStart'),
-          selEnd  =document.getElementById('rangeEnd'),
-          pivots=['pivot1','pivot2','pivot3','pivot4','pivot5'].map(id=>document.getElementById(id));
+    // Google News (RSS via r.jina.ai proxy)
+    async function fetchGoogleNews(q, max=10){
+      const url = `https://r.jina.ai/http://news.google.com/rss/search?q=${encodeURIComponent(q)}&hl=zh-TW&gl=TW&ceid=TW:zh-Hant`;
+      const r = await fetch(url); if(!r.ok) throw new Error('Google News 失敗');
+      const txt = await r.text();
+      const doc = new DOMParser().parseFromString(txt, 'text/xml');
+      const items = Array.from(doc.querySelectorAll('item')).slice(0, max);
+      return items.map(it=>({
+        title: it.querySelector('title')?.textContent||q,
+        url: it.querySelector('link')?.textContent||'#',
+        source: 'Google News',
+        snippet: it.querySelector('description')?.textContent?.replace(/<[^>]+>/g,'')||'',
+        ts: it.querySelector('pubDate') ? Date.parse(it.querySelector('pubDate').textContent) : null
+      }));
+    }
 
-    stations.forEach(st=>{
-      selStart.add(new Option(st,st));
-      selEnd.add(new Option(st,st));
-      pivots.forEach(pv=>pv.add(new Option(st,st)));
-    });
-    selStart.selectedIndex=0;
-    selEnd.selectedIndex=stations.length-1;
-    pivots[0].value=stations[0];
-
-    document.getElementById('applyRangeBtn').addEventListener('click',renderAll);
-    renderAll();
-
-    /* ===== 主渲染 ===== */
-    function renderAll(){
-      const sIdx=stations.indexOf(selStart.value),
-            eIdx=stations.indexOf(selEnd.value);
-      if(sIdx===-1||eIdx===-1||sIdx>=eIdx){alert('範圍錯誤');return;}
-      const range=stations.slice(sIdx,eIdx+1);
-      pivots.forEach(pv=>{if(pv.value && !range.includes(pv.value)) pv.value='';});
-
-      /* ---------- collect IDs ---------- */
-      const resIds=[], nonIds=[];
-      for(const id in trainSchedule){
-        const t=trainSchedule[id];
-        if(t.車種==='加班車') continue;
-
-        // 先判斷此車在範圍內是否至少停靠一次
-        const hasStop = t.車站時間.some(([s])=>range.includes(s));
-        if(!hasStop) continue;
-
-        (nonReserved.includes(t.車種)?nonIds:resIds).push(id);
-      }
-      const allIds=[...resIds,...nonIds];
-
-      /* ---- 區段內最多車次停靠的站（僅看對號車） ---- */
-      const refIds = resIds.length ? resIds : allIds;
-      const stopCount={}; range.forEach(st=>stopCount[st]=0);
-      refIds.forEach(id=>{
-        trainSchedule[id].車站時間.forEach(([st])=>{
-          if(range.includes(st)) stopCount[st]++;
-        });
+    // YouTube Search (RSS)
+    async function fetchYouTube(q, max=10){
+      const url = `https://r.jina.ai/http://www.youtube.com/feeds/videos.xml?search_query=${encodeURIComponent(q)}`;
+      const r = await fetch(url); if(!r.ok) throw new Error('YouTube RSS 失敗');
+      const txt = await r.text();
+      const doc = new DOMParser().parseFromString(txt, 'text/xml');
+      const entries = Array.from(doc.querySelectorAll('entry')).slice(0, max);
+      return entries.map(e=>{
+        const link = e.querySelector('link[rel="alternate"]')?.getAttribute('href')||'#';
+        const title = e.querySelector('title')?.textContent||'';
+        const published = e.querySelector('published')?.textContent||'';
+        const tn = e.querySelector('media\\:thumbnail, thumbnail');
+        const thumb = tn ? (tn.getAttribute('url')||'') : '';
+        return { title, url: link, source: 'YouTube', snippet: e.querySelector('author > name')?.textContent||'', ts: published? Date.parse(published):null, thumb };
       });
-      let majorStation=null,max=-1;
-      range.forEach(st=>{if(stopCount[st]>max){majorStation=st;max=stopCount[st];}});
+    }
 
-      /* ---- 區段內跨夜判定 ---- */
-      const isOvernight=id=>{
-        const seg=trainSchedule[id].車站時間.filter(([st])=>range.includes(st));
-        if(seg.length<2) return false;
-        let prev=parseMin(seg[0][1]);
-        for(let i=1;i<seg.length;i++){
-          const cur=parseMin(seg[i][1]);
-          if(cur<prev) return true; prev=cur;
-        }
-        return false;
-      };
+    // Wikimedia Commons Image Search
+    async function fetchWikimediaImages(q, max=12){
+      const url = `https://commons.wikimedia.org/w/api.php?action=query&generator=search&gsrnamespace=6&gsrsearch=${encodeURIComponent(q)}&gsrlimit=${Math.min(max,50)}&prop=imageinfo|info&iiprop=url|extmetadata|size&iiurlwidth=800&format=json&origin=*`;
+      const r = await fetch(url); if(!r.ok) throw new Error('Wikimedia 圖片失敗');
+      const j = await r.json(); const pages = j.query?.pages ? Object.values(j.query.pages) : [];
+      return pages.map(p=>{
+        const ii = (p.imageinfo||[])[0]||{};
+        const url = ii.thumburl||ii.url||'';
+        const pageurl = p.canonicalurl || `https://commons.wikimedia.org/wiki/${encodeURIComponent(p.title)}`;
+        return { title: p.title.replace(/^File:/,''), url: pageurl, img: url, source:'Wikimedia Commons', snippet: ii.extmetadata?.ImageDescription?.value?.replace(/<[^>]+>/g,'')||'', ts: null };
+      }).filter(x=>x.img);
+    }
 
-      /* ---- key 函式 ---- */
-      function timeAt(id,station){
-        const arr=trainSchedule[id].車站時間;
-        const rec=arr.find(([s])=>s===station);
-        if(rec) return parseMin(rec[1]);
-        let b=null,a=null;
-        for(const r of arr) if(stations.indexOf(r[0])<stations.indexOf(station)) b=r;
-        for(const r of arr) if(stations.indexOf(r[0])>stations.indexOf(station)){a=r;break;}
-        if(b&&a){
-          const ratio=(stations.indexOf(station)-stations.indexOf(b[0]))/
-                      (stations.indexOf(a[0])-stations.indexOf(b[0]));
-          return parseMin(b[1])+ratio*(parseMin(a[1])-parseMin(b[1]));
-        }
-        return 999999;
+    // Reader proxy
+    async function fetchReader(url){ const prox=`https://r.jina.ai/http://${url.replace(/^https?:\\/\\//,'')}`; const r=await fetch(prox, { headers:{'X-Requested-With':'researcher'} }); if(!r.ok) throw new Error('閱讀模式取得失敗'); return await r.text(); }
+
+    // ===== Renderers =====
+    function renderText(){
+      const wrap = $('#resultsText'); wrap.innerHTML='';
+      if(!state.text.length){ $('#emptyText').style.display='block'; return; }
+      $('#emptyText').style.display='none';
+      for(const item of state.text){
+        const node = document.importNode($('#tpl-card').content, true);
+        const a = node.querySelector('.titleLink'); a.textContent=item.title; a.href=item.url;
+        node.querySelector('.source').textContent=item.source;
+        node.querySelector('.domain').textContent=domainFrom(item.url);
+        node.querySelector('.time').textContent=item.ts? '· '+timeAgo(item.ts):'';
+        node.querySelector('.desc').textContent=item.snippet||'';
+        node.querySelector('.favicon').src=faviconFor(item.url);
+        node.querySelector('.btn-read').addEventListener('click', ()=> openReader(item));
+        node.querySelector('.btn-pin').addEventListener('click', ()=> addPin({text:`${item.title}（${domainFrom(item.url)}）`, url:item.url}));
+        wrap.appendChild(node);
       }
-      function pivotKey(id){
-        for(let layer=0;layer<pivots.length;layer++){
-          const pv=pivots[layer].value.trim();
-          if(!pv||!range.includes(pv)) continue;
-          const t=timeAt(id,pv);
-          if(t!==999999) return {layer,time:t};
-        }
-        return {layer:99,time:999999};
+    }
+    function renderNews(){
+      const wrap = $('#resultsNews'); wrap.innerHTML='';
+      if(!state.news.length){ $('#emptyNews').style.display='block'; return; }
+      $('#emptyNews').style.display='none';
+      for(const item of state.news){
+        const node = document.importNode($('#tpl-card').content, true);
+        const a=node.querySelector('.titleLink'); a.textContent=item.title; a.href=item.url;
+        node.querySelector('.source').textContent=item.source;
+        node.querySelector('.domain').textContent=domainFrom(item.url);
+        node.querySelector('.time').textContent=item.ts? '· '+timeAgo(item.ts):'';
+        node.querySelector('.desc').textContent=item.snippet||'';
+        node.querySelector('.favicon').src=faviconFor(item.url);
+        node.querySelector('.btn-read').addEventListener('click', ()=> openReader(item));
+        node.querySelector('.btn-pin').addEventListener('click', ()=> addPin({text:item.title, url:item.url}));
+        wrap.appendChild(node);
       }
-      const fullSorter=(a,b)=>{
-        const ta=timeAt(a,majorStation), tb=timeAt(b,majorStation);
-        if(ta!==tb) return ta-tb;
-        const A=pivotKey(a), B=pivotKey(b);
-        if(A.layer!==B.layer) return A.layer-B.layer;
-        if(A.time!==B.time)   return A.time-B.time;
-        return parseInt(a)-parseInt(b);
-      };
-
-      /* ---- 排序：非跨夜 → 跨夜 ---- */
-      const arrange=ids=>{
-        const day  = ids.filter(id=>!isOvernight(id)).sort(fullSorter),
-              night= ids.filter(isOvernight).sort(fullSorter);
-        return [...day,...night];
-      };
-      const sortedRes=arrange(resIds),
-            sortedNon=arrange(nonIds);
-
-      /* ---- render ---- */
-      document.getElementById('reservedWrapper').innerHTML='';
-      document.getElementById('nonReservedWrapper').innerHTML='';
-
-      if(sortedRes.length){
-        const resStations=range.filter(st=>sortedRes.some(id=>trainSchedule[id].車站時間.some(([s])=>s===st)));
-        if(resStations.length){
-          document.getElementById('reservedWrapper')
-            .insertAdjacentHTML('beforeend','<h2 class="section">對號列車</h2><div id="reservedContainer" class="scheduleContainer"></div>');
-          drawMatrix(sortedRes,'reservedContainer',resStations);
-        }
+    }
+    function renderImages(){
+      const grid=$('#resultsImages'); grid.innerHTML='';
+      if(!state.images.length){ $('#emptyImages').style.display='block'; return; }
+      $('#emptyImages').style.display='none';
+      for(const it of state.images){
+        const card=document.createElement('div'); card.className='imgcard';
+        const img=document.createElement('img'); img.src=it.img; img.alt=it.title; img.loading='lazy';
+        const meta=document.createElement('div'); meta.className='imgmeta';
+        meta.innerHTML=`<div class="kicker">${it.source}</div><a class="truncate" href="${it.url}" target="_blank" rel="noopener">${escapeHtml(it.title)}</a>`;
+        const act=document.createElement('div'); act.className='row';
+        const btnPin=document.createElement('button'); btnPin.className='btn ghost sm'; btnPin.textContent='📌 加入摘要'; btnPin.onclick=()=> addPin({text:`圖片：${it.title}`, url:it.url});
+        act.appendChild(btnPin); meta.appendChild(act);
+        card.appendChild(img); card.appendChild(meta); grid.appendChild(card);
       }
-      if(sortedNon.length){
-        document.getElementById('nonReservedWrapper')
-          .insertAdjacentHTML('beforeend','<h2 class="section">非對號列車 (區間快 / 區間車)</h2><div id="nonReservedContainer" class="scheduleContainer"></div>');
-        drawMatrix(sortedNon,'nonReservedContainer',range);
+    }
+    function renderVideos(){
+      const grid=$('#resultsVideos'); grid.innerHTML='';
+      if(!state.videos.length){ $('#emptyVideos').style.display='block'; return; }
+      $('#emptyVideos').style.display='none';
+      for(const v of state.videos){
+        const card=document.createElement('div'); card.className='vidcard';
+        const cover=document.createElement('a'); cover.href=v.url; cover.target='_blank'; cover.rel='noopener';
+        const img=document.createElement('img'); img.className='vidthumb'; img.src=v.thumb||''; img.alt=v.title; img.loading='lazy';
+        cover.appendChild(img);
+        const meta=document.createElement('div'); meta.className='vidmeta';
+        meta.innerHTML=`<div class="kicker">YouTube · ${v.ts?timeAgo(v.ts):''}</div><a class="truncate" href="${v.url}" target="_blank" rel="noopener">${escapeHtml(v.title)}</a>`;
+        const act=document.createElement('div'); act.className='row';
+        const btnPin=document.createElement('button'); btnPin.className='btn ghost sm'; btnPin.textContent='📌 加入摘要'; btnPin.onclick=()=> addPin({text:`影片：${v.title}`, url:v.url});
+        act.appendChild(btnPin); meta.appendChild(act);
+        card.appendChild(cover); card.appendChild(meta); grid.appendChild(card);
       }
     }
 
-    /* ===== 畫矩陣 ===== */
-    function drawMatrix(ids, containerId, stList){
-      const cont=document.getElementById(containerId); cont.innerHTML='';
-      const tbl=document.createElement('table');
+    function renderAll(){ renderText(); renderNews(); renderImages(); renderVideos(); }
 
-      /* 表頭一列 */
-      const thead=tbl.createTHead();
-      const r1=thead.insertRow();
-      const corner=r1.insertCell(); corner.className='corner'; corner.innerText='車次';
+    function renderPins(){ const s=$('#summary'); const empty=$('#summaryEmpty'); s.innerHTML=''; if(!state.pins.length){ empty.style.display='block'; return; } empty.style.display='none'; for(const p of state.pins){ const div=document.createElement('div'); div.className='bullet'; div.innerHTML=`<div class="dot"></div><div style="flex:1">${escapeHtml(p.text)}${p.url?`\n\n來源：<a href="${p.url}" target="_blank" rel="noopener">${escapeHtml(p.url)}</a>`:''}</div>`; s.appendChild(div);} renderTags(); }
+    function renderTags(){ const t=$('#summaryTags'); t.innerHTML=''; for(const tag of state.tags){ const span=document.createElement('span'); span.className='tag'; span.textContent=tag; t.appendChild(span);} }
+    function addPin(p){ state.pins.push(p); save(); renderPins(); }
 
-      ids.forEach(id=>{
-        const t=trainSchedule[id];
-        const th=r1.insertCell(); th.className='header-cell';
-        th.innerHTML=
-          `<div>${id}<br>
-            <span style="color:${typeColor(t.車種)}">${t.車種}</span><br>
-            ${t.車站時間[0][0]}<br>↓<br>${t.車站時間.at(-1)[0]}
-            ${isSea(id)?'<br><span class="sea-line">(海線)</span>':''}
-          </div>`;
-      });
+    // ===== Search Flow =====
+    async function search(){
+      const q=$('#q').value.trim(); if(!q) return; state.lastQuery=q; save();
+      // 更新快捷外連
+      $('#lnkGoogle').href = `https://www.google.com/search?q=${encodeURIComponent(q)}`;
+      $('#lnkGImg').href = `https://www.google.com/search?tbm=isch&q=${encodeURIComponent(q)}`;
+      $('#lnkGNews').href = `https://news.google.com/search?q=${encodeURIComponent(q)}&hl=zh-TW&gl=TW&ceid=TW:zh-Hant`;
+      $('#lnkYT').href = `https://www.youtube.com/results?search_query=${encodeURIComponent(q)}`;
 
-      /* 表身 */
-      const tbody=tbl.createTBody();
-      stList.forEach(st=>{
-        const tr=tbody.insertRow();
-        tr.insertCell().className='station-cell';
-        tr.cells[0].innerText=st;
-        ids.forEach(id=>{
-          const arr=trainSchedule[id].車站時間;
-          const rec=arr.find(([s])=>s===st);
-          let val='';
-          if(rec){ val=rec[1]; }
-          else{
-            const inside=arr.filter(([s])=>stList.includes(s));
-            if(inside.length){
-              const f=stList.indexOf(inside[0][0]),
-                    l=stList.indexOf(inside.at(-1)[0]),
-                    c=stList.indexOf(st);
-              if(c>f&&c<l) val='↓';
-            }
-          }
-          tr.insertCell().innerHTML=val||'<span class="arrow">&nbsp;</span>';
-        });
-      });
-      cont.appendChild(tbl);
+      showLoading(true);
+      try{
+        const max=+$('#maxItems').value||10; const lang=($('#langPref').value||'zh').toLowerCase();
+        const enabled=new Set($$('#sources input:checked').map(i=>i.dataset.key));
+        const tasks=[]; const collect=(p,fn)=> tasks.push(fn.catch(()=>[]).then(v=>({p,v})));
+        if(enabled.has('ddg')) collect('text', fetchDDG(q, max));
+        if(enabled.has('wzh')) collect('text', fetchWiki(q, 'zh', Math.ceil(max/2)));
+        if(enabled.has('wen')) collect('text', fetchWiki(q, lang==='en'?'en':'en', Math.ceil(max/2)));
+        if(enabled.has('so')) collect('text', fetchSO(q, max));
+        if(enabled.has('gnews')) collect('news', fetchGoogleNews(q, max));
+        if(enabled.has('yt')) collect('videos', fetchYouTube(q, Math.min(max, 12)));
+        if(enabled.has('wmc')) collect('images', fetchWikimediaImages(q, Math.min(max, 18)));
+
+        const settled = await Promise.all(tasks);
+        state.text = []; state.news = []; state.images = []; state.videos = [];
+        for(const {p,v} of settled){ state[p] = state[p].concat(v); }
+
+        const seen = new Set();
+        state.text = state.text.filter(it=>{ if(!it.url||seen.has(it.url)) return false; seen.add(it.url); return true; });
+        renderAll();
+        $('#emptyText').style.display = state.text.length? 'none':'block';
+        $('#emptyNews').style.display = state.news.length? 'none':'block';
+        $('#emptyImages').style.display = state.images.length? 'none':'block';
+        $('#emptyVideos').style.display = state.videos.length? 'none':'block';
+      }catch(e){ console.error(e); alert('搜尋時發生錯誤：'+e.message); }
+      finally{ showLoading(false); }
     }
 
-    /* ===== 匯出 Excel ===== */
-    document.getElementById('exportAllBtn').addEventListener('click',()=>{
-      const wb = XLSX.utils.book_new();
+    // ===== Reader Modal =====
+    let currentReader = { title:'', url:'', text:'' };
+    async function openReader(item){ $('#readerModal').style.display='flex'; $('#readerTitle').textContent=`${item.title} ｜ ${domainFrom(item.url)}`; $('#readerContent').textContent='載入中…'; currentReader = { title:item.title, url:item.url, text:'' };
+      try{ const txt=await fetchReader(item.url); currentReader.text=txt; $('#readerContent').textContent = txt.slice(0, 300000); }catch(e){ $('#readerContent').textContent='讀取失敗：'+e.message+'\n\n提示：有些網站可能禁止擷取，請改用原文連結或選其他來源。'; } }
+    function closeReader(){ $('#readerModal').style.display='none'; }
+    function splitSentences(text){ return text.replace(/\s+/g,' ').split(/(?<=[。！？!?.])\s+/).map(s=>s.trim()).filter(Boolean); }
+    const zhStop = new Set('的 了 及 並 於 與 或 而 是 在 我 你 他 她 它 我們 以及 如果 因為 所以 且 目前 相關 可以 需要 問題 使用 方法 研究'.split(/\s+/));
+    function summarize(text, n=6){ const sents=splitSentences(text).slice(0,120); if(!sents.length) return []; const freq=new Map(); for(const s of sents){ for(const w of s.toLowerCase().replace(/[^\p{L}\p{N}]+/gu,' ').split(/\s+/)){ if(!w||zhStop.has(w)) continue; freq.set(w,(freq.get(w)||0)+1); } } const scored=sents.map(s=>({s,score:s.split(/\s+/).reduce((a,w)=>a+(freq.get(w.toLowerCase())||0),0)})); scored.sort((a,b)=>b.score-a.score); return scored.slice(0,n).map(x=>x.s); }
+    function addAllToSummaryFromText(text, url){ const bullets=summarize(text,6); if(!bullets.length){ alert('無法產生重點，內容可能太短。'); return; } for(const b of bullets){ addPin({text:b, url}); } }
 
-      const resTable=document.querySelector('#reservedContainer table');
-      if(resTable){
-        const wsRes=XLSX.utils.table_to_sheet(resTable,{raw:true});
-        XLSX.utils.book_append_sheet(wb,wsRes,'對號列車');
-      }
-      const nonTable=document.querySelector('#nonReservedContainer table');
-      if(nonTable){
-        const wsNon=XLSX.utils.table_to_sheet(nonTable,{raw:true});
-        XLSX.utils.book_append_sheet(wb,wsNon,'非對號列車');
-      }
-      if(!resTable && !nonTable){
-        alert('目前沒有資料可匯出'); return;
-      }
-      XLSX.writeFile(wb,'時刻表_矩陣版.xlsx');
-    });
-  });
+    // ===== Export =====
+    function exportMarkdown(){ const lines=[]; if(state.lastQuery) lines.push(`# ${state.lastQuery} — 聚合摘要\n`);
+      if(state.pins.length){ lines.push('## 重點整理'); for(const p of state.pins){ lines.push(`- ${p.text}${p.url?`\n  \n  來源：${p.url}`:''}`); } }
+      if(state.text.length||state.news.length||state.images.length||state.videos.length){ lines.push('\n## 來源清單'); if(state.text.length){ lines.push('\n### 文字'); for(const r of state.text){ lines.push(`- [${r.title}](${r.url}) · ${r.source}${r.ts?` · ${timeAgo(r.ts)}取得`:''}`); } } if(state.news.length){ lines.push('\n### 新聞'); for(const r of state.news){ lines.push(`- [${r.title}](${r.url}) · ${r.source}${r.ts?` · ${timeAgo(r.ts)}刊出`:''}`); } } if(state.images.length){ lines.push('\n### 圖片'); for(const r of state.images){ lines.push(`- [${r.title}](${r.url}) · ${r.source}`); } } if(state.videos.length){ lines.push('\n### 影片'); for(const r of state.videos){ lines.push(`- [${r.title}](${r.url}) · YouTube${r.ts?` · ${timeAgo(r.ts)}上傳`:''}`); } } }
+      const blob=new Blob([lines.join('\n')],{type:'text/markdown'}); const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=(state.lastQuery||'research')+'.md'; a.click(); URL.revokeObjectURL(a.href); }
+
+    // ===== Helpers =====
+    function escapeHtml(str=''){ return str.replace(/[&<>"']/g, s=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[s])); }
+
+    // ===== Wire up =====
+    $('#go').addEventListener('click', search);
+    $('#q').addEventListener('keydown', e=>{ if(e.key==='Enter') search(); });
+    document.addEventListener('keydown', e=>{ if(e.key==='/'){ e.preventDefault(); $('#q').focus(); } });
+    $('#toggleTheme').addEventListener('click', toggleTheme);
+    $('#exportMd').addEventListener('click', exportMarkdown);
+    $('#clearAll').addEventListener('click', ()=>{ state.pins=[]; state.tags=[]; save(); renderPins(); renderAll(); });
+
+    $('#closeReader').addEventListener('click', closeReader);
+    $('#readerModal').addEventListener('click', e=>{ if(e.target.id==='readerModal') closeReader(); });
+    $('#autoSumm').addEventListener('click', ()=>{ if(!currentReader.text) return alert('尚未載入內容'); const bullets=summarize(currentReader.text,6); $('#readerContent').textContent='🔹 '+bullets.join('\n\n🔹 '); });
+    $('#addAll').addEventListener('click', ()=>{ if(!currentReader.text) return alert('尚未載入內容'); addAllToSummaryFromText(currentReader.text, currentReader.url); });
+
+    (function init(){ const theme=localStorage.getItem('theme')||'dark'; setTheme(theme); if(state.lastQuery){ $('#q').value=state.lastQuery; } renderPins(); renderAll(); })();
   </script>
 </body>
 </html>

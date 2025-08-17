@@ -1,13 +1,82 @@
 /* ty.js ── 颱風資料 */
 const storms = [
   {
-    name: "11W(-)-熱帶性低氣壓",
+    name: "2511楊柳(PODUL)-中度颱風",
     centerPressure: 970,
+    windSpeed: 25,
+    gust: 33,
+    seven: 120,
+    ten: 30,
+    movement: "東北 35 公里/時",
+    time: "2025/08/11 20:00",
+    pastPath: [
+      { coords: [18.4, 148.0], intensity: "TD", time: "07日08時" },
+      { coords: [18.5, 147.6], intensity: "TD", time: "07日14時" },
+      { coords: [18.9, 147.3], intensity: "TD", time: "07日20時" },
+      { coords: [19.2, 146.3], intensity: "TS", time: "08日02時" },
+      { coords: [20.0, 145.7], intensity: "TS", time: "08日08時" },
+      { coords: [20.4, 145.1], intensity: "TS", time: "08日14時" },
+      { coords: [20.7, 144.4], intensity: "TS", time: "08日20時" },
+      { coords: [21.1, 143.4], intensity: "TS", time: "09日02時" },
+      { coords: [21.6, 142.4], intensity: "TS", time: "09日08時" },
+      { coords: [21.7, 141.7], intensity: "TS", time: "09日14時" },
+      { coords: [21.8, 140.8], intensity: "TS", time: "09日20時" },
+      { coords: [21.8, 139.8], intensity: "TS", time: "10日02時" },
+      { coords: [21.4, 138.5], intensity: "TS", time: "10日08時" },
+      { coords: [21.4, 137.4], intensity: "TS", time: "10日14時" },
+      { coords: [21.4, 136.0], intensity: "TS", time: "10日20時" },
+      { coords: [21.3, 134.7], intensity: "TS", time: "11日02時" },
+      { coords: [21.2, 133.4], intensity: "TS", time: "11日08時" },
+      { coords: [20.9, 132.1], intensity: "TS", time: "11日14時" },
+      { coords: [20.7, 130.7], intensity: "ST", time: "11日20時" },
+    ],
+    currentData: {
+      coords: [20.7, 130.7],
+      intensity: "ST",
+      r7:  { ne: 120, nw: 120, se: 120, sw: 120 },/* ne: 東北, nw: 東南, se: 西北, sw: 西南 */
+      r10: { ne: 30,  nw: 30,  se: 30,  sw: 30  },
+      time: "楊柳"
+    },
+    futurePath: [
+      {
+        coords:[21.5, 125.1],
+        intensity:"ST",
+        time:"12日20時",
+        r7:{ne:150,nw:150,se:150,sw:150},
+        r10:{ne:50,nw:50,se:50,sw:50}
+      },
+      {
+        coords:[23.4, 119.5],
+        intensity:"ST",
+        time:"13日20時",
+        r7:{ne:120,nw:120,se:120,sw:120},
+        r10:{ne:40,nw:40,se:40,sw:40}
+      },
+      {
+        coords:[25.9, 113.0],
+        intensity:"TD",
+        time:"14日20時",
+        r7:{ne:0,nw:0,se:0,sw:0},
+        r10:{ne:0,nw:0,se:0,sw:0}
+      },
+      {
+        coords:[27.3, 107.9],
+        intensity:"TD",
+        time:"15日20時",
+        r7:{ne:0,nw:0,se:0,sw:0},
+        r10:{ne:0,nw:0,se:0,sw:0}
+      },
+    
+    ]
+  },
+  {
+    name: "2508竹節草(CO-MAY)-輕度颱風",
+    centerPressure: 975,
     windSpeed: 33,
     gust: 43,
     seven: 0,
     ten: 0,
-    movement: "東北 35 公里/時",
+    movement: "-",
     time: "2025/07/23 08:00",
     pastPath: [
       { coords: [19.4, 121.5], intensity: "TD", time: "23日02時" },
@@ -18,95 +87,36 @@ const storms = [
       intensity: "TD",
       r7:  { ne: 0, nw: 0, se: 0, sw: 0 },/* ne: 東北, nw: 東南, se: 西北, sw: 西南 */
       r10: { ne: 0,  nw: 0,  se: 0,  sw: 0  },
-      time: "99W"
+      time: "竹節草"
     },
-    futurePath: [
-      {
-        coords:[18.5, 119.7],
-        intensity:"TD",
-        time:"23日20時",
-        r7:{ne:0,nw:0,se:0,sw:0},
-        r10:{ne:0,nw:0,se:0,sw:0}
-      },
-      {
-        coords:[17.3, 118.7],
-        intensity:"TD",
-        time:"24日08時",
-        r7:{ne:0,nw:0,se:0,sw:0},
-        r10:{ne:0,nw:0,se:0,sw:0}
-      },
-      {
-        coords:[16.0, 119.5],
-        intensity:"TD",
-        time:"25日08時",
-        r7:{ne:0,nw:0,se:0,sw:0},
-        r10:{ne:0,nw:0,se:0,sw:0}
-      },
-      {
-        coords:[21.7, 123.5],
-        intensity:"TD",
-        time:"26日08時",
-        r7:{ne:0,nw:0,se:0,sw:0},
-        r10:{ne:0,nw:0,se:0,sw:0}
-      },
     
-    ]
   },
   {
     name: "2507范斯高(FRANCISCO)-輕度颱風",
-    centerPressure: 998,
+    centerPressure: 992,
     windSpeed: 18,
     gust: 25,
     seven: 80,
     ten: 0,
-    movement: "西北 27 公里/時",
-    time: "2025/07/23 08:00",
+    movement: "-",
+    time: "2025/07/25 08:00",
     pastPath: [
       { coords: [16.9, 132.8], intensity: "TD", time: "22日02時" },
       { coords: [16.5, 132.5], intensity: "TD", time: "22日08時" },
       { coords: [18.0, 132.4], intensity: "TD", time: "22日14時" },
       { coords: [18.7, 132.2], intensity: "TD", time: "22日20時" },
-      { coords: [19.5, 131.5], intensity: "TD", time: "23日02時" },
-      { coords: [20.3, 130.2], intensity: "TS", time: "23日08時" },
+      { coords: [19.5, 131.5], intensity: "TD", time: "23日20時" },
+      { coords: [20.3, 130.2], intensity: "TS", time: "23日02時" },
+      { coords: [21.6, 129.9], intensity: "TS", time: "23日08時" },
+      { coords: [22.2, 129.0], intensity: "TS", time: "23日14時" },
+      { coords: [22.8, 128.0], intensity: "TS", time: "23日20時" },
+      { coords: [24.0, 127.9], intensity: "TS", time: "24日02時" },
+      { coords: [24.8, 128.0], intensity: "TS", time: "24日08時" },
+      { coords: [26.0, 127.3], intensity: "TS", time: "24日14時" },
+      { coords: [26.8, 125.1], intensity: "TS", time: "24日20時" },
+      { coords: [26.8, 123.8], intensity: "TD", time: "25日02時" },
+      { coords: [26.6, 122.9], intensity: "TD", time: "25日08時" },
     ],
-    currentData: {
-      coords: [20.3, 130.2],
-      intensity: "TS",
-      r7:  { ne: 100, nw: 60, se: 80, sw: 60 },/* ne: 東北, nw: 東南, se: 西北, sw: 西南 */
-      r10: { ne: 0,  nw: 0,  se: 0,  sw: 0  },
-      time: "范斯高"
-    },
-    futurePath: [
-      {
-        coords:[22.3, 128.9],
-        intensity:"TS",
-        time:"23日20時",
-        r7:{ne:80,nw:80,se:80,sw:80},
-        r10:{ne:0,nw:0,se:0,sw:0}
-      },
-      {
-        coords:[24.2, 127.7],
-        intensity:"TS",
-        time:"24日08時",
-        r7:{ne:100,nw:100,se:100,sw:100},
-        r10:{ne:0,nw:0,se:0,sw:0}
-      },
-      {
-        coords:[26.6, 123.8],
-        intensity:"TS",
-        time:"25日08時",
-        r7:{ne:100,nw:100,se:100,sw:100},
-        r10:{ne:0,nw:0,se:0,sw:0}
-      },
-      {
-        coords:[27.6, 120.9],
-        intensity:"TS",
-        time:"26日08時",
-        r7:{ne:100,nw:100,se:100,sw:100},
-        r10:{ne:0,nw:0,se:0,sw:0}
-      },
-    
-    ]
   },
   {
     name: "2506薇帕(WIPHA)-中度颱風",
