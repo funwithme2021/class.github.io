@@ -3376,7 +3376,7 @@ var trainSchedule = {
       "加班車","莒光號","復興號","區間快","區間車"
     ];
     // 固定最小间隔 2 分钟
-    const interval = 2;
+    const interval = 1;
   
     // HH:MM + N 分钟
     function addMinutes(hhmm, minutes) {
@@ -3741,4 +3741,5 @@ var trainSchedule = {
       }
     
       return '<span style="color: ' + color + ';">' + trainType + '</span>';
+
     }
