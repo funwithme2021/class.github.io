@@ -132,7 +132,7 @@
         </details>
       </div>
       <div class="footer">
-        <span class="muted">提示：需在 HTTPS 或本機 (file:// / localhost) 開啟以啟用相機。iPhone Safari 也可用。</span>
+        <span class="muted">提示：需在 HTTPS 或本機 (localhost) 開啟以啟用相機。iPhone Safari 也可用。</span>
         <span class="chip">商品數：<span id="skuCount">0</span></span>
       </div>
     </section>
@@ -179,9 +179,9 @@
 
   <div id="toast" class="toast hidden"></div>
 
-  <!-- html5-qrcode：跨平台掃描器 -->
+  <!-- html5-qrcode：跨平台掃描器（非 module，確保 Safari 啟動鏡頭） -->
   <script src="https://unpkg.com/html5-qrcode@2.3.10/minified/html5-qrcode.min.js"></script>
-  <script type="module">
+  <script>
     // ========= 狀態 =========
     const state = {
       skuMap: loadSkuMap(), // { barcode: {name, price} }
@@ -223,7 +223,7 @@
       state.skuMap = {
         '4712345678901': { name: '礦泉水 600ml', price: 20 },
         '4901234567894': { name: '洋芋片(原味)', price: 45 },
-        '4710018362408': { name: '可樂 330ml', price: 25 },
+        '4710000000001': { name: '可樂 330ml', price: 25 },
       };
       saveSkuMap();
     }
@@ -239,9 +239,25 @@
     function vibrate(ms=50){ try{ navigator.vibrate && navigator.vibrate(ms) }catch{} }
     function flash(){ els.flash.classList.remove('active'); void els.flash.offsetWidth; els.flash.classList.add('active') }
 
-    function parseCSV(text){
-  const lines = text.split(/\\r?\\n/).map(l => l.trim()).filter(Boolean);
+    // 嗶聲（Web Audio）
+    let audioCtx;
+    function beep(freq=880, dur=80){
+      try{
+        audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)();
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = 'square';
+        osc.frequency.value = freq;
+        gain.gain.value = 0.08;
+        osc.connect(gain).connect(audioCtx.destination);
+        const t = audioCtx.currentTime;
+        osc.start(t);
+        osc.stop(t + dur/1000);
+      }catch{}
+    }
 
+    function parseCSV(text){
+      const lines = text.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
       const out = {};
       for(const l of lines){
         const parts = l.split(',');
@@ -260,13 +276,17 @@
     let facing = 'environment';
 
     async function listCameras(){
-      const devices = await Html5Qrcode.getCameras();
+      const devices = await Html5Qrcode.getCameras();  // 也可觸發權限詢問
       els.cameraSelect.innerHTML = '';
       devices.forEach((d,i)=>{
         const opt = document.createElement('option');
         opt.value = d.id; opt.textContent = d.label || `鏡頭 ${i+1}`; els.cameraSelect.appendChild(opt);
       });
-      if(devices.length){ state.currentCameraId = devices[0].id; }
+      if(devices.length){
+        // 嘗試選擇後鏡頭
+        const back = devices.find(d => /back|後|rear|environment/i.test(d.label || ''));
+        state.currentCameraId = (back && back.id) || devices[0].id;
+      }
       els.btnFlip.disabled = devices.length < 2;
     }
 
@@ -283,11 +303,8 @@
           const size = Math.min(viewfinderWidth, viewfinderHeight) * 0.72;
           return { width: size, height: size };
         },
-        // 內建顯示手電筒按鈕（若支援）
         showTorchButtonIfSupported: true,
-        // 嘗試使用瀏覽器原生 BarcodeDetector
         experimentalFeatures: { useBarCodeDetectorIfSupported: true },
-        // 視訊限制
         videoConstraints: { ...desiredResolution(), facingMode: facing, aspectRatio: 1.777 },
         formatsToSupport: [
           Html5QrcodeSupportedFormats.QR_CODE,
@@ -300,44 +317,47 @@
       };
 
       if(!html5Qrcode) html5Qrcode = new Html5Qrcode("scanner", { verbose: false });
-      const cameraId = els.cameraSelect.value || state.currentCameraId || { facingMode: facing };
+
+      // 先嘗試用後鏡頭 facingMode，失敗再用 deviceId
+      let cameraSelection = { facingMode: "environment" };
+      if(state.currentCameraId) cameraSelection = state.currentCameraId;
+
       try{
-        await html5Qrcode.start(cameraId, config, onDecoded, onDecodeFailure);
+        await html5Qrcode.start(cameraSelection, config, onDecoded, onDecodeFailure);
         running = true; toggleBtns();
 
-        // 啟動後檢查 torch 能力，決定是否顯示手動手電筒按鈕
+        // 啟動後檢查 torch 能力，決定是否啟用自訂手電筒按鈕
         try{
           if(typeof html5Qrcode.getRunningTrackCapabilities === 'function'){
             const caps = html5Qrcode.getRunningTrackCapabilities();
             els.btnTorch.disabled = !(caps && caps.torch);
           } else {
-            // 若 API 不存在，交給內建按鈕；隱藏/停用自訂按鈕
             els.btnTorch.disabled = true;
           }
         }catch{ els.btnTorch.disabled = true; }
-      }catch(err){ alert('無法啟動相機：' + (err?.message || err)); }
+      }catch(err){
+        alert('無法啟動相機：' + (err?.message || err) + '\n請確認網頁為 HTTPS，並允許相機權限。');
+      }
     }
 
     async function stop(){
-  if(!running) return;
-  try {
-    await html5Qrcode.stop();
-    running = false;
-    toggleBtns();
-  } catch (err) {
-    console.warn(err);
-    running = false;
-    toggleBtns();
-  }
-}
-
+      if(!running) return;
+      try{
+        await html5Qrcode.stop();
+      }catch(e){
+        console.warn(e);
+      }finally{
+        running = false;
+        toggleBtns();
+      }
+    }
 
     function toggleBtns(){
       els.btnStart.disabled = running; els.btnStop.disabled = !running; els.btnTorch.disabled = !running;
     }
 
     async function toggleTorch(){
-      // 優先使用 html5-qrcode 內建 API（若存在）
+      // 內建 API 優先
       try{
         if(html5Qrcode && typeof html5Qrcode.turnOnTorch === 'function' && typeof html5Qrcode.turnOffTorch === 'function'){
           state.torchOn = !state.torchOn;
@@ -345,8 +365,8 @@
           showToast(state.torchOn ? '手電筒已開' : '手電筒已關');
           return;
         }
-      }catch{}
-      // 後備方案：嘗試套用 videoConstraints（若支援）
+      }catch(e){}
+      // 後備：約束套用
       try{
         if(html5Qrcode && typeof html5Qrcode.applyVideoConstraints === 'function'){
           state.torchOn = !state.torchOn;
@@ -355,9 +375,8 @@
         } else {
           showToast('此鏡頭不支援手電筒');
         }
-      }catch{ showToast('無法切換手電筒'); }
+      }catch(e){ showToast('無法切換手電筒'); }
     }
-       
 
     async function flip(){
       facing = (facing === 'environment') ? 'user' : 'environment';
@@ -368,22 +387,30 @@
       const now = Date.now();
       const dedup = Number(els.dedupSec.value) * 1000;
       if(now - state.lastScanAt < dedup && els.lastCode.textContent === text){ return; }
-      state.lastScanAt = now; els.lastCode.textContent = text; flash(); vibrate(30);
+      state.lastScanAt = now; els.lastCode.textContent = text; flash(); vibrate(30); beep(1244, 70);
 
       let item = state.skuMap[text];
-      if(!item){
-        const name = prompt(`找不到條碼：${text}
-請輸入品名（留空則當作「金額」直接加到購物車）`);
-        if(name && name.trim()){
-          const priceStr = prompt('請輸入單價（新台幣，整數）');
-          const price = Math.round(Number(priceStr||0));
-          if(price > 0){ item = { name: name.trim(), price }; state.skuMap[text] = item; saveSkuMap(); }
-        }
+      if(item){ // 已存在 → 直接加入
+        addToCart(text, item.name, item.price, 1);
+        return;
       }
-      if(item){ addToCart(text, item.name, item.price, 1); }
-      else{
-        const maybe = Number(text);
-        if(!isNaN(maybe) && maybe>0){ addToCart('—', `臨時品(${text})`, Math.round(maybe), 1) }
+      // 允許條碼直接當金額（僅短數字）
+      const isNumeric = /^\d+$/.test(text);
+      const number = Number(text);
+      if(isNumeric && text.length <= 6 && number > 0){
+        addToCart('—', '臨時品', Math.round(number), 1);
+        return;
+      }
+      // 不存在 → 詢問建立
+      const name = prompt(`找不到條碼：${text}\n請輸入品名（留空則取消）`);
+      if(name && name.trim()){
+        const priceStr = prompt('請輸入單價（新台幣，整數）');
+        const price = Math.round(Number(priceStr||0));
+        if(price > 0){
+          item = { name: name.trim(), price };
+          state.skuMap[text] = item; saveSkuMap();
+          addToCart(text, item.name, item.price, 1);
+        }
       }
     }
 
@@ -458,7 +485,7 @@
       lines.push(`稅額：${Math.round(tax)}`);
       lines.push(`總計：${grand}`);
       lines.push('感謝惠顧！');
-      return lines.join('');
+      return lines.join('\n');
     }
 
     function downloadTxtFile(filename, content){
@@ -484,53 +511,38 @@
       else if(btn.dataset.act==='rm') removeAt(i);
     });
 
+    // 手動輸入條碼/金額：已存在條碼直接加入；短數字（≤6）視為金額
     els.btnManualAdd.addEventListener('click', ()=>{
       const v = (els.manualCode.value||'').trim(); if(!v) return;
-      els.btnManualAdd.addEventListener('click', ()=>{
-  const v = (els.manualCode.value||'').trim();
-  if(!v) return;
 
-  // 判斷是否為純數字
-  const isNumeric = /^\d+$/.test(v);
-  const number = Number(v);
+      const isNumeric = /^\d+$/.test(v);
+      const number = Number(v);
 
-  // 如果是「短數字（<=6 位）」才視為金額
-  if(isNumeric && v.length <= 6 && number > 0){
-    addToCart('—', '臨時品', Math.round(number), 1);
-    els.manualCode.value='';
-    return;
-  }
-
-  // 若商品庫有資料
-  const found = state.skuMap[v];
-  if(found){
-    addToCart(v, found.name, found.price, 1);
-    els.manualCode.value='';
-    return;
-  }
-
-  // 否則讓使用者輸入新商品
-  const name = prompt(`新條碼：${v}\n請輸入品名`);
-  if(name && name.trim()){
-    const priceStr = prompt('請輸入單價（新台幣，整數）');
-    const price = Math.round(Number(priceStr||0));
-    if(price>0){
-      state.skuMap[v] = { name: name.trim(), price };
-      saveSkuMap();
-      addToCart(v, name.trim(), price, 1);
-    }
-  }
-  els.manualCode.value='';
-});
-
+      // 1) 已存在條碼 → 直接加入
       const found = state.skuMap[v];
-      if(found){ addToCart(v, found.name, found.price, 1); els.manualCode.value=''; return; }
-      const name = prompt(`新條碼：${v}
-請輸入品名`);
+      if(found){
+        addToCart(v, found.name, found.price, 1);
+        els.manualCode.value=''; showToast(`已加入 ${found.name}`);
+        return;
+      }
+
+      // 2) 短數字 → 金額
+      if(isNumeric && v.length <= 6 && number > 0){
+        addToCart('—', '臨時品', Math.round(number), 1);
+        els.manualCode.value=''; return;
+      }
+
+      // 3) 新條碼 → 新增商品
+      const name = prompt(`新條碼：${v}\n請輸入品名`);
       if(name && name.trim()){
         const priceStr = prompt('請輸入單價（新台幣，整數）');
         const price = Math.round(Number(priceStr||0));
-        if(price>0){ state.skuMap[v] = { name: name.trim(), price }; saveSkuMap(); addToCart(v, name.trim(), price, 1) }
+        if(price>0){
+          state.skuMap[v] = { name: name.trim(), price };
+          saveSkuMap();
+          addToCart(v, name.trim(), price, 1);
+          showToast(`已新增 ${name.trim()}`);
+        }
       }
       els.manualCode.value='';
     });
@@ -560,12 +572,21 @@
       catch{ showToast('無法複製，請用匯出') }
     });
 
-    // ========= 啟動 =========
-    await listCameras();
-    renderSkuCount();
-    renderCart();
+    // ========= 啟動流程：開頁自動啟動相機 =========
+    (async function boot(){
+      try{
+        await listCameras();               // 取得可用鏡頭（也有助於觸發權限）
+        renderSkuCount();
+        renderCart();
 
-    // iOS Safari 相機權限通常需 HTTPS；本機 file:// 在新版本也可行，但建議放到任何 https 靜態空間。
+        // 嘗試自動啟動後鏡頭
+        await start();
+      }catch(e){
+        console.warn(e);
+        showToast('請允許相機權限以啟動掃描功能');
+        toggleBtns(); // 讓使用者可手動按「開始掃描」
+      }
+    })();
   </script>
 </body>
 </html>
