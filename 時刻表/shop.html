@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>行動條碼掃描結帳器</title>
+  <meta name="theme-color" content="#0f172a" />
+  <style>
+    :root{
+      --bg:#0b1220; --panel:#0f172a; --soft:#111b2e; --text:#e6ecff; --muted:#9fb2d1; --accent:#5eead4; --danger:#ef4444;
+    }
+    *{box-sizing:border-box}
+    body{margin:0;background:linear-gradient(180deg,#0b1220,#0b1220 60%,#0b1528);color:var(--text);font-family:system-ui,-apple-system,Segoe UI,Roboto,Noto Sans,Arial,"PingFang TC","Heiti TC","Microsoft JhengHei",sans-serif}
+    header{position:sticky;top:0;z-index:20;background:rgba(15,23,42,.8);backdrop-filter: blur(8px);border-bottom:1px solid #1e2a44}
+    .wrap{max-width:1100px;margin:0 auto;padding:16px}
+    h1{margin:0;font-size:20px;letter-spacing:0.5px}
+    .layout{display:grid;grid-template-columns:1.1fr .9fr;gap:16px;align-items:start}
+    .panel{background:var(--panel);border:1px solid #1c2a45;border-radius:16px;box-shadow:0 10px 30px rgba(0,0,0,.25)}
+    .panel h2{margin:0;padding:14px 16px;border-bottom:1px solid #1c2a45;font-size:15px;color:#bcd0ef}
+    .content{padding:14px 16px}
+    .row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+    button{border:0;border-radius:12px;padding:10px 14px;background:#1a2540;color:var(--text);cursor:pointer}
+    button.primary{background:linear-gradient(135deg,#10b981,#0ea5e9);color:#08202a;font-weight:700}
+    button.warn{background:#2a1a1a;color:#ffd1d1;border:1px solid #412323}
+    button.ghost{background:#111827;color:#bcd0ef}
+    button:disabled{opacity:.5;cursor:not-allowed}
+    select,input,textarea{background:#0c1324;color:var(--text);border:1px solid #223251;border-radius:12px;padding:10px 12px}
+    input[type="number"]{width:110px}
+    .kv{display:grid;grid-template-columns:120px 1fr;gap:10px;align-items:center}
+    .video-wrap{position:relative;border-radius:14px;overflow:hidden;background:#030712;border:1px solid #1c2a45}
+    video{width:100%;height:auto;display:block}
+    .flash{position:absolute;inset:0;background:white;opacity:0;pointer-events:none}
+    .flash.active{animation:flash .12s ease}
+    @keyframes flash{from{opacity:.9}to{opacity:0}}
+    .badge{display:inline-flex;align-items:center;gap:6px;background:#0b1a33;border:1px solid #1d2f52;color:#9fc4ff;padding:6px 10px;border-radius:999px;font-size:12px}
+    .total{font-size:40px;font-weight:800;letter-spacing:1px}
+    table{width:100%;border-collapse:collapse}
+    th,td{padding:10px 8px;border-bottom:1px solid #1c2a45;text-align:left}
+    th{color:#96b3df;font-weight:600;font-size:13px}
+    td.small{font-size:12px;color:#9fb2d1}
+    .qtybtn{padding:6px 10px;border-radius:10px;background:#13203b;border:1px solid #223251}
+    .right{display:flex;justify-content:flex-end;gap:8px}
+    .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+    .muted{color:var(--muted)}
+    details summary{cursor:pointer;color:#9fc4ff}
+    .footer{padding:12px 16px;border-top:1px solid #1c2a45;display:flex;justify-content:space-between;align-items:center;gap:8px}
+    .chip{padding:6px 10px;border-radius:10px;background:#11203a;border:1px solid #20416e;color:#a4c8ff;font-size:12px}
+    .hidden{display:none}
+    .mono{font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace}
+    .toast{position:fixed;left:50%;transform:translateX(-50%);bottom:20px;background:#0b1a33;border:1px solid #1d2f52;color:#cfe4ff;padding:10px 14px;border-radius:12px;box-shadow:0 10px 20px rgba(0,0,0,.4);z-index:100}
+    @media (max-width: 900px){.layout{grid-template-columns:1fr}}
+  </style>
+</head>
+<body>
+  <header>
+    <div class="wrap row" style="justify-content:space-between">
+      <div class="row" style="gap:10px">
+        <h1>📷 行動條碼掃描結帳器</h1>
+        <span class="badge">支援 EAN‑13 / EAN‑8 / Code128 / QR（視鏡頭與瀏覽器）</span>
+      </div>
+      <div class="row">
+        <button id="btnReset" class="ghost" title="清空購物車">清空</button>
+        <button id="btnCheckout" class="primary" title="產生收據">結帳</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="wrap layout" style="padding-top:16px; padding-bottom:90px">
+    <!-- 左側：掃描區 -->
+    <section class="panel" id="scanPanel">
+      <h2>掃描器</h2>
+      <div class="content">
+        <div class="grid-2">
+          <label class="kv">
+            <span>鏡頭</span>
+            <select id="cameraSelect"></select>
+          </label>
+          <label class="kv">
+            <span>解析度</span>
+            <select id="resolution">
+              <option value="1280x720">1280×720</option>
+              <option value="1920x1080">1920×1080</option>
+              <option value="640x480">640×480</option>
+            </select>
+          </label>
+          <label class="kv">
+            <span>重複掃描鎖秒</span>
+            <input id="dedupSec" type="number" min="0" step="0.5" value="2"/>
+          </label>
+          <label class="kv">
+            <span>稅率(%)</span>
+            <input id="taxRate" type="number" min="0" step="0.1" value="0" />
+          </label>
+        </div>
+
+        <div class="row" style="margin-top:10px">
+          <button id="btnStart" class="primary">開始掃描</button>
+          <button id="btnStop" class="ghost" disabled>停止</button>
+          <button id="btnTorch" class="ghost" disabled>手電筒</button>
+          <button id="btnFlip" class="ghost" disabled>切換前/後鏡</button>
+        </div>
+
+        <div class="video-wrap" style="margin-top:12px">
+          <video id="preview" playsinline muted></video>
+          <div class="flash" id="flash"></div>
+        </div>
+
+        <div class="row" style="margin-top:10px;justify-content:space-between">
+          <div>
+            <div class="chip">上次掃描：<span id="lastCode" class="mono">—</span></div>
+          </div>
+          <div class="row">
+            <input id="manualCode" placeholder="手動輸入條碼或金額" class="mono" style="min-width:220px"/>
+            <button id="btnManualAdd" class="ghost">加入</button>
+          </div>
+        </div>
+
+        <details style="margin-top:12px">
+          <summary>上傳商品清單（CSV）</summary>
+          <p class="muted">格式：<code class="mono">barcode,name,price</code>（每行一筆，價格為新台幣）。</p>
+          <textarea id="csvInput" rows="5" style="width:100%" placeholder="例如：\n4712345678901,礦泉水600ml,20\n4901234567894,洋芋片,45"></textarea>
+          <div class="right" style="margin-top:8px"><button id="btnImportCsv">匯入/覆蓋商品庫</button></div>
+        </details>
+      </div>
+      <div class="footer">
+        <span class="muted">提示：用 Chrome(Android) 效果最佳。若無法解碼，請切 1280×720 或打開手電筒。</span>
+        <span class="chip">商品數：<span id="skuCount">0</span></span>
+      </div>
+    </section>
+
+    <!-- 右側：購物車 -->
+    <section class="panel">
+      <h2>購物車</h2>
+      <div class="content">
+        <div class="row" style="justify-content:space-between;align-items:flex-end">
+          <div>
+            <div class="muted">小計</div>
+            <div class="total" id="subtotal">$0</div>
+          </div>
+          <div>
+            <div class="muted">含稅總計</div>
+            <div class="total" id="grand">$0</div>
+          </div>
+        </div>
+
+        <table style="margin-top:12px" id="cartTable">
+          <thead>
+            <tr>
+              <th style="width:36px">#</th>
+              <th>品名</th>
+              <th>條碼</th>
+              <th style="width:110px">單價</th>
+              <th style="width:130px">數量</th>
+              <th style="width:110px">小計</th>
+              <th style="width:120px">操作</th>
+            </tr>
+          </thead>
+          <tbody id="cartBody"></tbody>
+        </table>
+      </div>
+      <div class="footer">
+        <div class="muted">長按列可快速刪除。重複掃描同條碼會自動 +1。</div>
+        <div class="row">
+          <button id="btnExport" class="ghost">匯出收據 (TXT)</button>
+          <button id="btnCopy" class="ghost">複製收據</button>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <div id="toast" class="toast hidden"></div>
+
+  <!-- ZXing 解碼器（ESM） -->
+  <script type="module">
+    import { BrowserMultiFormatReader, NotFoundException } from 'https://unpkg.com/@zxing/library@0.21.2/esm/index.js';
+
+    // ========= 狀態 =========
+    const state = {
+      skuMap: loadSkuMap(), // { barcode: {name, price} }
+      cart: loadCart(),
+      lastScanAt: 0,
+      currentDeviceId: null,
+      stream: null,
+      torchOn: false,
+    };
+
+    // ========= 元素 =========
+    const els = {
+      cameraSelect: document.getElementById('cameraSelect'),
+      resolution: document.getElementById('resolution'),
+      dedupSec: document.getElementById('dedupSec'),
+      taxRate: document.getElementById('taxRate'),
+      btnStart: document.getElementById('btnStart'),
+      btnStop: document.getElementById('btnStop'),
+      btnTorch: document.getElementById('btnTorch'),
+      btnFlip: document.getElementById('btnFlip'),
+      video: document.getElementById('preview'),
+      flash: document.getElementById('flash'),
+      lastCode: document.getElementById('lastCode'),
+      manualCode: document.getElementById('manualCode'),
+      btnManualAdd: document.getElementById('btnManualAdd'),
+      csvInput: document.getElementById('csvInput'),
+      btnImportCsv: document.getElementById('btnImportCsv'),
+      skuCount: document.getElementById('skuCount'),
+      subtotal: document.getElementById('subtotal'),
+      grand: document.getElementById('grand'),
+      cartBody: document.getElementById('cartBody'),
+      btnReset: document.getElementById('btnReset'),
+      btnCheckout: document.getElementById('btnCheckout'),
+      btnExport: document.getElementById('btnExport'),
+      btnCopy: document.getElementById('btnCopy'),
+      toast: document.getElementById('toast'),
+    };
+
+    // 初始示範商品（可刪）
+    if (Object.keys(state.skuMap).length === 0) {
+      state.skuMap = {
+        '4712345678901': { name: '礦泉水 600ml', price: 20 },
+        '4901234567894': { name: '洋芋片(原味)', price: 45 },
+        '4710018362408': { name: '可樂 330ml', price: 25 },
+      };
+      saveSkuMap();
+    }
+
+    // ========= 工具 =========
+    function saveSkuMap(){ localStorage.setItem('skuMap', JSON.stringify(state.skuMap)); renderSkuCount(); }
+    function loadSkuMap(){ try{ return JSON.parse(localStorage.getItem('skuMap')||'{}') }catch{ return {} } }
+    function saveCart(){ localStorage.setItem('cart', JSON.stringify(state.cart)); renderCart(); }
+    function loadCart(){ try{ return JSON.parse(localStorage.getItem('cart')||'[]') }catch{ return [] } }
+
+    function nt$(n){ return 'NT$ ' + Number(n).toLocaleString('zh-TW', { maximumFractionDigits: 0 }); }
+    function showToast(msg){ els.toast.textContent = msg; els.toast.classList.remove('hidden'); setTimeout(()=>els.toast.classList.add('hidden'), 1400); }
+
+    function vibrate(ms=50){ try{ navigator.vibrate && navigator.vibrate(ms) }catch{} }
+    function flash(){ els.flash.classList.remove('active'); void els.flash.offsetWidth; els.flash.classList.add('active') }
+
+    function parseCSV(text){
+      const lines = text.split(/\r?\n/).map(l=>l.trim()).filter(Boolean);
+      const out = {};
+      for(const l of lines){
+        const parts = l.split(',');
+        if(parts.length < 3) continue;
+        const [barcode,name,priceStr] = parts;
+        const price = Number(priceStr);
+        if(!barcode || !name || isNaN(price)) continue;
+        out[barcode] = { name: name.trim(), price: Math.round(price) };
+      }
+      return out;
+    }
+
+    // ========= 掃描器 =========
+    const codeReader = new BrowserMultiFormatReader();
+    let scanning = false;
+    let currentFacing = 'environment';
+
+    async function listCameras(){
+      const devices = await BrowserMultiFormatReader.listVideoInputDevices();
+      els.cameraSelect.innerHTML = '';
+      for(const d of devices){
+        const opt = document.createElement('option');
+        opt.value = d.deviceId; opt.textContent = d.label || ('鏡頭 ' + (els.cameraSelect.length+1));
+        els.cameraSelect.appendChild(opt);
+      }
+      if (devices.length) state.currentDeviceId = devices[0].deviceId;
+      els.btnFlip.disabled = devices.length < 2;
+    }
+
+    async function start(){
+      if(scanning) return;
+      const [w,h] = els.resolution.value.split('x').map(Number);
+      const deviceId = els.cameraSelect.value || state.currentDeviceId;
+      const constraints = { video: { deviceId: deviceId ? { exact: deviceId } : undefined, width:{ideal:w}, height:{ideal:h}, facingMode: currentFacing } };
+      try{
+        const stream = await navigator.mediaDevices.getUserMedia(constraints);
+        state.stream = stream;
+        els.video.srcObject = stream; await els.video.play();
+        scanning = true; toggleBtns();
+        loopDecode();
+      }catch(err){
+        alert('無法開啟相機：' + err.message);
+      }
+    }
+
+    async function stop(){
+      scanning = false; toggleBtns();
+      try{ state.stream?.getTracks().forEach(t=>t.stop()) }catch{}
+      els.video.srcObject = null;
+    }
+
+    function toggleBtns(){
+      els.btnStart.disabled = scanning; els.btnStop.disabled = !scanning; els.btnTorch.disabled = !scanning;
+    }
+
+    async function toggleTorch(){
+      try{
+        const track = state.stream?.getVideoTracks?.()[0];
+        const caps = track?.getCapabilities?.();
+        if(!caps || !caps.torch){ showToast('此鏡頭不支援手電筒'); return; }
+        state.torchOn = !state.torchOn;
+        await track.applyConstraints({ advanced: [{ torch: state.torchOn }] });
+        showToast(state.torchOn ? '手電筒已開' : '手電筒已關');
+      }catch{ showToast('無法切換手電筒') }
+    }
+
+    async function flip(){
+      currentFacing = currentFacing === 'environment' ? 'user' : 'environment';
+      await stop(); await start();
+    }
+
+    async function loopDecode(){
+      while(scanning){
+        try{
+          const result = await codeReader.decodeOnceFromVideoDevice(undefined, els.video);
+          if(result?.text){ onDecoded(result.text) }
+        }catch(err){
+          if(!(err instanceof NotFoundException)){
+            console.warn('decode err', err)
+          }
+        }
+      }
+    }
+
+    function onDecoded(text){
+      const now = Date.now();
+      const dedup = Number(els.dedupSec.value) * 1000;
+      if(now - state.lastScanAt < dedup && els.lastCode.textContent === text){
+        return; // 去抖：同碼短時間忽略
+      }
+      state.lastScanAt = now;
+      els.lastCode.textContent = text;
+      flash(); vibrate(30);
+
+      // 條碼 → 商品
+      let item = state.skuMap[text];
+      if(!item){
+        const name = prompt(`找不到條碼：${text}\n請輸入品名（留空則當作「金額」直接加到購物車）`);
+        if(name && name.trim()){
+          const priceStr = prompt('請輸入單價（新台幣，整數）');
+          const price = Math.round(Number(priceStr||0));
+          if(price > 0){ item = { name: name.trim(), price }; state.skuMap[text] = item; saveSkuMap(); }
+        }
+      }
+
+      if(item){
+        addToCart(text, item.name, item.price, 1);
+      }else{
+        // 允許條碼直接當「金額」：例如稱重標籤或臨時品
+        const maybe = Number(text);
+        if(!isNaN(maybe) && maybe>0){ addToCart('—', `臨時品(${text})`, Math.round(maybe), 1) }
+      }
+    }
+
+    // ========= 購物車 =========
+    function addToCart(barcode, name, price, qty=1){
+      const i = state.cart.findIndex(x=>x.barcode===barcode && x.price===price);
+      if(i>=0){ state.cart[i].qty += qty }
+      else{ state.cart.push({ barcode, name, price, qty }) }
+      saveCart();
+      showToast(`${name} +${qty}`);
+    }
+
+    function removeAt(idx){ state.cart.splice(idx,1); saveCart(); }
+    function changeQty(idx, delta){ state.cart[idx].qty = Math.max(1, state.cart[idx].qty + delta); saveCart(); }
+
+    function calc(){
+      const sub = state.cart.reduce((s,i)=> s + i.price * i.qty, 0);
+      const tax = sub * (Number(els.taxRate.value||0)/100);
+      const grand = Math.round(sub + tax);
+      return { sub, tax, grand };
+    }
+
+    function renderCart(){
+      const tbody = els.cartBody; tbody.innerHTML='';
+      state.cart.forEach((it,idx)=>{
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${idx+1}</td>
+          <td>${esc(it.name)}</td>
+          <td class="small mono">${esc(it.barcode)}</td>
+          <td class="mono">${nt$(it.price)}</td>
+          <td>
+            <div class="row">
+              <button class="qtybtn" data-act="dec" data-i="${idx}">-</button>
+              <span class="mono" style="min-width:32px;text-align:center">${it.qty}</span>
+              <button class="qtybtn" data-act="inc" data-i="${idx}">+</button>
+            </div>
+          </td>
+          <td class="mono">${nt$(it.price * it.qty)}</td>
+          <td>
+            <div class="row">
+              <button class="ghost" data-act="rm" data-i="${idx}">刪除</button>
+            </div>
+          </td>`;
+        tr.addEventListener('contextmenu', e=>{ e.preventDefault(); removeAt(idx) });
+        tbody.appendChild(tr);
+      });
+      const { sub, grand } = calc();
+      els.subtotal.textContent = nt$(sub);
+      els.grand.textContent = nt$(grand);
+    }
+
+    function esc(s){ return String(s).replace(/[&<>"']/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c])) }
+
+    function renderSkuCount(){ els.skuCount.textContent = Object.keys(state.skuMap).length }
+
+    // ========= 收據 =========
+    function buildReceipt(){
+      const t = new Date();
+      const lines = [];
+      lines.push('— 收據 —');
+      lines.push('時間：' + t.toLocaleString('zh-TW'));
+      lines.push('-----------------------------');
+      state.cart.forEach((it,i)=>{
+        lines.push(`${i+1}. ${it.name}  x${it.qty}`);
+        lines.push(`   ${it.barcode}  @${it.price}  小計=${it.price*it.qty}`);
+      })
+      const { sub, tax, grand } = calc();
+      lines.push('-----------------------------');
+      lines.push(`小計：${sub}`);
+      lines.push(`稅額：${Math.round(tax)}`);
+      lines.push(`總計：${grand}`);
+      lines.push('感謝惠顧！');
+      return lines.join('\n');
+    }
+
+    function downloadTxtFile(filename, content){
+      const blob = new Blob([content], {type: 'text/plain;charset=utf-8'});
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a'); a.href = url; a.download = filename; a.click();
+      setTimeout(()=>URL.revokeObjectURL(url), 1000);
+    }
+
+    // ========= 事件 =========
+    els.btnStart.addEventListener('click', start);
+    els.btnStop.addEventListener('click', stop);
+    els.btnTorch.addEventListener('click', toggleTorch);
+    els.btnFlip.addEventListener('click', flip);
+
+    els.cameraSelect.addEventListener('change', async ()=>{ state.currentDeviceId = els.cameraSelect.value; if(scanning){ await stop(); await start(); } });
+    els.resolution.addEventListener('change', async ()=>{ if(scanning){ await stop(); await start(); } });
+
+    els.cartBody.addEventListener('click', e=>{
+      const btn = e.target.closest('button'); if(!btn) return; const i = Number(btn.dataset.i);
+      if(btn.dataset.act==='inc') changeQty(i, +1);
+      else if(btn.dataset.act==='dec') changeQty(i, -1);
+      else if(btn.dataset.act==='rm') removeAt(i);
+    });
+
+    els.btnManualAdd.addEventListener('click', ()=>{
+      const v = (els.manualCode.value||'').trim(); if(!v) return;
+      const number = Number(v);
+      if(!isNaN(number) && number>0){ addToCart('—', '臨時品', Math.round(number), 1); els.manualCode.value=''; return; }
+      const found = state.skuMap[v];
+      if(found){ addToCart(v, found.name, found.price, 1); els.manualCode.value=''; return; }
+      // 不是金額也不是已知條碼 → 詢問建立
+      const name = prompt(`新條碼：${v}\n請輸入品名`);
+      if(name && name.trim()){
+        const priceStr = prompt('請輸入單價（新台幣，整數）');
+        const price = Math.round(Number(priceStr||0));
+        if(price>0){ state.skuMap[v] = { name: name.trim(), price }; saveSkuMap(); addToCart(v, name.trim(), price, 1) }
+      }
+      els.manualCode.value='';
+    });
+
+    els.btnImportCsv.addEventListener('click', ()=>{
+      const text = els.csvInput.value.trim();
+      if(!text){ showToast('沒有內容'); return }
+      const obj = parseCSV(text); if(Object.keys(obj).length===0){ showToast('解析失敗'); return }
+      state.skuMap = obj; saveSkuMap(); showToast('已匯入商品庫');
+    });
+
+    els.taxRate.addEventListener('input', ()=> renderCart());
+
+    document.getElementById('btnReset').addEventListener('click', ()=>{
+      if(confirm('確定清空購物車？')){ state.cart = []; saveCart(); }
+    });
+
+    document.getElementById('btnCheckout').addEventListener('click', ()=>{
+      if(state.cart.length===0){ showToast('購物車是空的'); return }
+      const txt = buildReceipt();
+      alert(txt);
+    });
+
+    els.btnExport.addEventListener('click', ()=>{
+      const txt = buildReceipt();
+      downloadTxtFile('receipt_'+Date.now()+'.txt', txt);
+    });
+
+    els.btnCopy.addEventListener('click', async ()=>{
+      try{ await navigator.clipboard.writeText(buildReceipt()); showToast('已複製收據'); }
+      catch{ showToast('無法複製，請用匯出') }
+    });
+
+    // ========= 啟動 =========
+    await listCameras();
+    renderSkuCount();
+    renderCart();
+
+    // 若使用者授權過相機，嘗試自動啟動
+    try{ const perm = await navigator.permissions.query({name:'camera'}); if(perm.state==='granted'){ start(); } }catch{}
+
+    // PWA 基礎（可選）
+    if('serviceWorker' in navigator){
+      const sw = `self.addEventListener('install',e=>{e.waitUntil(caches.open('scanpos-v1').then(c=>c.addAll(['./'])))});self.addEventListener('fetch',e=>{e.respondWith(caches.match(e.request).then(r=>r||fetch(e.request)))})`;
+      const blob = new Blob([sw], {type:'text/javascript'});
+      const url = URL.createObjectURL(blob);
+      navigator.serviceWorker.register(url).catch(()=>{});
+    }
+  </script>
+</body>
+</html>
