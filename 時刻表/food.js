@@ -1949,6 +1949,270 @@ const foodData = [
         others: 80.3,        // 其他
         gmapUrl: "https://maps.app.goo.gl/EijAFY2LurXKPF5A9"
       },
+      {
+        time: "2025-10-11",
+        city: "澎湖縣",
+        district: "馬公市",
+        storeName: "原味漁村小吃",
+        category: "店面",
+        priceLevel: "$$$",
+         // 地圖用 (示例座標)
+        lat:  23.564895, 
+        lng:  119.565208,
+        // 各細項評分 (0~100)
+        taste: 76,        // 口味
+        freshness: 80,    // 食材新鮮度
+        texture: 85,      // 口感
+        appearance: 82.5,   // 外觀
+        smell: 82,        // 氣味
+        portion: 82,      // 分量
+        uniqueness: 79,   // 獨特性
+        price: 80,        // 價格
+        environment: 77,  // 環境
+        attitude: 85,     // 態度
+        others: 76,        // 其他
+        gmapUrl: "https://maps.app.goo.gl/tGWMnVrFAp7ckNbs7"
+      },
+      {
+        time: "2025-10-11",
+        city: "澎湖縣",
+        district: "馬公市",
+        storeName: "鮮食堂海鮮蒸鍋",
+        category: "店面",
+        priceLevel: "$$$",
+         // 地圖用 (示例座標)
+        lat:  23.56567, 
+        lng:  119.564720,
+        // 各細項評分 (0~100)
+        taste: 82,        // 口味
+        freshness: 79,    // 食材新鮮度
+        texture: 79,      // 口感
+        appearance: 85,   // 外觀
+        smell: 84.5,        // 氣味
+        portion: 67,      // 分量
+        uniqueness: 79,   // 獨特性
+        price: 68,        // 價格
+        environment: 80,  // 環境
+        attitude: 87,     // 態度
+        others: 85,        // 其他
+        gmapUrl: "https://maps.app.goo.gl/b8cFozj8jUBXphwf6"
+      },
+      {
+        time: "2025-10-11",
+        city: "澎湖縣",
+        district: "馬公市",
+        storeName: "澎湖仙人掌冰城",
+        category: "店面",
+        priceLevel: "$$",
+         // 地圖用 (示例座標)
+        lat:  23.56548, 
+        lng:  119.565408,
+        // 各細項評分 (0~100)
+        taste: 84,        // 口味
+        freshness: 83,    // 食材新鮮度
+        texture: 83,      // 口感
+        appearance: 85,   // 外觀
+        smell: 84,        // 氣味
+        portion: 83.5,      // 分量
+        uniqueness: 83,   // 獨特性
+        price: 82.5,        // 價格
+        environment: 84,  // 環境
+        attitude: 85,     // 態度
+        others: 82.5,        // 其他
+        gmapUrl: "https://maps.app.goo.gl/NHAepBzRULudNprd9"
+      },
+      {
+        time: "2025-10-11",
+        city: "澎湖縣",
+        district: "馬公市",
+        storeName: "劉正港檸檬汁",
+        category: "店面",
+        priceLevel: "$$",
+         // 地圖用 (示例座標)
+        lat:  23.566233, 
+        lng:  119.565352,
+        // 各細項評分 (0~100)
+        taste: 83,        // 口味
+        freshness: 85,    // 食材新鮮度
+        texture: 83,      // 口感
+        appearance: 80,   // 外觀
+        smell: 84,        // 氣味
+        portion: 80,      // 分量
+        uniqueness: 84,   // 獨特性
+        price: 82.5,        // 價格
+        environment: 82.5,  // 環境
+        attitude: 84,     // 態度
+        others: 82,        // 其他
+        gmapUrl: "https://maps.app.goo.gl/HpyW5Z22Q9JVbS3B6"
+      },
+      {
+        time: "2025-10-11",
+        city: "澎湖縣",
+        district: "馬公市",
+        storeName: "東東芭樂",
+        category: "店面",
+        priceLevel: "$$",
+         // 地圖用 (示例座標)
+        lat:  23.565834, 
+        lng:  119.565301,
+        // 各細項評分 (0~100)
+        taste: 88,        // 口味
+        freshness: 87,    // 食材新鮮度
+        texture: 87,      // 口感
+        appearance: 80,   // 外觀
+        smell: 85,        // 氣味
+        portion: 87,      // 分量
+        uniqueness: 84,   // 獨特性
+        price: 85,        // 價格
+        environment: 84,  // 環境
+        attitude: 84,     // 態度
+        others: 82,        // 其他
+        gmapUrl: "https://maps.app.goo.gl/QAoYatZsMmGcDLRRA"
+      },
+      {
+        time: "2025-10-11",
+        city: "澎湖縣",
+        district: "馬公市",
+        storeName: "鮪魚哥生魚片",
+        category: "店面",
+        priceLevel: "$$$",
+         // 地圖用 (示例座標)
+        lat:  23.566962, 
+        lng:  119.569822,
+        // 各細項評分 (0~100)
+        taste: 89,        // 口味
+        freshness: 90,    // 食材新鮮度
+        texture: 87,      // 口感
+        appearance: 87,   // 外觀
+        smell: 85,        // 氣味
+        portion: 85,      // 分量
+        uniqueness: 79,   // 獨特性
+        price: 85,        // 價格
+        environment: 85,  // 環境
+        attitude: 88,     // 態度
+        others: 83,        // 其他
+        gmapUrl: "https://maps.app.goo.gl/pjxHbm1utgPJTzNMA"
+      },
+      {
+        time: "2025-10-11",
+        city: "澎湖縣",
+        district: "西嶼鄉",
+        storeName: "魚好",
+        category: "店面",
+        priceLevel: "$$$",
+         // 地圖用 (示例座標)
+        lat:  23.604995, 
+        lng:  119.518623,
+        // 各細項評分 (0~100)
+        taste: 89,        // 口味
+        freshness: 91,    // 食材新鮮度
+        texture: 88,      // 口感
+        appearance: 90,   // 外觀
+        smell: 85.5,        // 氣味
+        portion: 83,      // 分量
+        uniqueness: 80,   // 獨特性
+        price: 81.5,        // 價格
+        environment: 88,  // 環境
+        attitude: 88,     // 態度
+        others: 83,        // 其他
+        gmapUrl: "https://maps.app.goo.gl/UVWvVnx7MErjNhvs5"
+      },
+      {
+        time: "2025-10-11",
+        city: "澎湖縣",
+        district: "馬公市",
+        storeName: "益豐豆漿",
+        category: "店面",
+        priceLevel: "$$",
+         // 地圖用 (示例座標)
+        lat:  23.604995, 
+        lng:  119.518623,
+        // 各細項評分 (0~100)
+        taste: 80,        // 口味
+        freshness: 84,    // 食材新鮮度
+        texture: 73,      // 口感
+        appearance: 80,   // 外觀
+        smell: 83,        // 氣味
+        portion: 85,      // 分量
+        uniqueness: 81,   // 獨特性
+        price: 83,        // 價格
+        environment: 82,  // 環境
+        attitude: 85,     // 態度
+        others: 75,        // 其他
+        gmapUrl: "https://maps.app.goo.gl/3JeuwczF8NaRRChp7"
+      },
+      {
+        time: "2025-10-11",
+        city: "澎湖縣",
+        district: "馬公市",
+        storeName: "澎湖小卷麵館",
+        category: "店面",
+        priceLevel: "$$$",
+         // 地圖用 (示例座標)
+        lat:  23.524141, 
+        lng:  119.598832,
+        // 各細項評分 (0~100)
+        taste: 84.5,        // 口味
+        freshness: 85.5,    // 食材新鮮度
+        texture: 85.5,      // 口感
+        appearance: 83.5,   // 外觀
+        smell: 82,        // 氣味
+        portion: 82.5,      // 分量
+        uniqueness: 81,   // 獨特性
+        price: 82.5,        // 價格
+        environment: 84,  // 環境
+        attitude: 74,     // 態度
+        others: 82,        // 其他
+        gmapUrl: "https://maps.app.goo.gl/zLaj493mc9s6QhHq6"
+      },
+      {
+        time: "2025-10-11",
+        city: "澎湖縣",
+        district: "白沙鄉",
+        storeName: "澎湖-回家炸粿",
+        category: "店面",
+        priceLevel: "$$",
+         // 地圖用 (示例座標)
+        lat:  23.632432, 
+        lng:  119.598596,
+        // 各細項評分 (0~100)
+        taste: 83,        // 口味
+        freshness: 80,    // 食材新鮮度
+        texture: 83,      // 口感
+        appearance: 81,   // 外觀
+        smell: 83.5,        // 氣味
+        portion: 87,      // 分量
+        uniqueness: 85,   // 獨特性
+        price: 87,        // 價格
+        environment: 60,  // 環境
+        attitude: 80,     // 態度
+        others: 75,        // 其他
+        gmapUrl: "https://maps.app.goo.gl/g52tYY9nvSJkF8TC6"
+      },
+      {
+        time: "2025-10-11",
+        city: "澎湖縣",
+        district: "西嶼鄉",
+        storeName: "阿虹的店丨西嶼第一家天然水蓮羹",
+        category: "店面",
+        priceLevel: "$$$",
+         // 地圖用 (示例座標)
+        lat:  23.653327, 
+        lng:  119.517679,
+        // 各細項評分 (0~100)
+        taste: 84,        // 口味
+        freshness: 84,    // 食材新鮮度
+        texture: 84,      // 口感
+        appearance: 82,   // 外觀
+        smell: 84,        // 氣味
+        portion: 84,      // 分量
+        uniqueness: 82,   // 獨特性
+        price: 82,        // 價格
+        environment: 78,  // 環境
+        attitude: 85,     // 態度
+        others: 85,        // 其他
+        gmapUrl: "https://maps.app.goo.gl/2k6CoKxLGA26KFNw9"
+      },
     
   ];
   
