@@ -26,7 +26,7 @@
 <body>
 <div class="container">
   <h2>停班課預測</h2>
-  <p class="note">依最新 CWA 風雨預報判斷，實際資訊以各縣市政府公布為準</p>
+  <p class="note">依最新 CWA 及歐洲數值模式之風雨預報判斷，實際資訊以各縣市政府公布為準</p>
   <table id="forecastTable">
     <thead>
       <tr>
@@ -49,43 +49,43 @@
 // gust   : 陣風等級(整數)
 // stop   : "O" 停班課 | "X" 上班課
 const data = [
-  {county:"基隆市",  region:"全縣", avgWind:6, gust:10,  stop:"X"},
-  {county:"臺北市",  region:"全縣", avgWind:6, gust:10,  stop:"X"},
-  {county:"新北市",  region:"內陸", avgWind:6, gust:10, stop:"X"},
+  {county:"基隆市",  region:"全縣", avgWind:6, gust:9,  stop:"X"},
+  {county:"臺北市",  region:"全縣", avgWind:5, gust:7,  stop:"X"},
+  {county:"新北市",  region:"內陸", avgWind:6, gust:9, stop:"X"},
   {county:"新北市",  region:"沿海", avgWind:7, gust:10, stop:"X"},
   {county:"桃園市",  region:"內陸", avgWind:6, gust:9,  stop:"X"},
-  {county:"桃園市",  region:"沿海", avgWind:6, gust:9, stop:"X"},
-  {county:"新竹市",  region:"內陸", avgWind:6, gust:9,  stop:"X"},
+  {county:"桃園市",  region:"沿海", avgWind:7, gust:10, stop:"X"},
+  {county:"新竹市",  region:"內陸", avgWind:5, gust:7,  stop:"X"},
   {county:"新竹市",  region:"沿海", avgWind:6, gust:9, stop:"X"},
-  {county:"新竹縣",  region:"內陸", avgWind:6, gust:9,  stop:"X"},
+  {county:"新竹縣",  region:"內陸", avgWind:5, gust:7,  stop:"X"},
   {county:"新竹縣",  region:"沿海", avgWind:6, gust:9, stop:"X"},
-  {county:"苗栗縣",  region:"內陸", avgWind:4, gust:7,  stop:"X"},
-  {county:"苗栗縣",  region:"沿海", avgWind:5, gust:8, stop:"X"},
-  {county:"臺中市",  region:"內陸", avgWind:3, gust:7,  stop:"X"},
-  {county:"臺中市",  region:"沿海", avgWind:5, gust:8, stop:"X"},
-  {county:"彰化縣",  region:"內陸", avgWind:5, gust:8,  stop:"X"},
-  {county:"彰化縣",  region:"沿海", avgWind:6, gust:9, stop:"X"},
-  {county:"南投縣",  region:"全縣", avgWind:5, gust:8,  stop:"X"},
+  {county:"苗栗縣",  region:"內陸", avgWind:6, gust:9,  stop:"X"},
+  {county:"苗栗縣",  region:"沿海", avgWind:7, gust:10, stop:"X"},
+  {county:"臺中市",  region:"內陸", avgWind:6, gust:9,  stop:"X"},
+  {county:"臺中市",  region:"沿海", avgWind:7, gust:10, stop:"X"},
+  {county:"彰化縣",  region:"內陸", avgWind:6, gust:9,  stop:"X"},
+  {county:"彰化縣",  region:"沿海", avgWind:7, gust:10, stop:"X"},
+  {county:"南投縣",  region:"全縣", avgWind:4, gust:6,  stop:"X"},
   {county:"雲林縣",  region:"內陸", avgWind:6, gust:9,  stop:"X"},
-  {county:"雲林縣",  region:"沿海", avgWind:6, gust:9, stop:"X"},
-  {county:"嘉義市",  region:"全縣", avgWind:7, gust:10,  stop:"O"},
+  {county:"雲林縣",  region:"沿海", avgWind:7, gust:10, stop:"X"},
+  {county:"嘉義市",  region:"全縣", avgWind:6, gust:9,  stop:"O"},
   {county:"嘉義縣",  region:"內陸", avgWind:7, gust:10,  stop:"O"},
-  {county:"嘉義縣",  region:"沿海", avgWind:8, gust:12, stop:"O"},
-  {county:"臺南市",  region:"內陸", avgWind:8, gust:12,  stop:"O"},
-  {county:"臺南市",  region:"沿海", avgWind:8, gust:13, stop:"O"},
+  {county:"嘉義縣",  region:"沿海", avgWind:9, gust:12, stop:"O"},
+  {county:"臺南市",  region:"內陸", avgWind:7, gust:10,  stop:"O"},
+  {county:"臺南市",  region:"沿海", avgWind:9, gust:12, stop:"O"},
   {county:"高雄市",  region:"內陸", avgWind:7, gust:10,  stop:"O"},
   {county:"高雄市",  region:"沿海", avgWind:8, gust:11, stop:"O"},
   {county:"屏東縣",  region:"內陸", avgWind:7, gust:10,  stop:"O"},
-  {county:"屏東縣",  region:"沿海", avgWind:7, gust:10, stop:"O"},
-  {county:"宜蘭縣",  region:"內陸", avgWind:6, gust:9,  stop:"X"},
-  {county:"宜蘭縣",  region:"沿海", avgWind:7, gust:10, stop:"O"},
-  {county:"花蓮縣",  region:"內陸", avgWind:7, gust:10,  stop:"O"},
-  {county:"花蓮縣",  region:"沿海", avgWind:7, gust:10, stop:"O"},
-  {county:"臺東縣",  region:"內陸", avgWind:9, gust:13,  stop:"O"},
-  {county:"臺東縣",  region:"沿海", avgWind:11, gust:16, stop:"O"},
-  {county:"澎湖縣",  region:"全縣", avgWind:9, gust:13, stop:"O"},
+  {county:"屏東縣",  region:"沿海", avgWind:9, gust:12, stop:"O"},
+  {county:"宜蘭縣",  region:"內陸", avgWind:4, gust:6,  stop:"X"},
+  {county:"宜蘭縣",  region:"沿海", avgWind:5, gust:7, stop:"X"},
+  {county:"花蓮縣",  region:"內陸", avgWind:4, gust:6,  stop:"X"},
+  {county:"花蓮縣",  region:"沿海", avgWind:5, gust:7, stop:"X"},
+  {county:"臺東縣",  region:"內陸", avgWind:5, gust:7,  stop:"X"},
+  {county:"臺東縣",  region:"沿海", avgWind:6, gust:9, stop:"X"},
+  {county:"澎湖縣",  region:"全縣", avgWind:8, gust:11, stop:"O"},
   {county:"金門縣",  region:"全縣", avgWind:6, gust:9,  stop:"X"},
-  {county:"連江縣",  region:"全縣", avgWind:6, gust:9,  stop:"X"},
+  {county:"連江縣",  region:"全縣", avgWind:7, gust:10,  stop:"X"},
 ];
 
 // ================= 函式 =================
