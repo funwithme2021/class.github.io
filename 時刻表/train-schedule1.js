@@ -11,20 +11,20 @@ var trainSchedule = {
       ['苑裡','12:07'], ['大甲','12:19'], ['清水','12:30'], ['沙鹿','12:36'], ['彰化','13:00']
   ]
 },
- '355': {
-  '車種': '普悠瑪',
-  '車站時間': [
-    ['臺東','06:55'], ['關山','07:19'], ['池上','07:29'], ['玉里','07:47'], ['光復','08:14'], ['花蓮','08:59'], ['宜蘭','10:03'], 
-    ['南港','10:52'], ['松山','10:55'], ['臺北','11:01'], ['萬華','11:06'], ['板橋','11:11'], ['樹林','11:19']
-  ]
-},
- '357': {
-  '車種': '普悠瑪',
-  '車站時間': [
-    ['臺東','08:30'], ['玉里','09:16'], ['花蓮','10:15'], ['南港','12:06'], ['松山','12:09'], ['臺北','12:15'], ['萬華','12:20'], 
-    ['板橋','12:25'], ['樹林','12:33']
-  ]
-},
+  '355': {
+    '車種': '新自強',
+    '車站時間': [
+     ['臺東','06:55'], ['關山','07:15'], ['池上','07:25'], ['玉里','07:43'], ['光復','08:10'], ['花蓮','08:49'], ['宜蘭','10:04'], 
+     ['南港','11:19'], ['松山','11:24'], ['臺北','11:34'], ['萬華','11:40'], ['板橋','11:48'], ['樹林','11:57']
+]
+  },
+  '357': {
+    '車種': '新自強',
+    '車站時間': [
+      ['臺東','08:30'], ['玉里','09:16'], ['花蓮','10:18'], ['南港','12:41'], ['松山','12:46'], ['臺北','12:56'], ['萬華','13:02'], 
+      ['板橋','13:10'], ['樹林','13:19']
+]
+  },
   '359': {
   '車種': '普悠瑪',
   '車站時間': [
@@ -95,6 +95,12 @@ var trainSchedule = {
     ['臺南','16:30'], ['高雄','17:02'], ['屏東','17:18'], ['潮州','17:31']
   ]
 },
+'209': {
+'車種': '普悠瑪',
+'車站時間': [
+  ['南港','18:25'], ['松山','18:28'], ['臺北','18:34'], ['萬華','18:39'], ['板橋','18:44'], ['豐原','19:55'], ['臺中','20:06'], ['彰化','20:17']
+    ]
+  },
 '211': {
 '車種': '普悠瑪',
 '車站時間': [
@@ -146,10 +152,10 @@ var trainSchedule = {
   ]
 },
 '233': {
-'車種': '新自強',
+'車種': '普悠瑪',
 '車站時間': [
-  ['花蓮','16:25'], ['羅東','17:24'], ['宜蘭','17:32'], ['臺北','18:49'], ['桃園','19:20'], ['臺中','20:45'], ['臺南','22:18'], 
-  ['高雄','22:50'], ['屏東','23:05'], ['潮州','23:16'], ['枋寮','23:35']
+  ['花蓮','16:25'], ['羅東','17:20'], ['宜蘭','17:30'], ['臺北','18:29'], ['桃園','18:54'], ['臺中','19:58'], ['臺南','21:13'], 
+  ['高雄','21:41'], ['屏東','21:55'], ['潮州','21:59'], ['枋寮','22:21']
     ]
   },
 '235': {
@@ -241,12 +247,12 @@ var trainSchedule = {
 ]
 },
 '113': {
-  '車種': '新自強',
-  '車站時間': [
-    ['七堵','06:30'], ['松山','06:52'], ['臺北','07:02'], ['萬華','07:08'], ['板橋','07:14'], ['新竹','08:04'], ['臺中','08:57'], 
-    ['彰化','09:13'], ['嘉義','10:09'], ['臺南','10:45'], ['新左營','11:11'], ['高雄','11:22'], ['屏東','11:37'], ['潮州','11:48']
-  ]
-},
+    '車種': '自強號',
+    '車站時間': [
+      ['七堵','06:30'], ['松山','06:46'], ['臺北','06:55'], ['萬華','07:01'], ['板橋','07:08'], ['新竹','08:08'], ['臺中','09:13'], 
+      ['彰化','09:28'], ['嘉義','10:24'], ['臺南','11:06'], ['新左營','11:32'], ['高雄','11:43'], ['屏東','12:03'], ['潮州','12:18']
+]
+  },
 '115A': {
 '車種': '自強號',
 '車站時間': [
@@ -296,13 +302,13 @@ var trainSchedule = {
 ]
   },
 '129': {
-  '車種': '自強號',
-  '車站時間': [
-    ['基隆','08:57'], ['七堵','09:12'], ['松山','09:28'], ['臺北','09:37'], ['萬華','09:43'], ['板橋','09:50'], ['桃園','10:10'], 
-    ['中壢','10:20'], ['新竹','10:50'], ['竹南','11:06'], ['苗栗','11:18'], ['豐原','11:45'], ['臺中','11:57'], ['彰化','12:12'], 
-    ['員林','12:24'], ['斗六','12:47'], ['斗南','12:54'], ['嘉義','13:11'], ['新營','13:26'], ['臺南','13:52'], ['新左營','14:17'], 
-    ['高雄','14:28'], ['鳳山','14:35'], ['屏東','14:47'], ['潮州','15:00']
-  ]
+'車種': '自強號',
+'車站時間': [
+  ['基隆','08:57'], ['七堵','09:12'], ['松山','09:28'], ['臺北','09:37'], ['萬華','09:43'], ['板橋','09:50'], ['桃園','10:10'], 
+  ['中壢','10:20'], ['新竹','10:50'], ['苗栗','11:15'], ['豐原','11:42'], ['臺中','11:54'], ['彰化','12:09'], ['員林','12:21'], 
+  ['斗六','12:44'], ['斗南','12:51'], ['嘉義','13:08'], ['新營','13:23'], ['臺南','13:49'], ['新左營','14:15'], ['高雄','14:26'], 
+  ['鳳山','14:33'], ['屏東','14:46'], ['潮州','15:01']
+]
 },
 '133': {
   '車種': '自強號(新)',
@@ -317,11 +323,11 @@ var trainSchedule = {
 '135': {
   '車種': '自強號',
   '車站時間': [
-    ['七堵','10:00'], ['松山','10:16'], ['臺北','10:25'], ['萬華','10:31'], ['板橋','10:38'], ['桃園','10:58'], ['中壢','11:08'], 
-    ['新竹','11:38'], ['竹南','11:54'], ['苗栗','12:06'], ['豐原','12:33'], ['臺中','12:45'], ['彰化','13:00'], ['員林','13:12'], 
-    ['斗六','13:35'], ['嘉義','13:56'], ['新營','14:11'], ['臺南','14:37'], ['新左營','15:02'], ['高雄','15:13'], ['鳳山','15:20'], 
-    ['屏東','15:32'], ['潮州','15:45']
-  ]
+    ['七堵','11:00'], ['松山','11:16'], ['臺北','11:25'], ['萬華','11:31'], ['板橋','11:38'], ['桃園','11:58'], ['中壢','12:08'], 
+    ['新竹','12:38'], ['竹南','12:54'], ['苗栗','13:06'], ['豐原','13:33'], ['臺中','13:45'], ['彰化','14:00'], ['員林','14:12'], 
+    ['斗六','14:35'], ['嘉義','14:56'], ['新營','15:11'], ['臺南','15:37'], ['新左營','16:03'], ['高雄','16:14'], ['鳳山','16:21'], 
+    ['屏東','16:34'], ['潮州','16:49'], ['南州','16:57'], ['林邊','17:05'], ['枋寮','17:15']
+]
 },
 '137': {
 '車種': '自強號(新)',
@@ -412,13 +418,6 @@ var trainSchedule = {
   ]
 },
 '159': {
-  '車種': '自強號',
-  '車站時間': [
-    ['七堵','18:08'], ['松山','18:24'], ['臺北','18:33'], ['萬華','18:39'], ['板橋','18:46'], ['豐原','20:34'], ['臺中','20:45'], 
-    ['彰化','21:00'], ['嘉義','21:53'], ['臺南','22:33'], ['高雄','23:08'], ['屏東','23:27'], ['潮州','23:40']
-  ]
-},
-'161': {
 '車種': '自強號(新)',
 '車站時間': [
   ['臺東','14:25'], ['鹿野','14:40'], ['關山','14:55'], ['池上','15:05'], ['玉里','15:26'], ['瑞穗','15:43'], ['光復','15:55'], 
@@ -427,7 +426,7 @@ var trainSchedule = {
   ['新竹','20:41'], ['竹南','20:57'], ['苗栗','21:09'], ['豐原','21:36'], ['臺中','21:47'], ['新烏日','21:54'], ['彰化','22:05']
 ]
 },
-'163': {
+'161': {
   '車種': '自強號',
   '車站時間': [
     ['瑞芳','19:00'], ['八堵','19:10'], ['七堵','19:17'], ['松山','19:33'], ['臺北','19:42'], ['萬華','19:48'], ['板橋','19:55'], 
@@ -435,7 +434,7 @@ var trainSchedule = {
     ['臺中','22:12'], ['彰化','22:27'], ['員林','22:39'], ['斗六','23:02'], ['嘉義','23:23'], ['新營','23:38'], ['臺南','00:04']
 ]
 },
-'165': {
+'163': {
 '車種': '自強號',
 '車站時間': [
   ['蘇澳','19:26'], ['羅東','19:42'], ['宜蘭','19:52'], ['礁溪','20:00'], ['頭城','20:08'], ['雙溪','20:36'], ['瑞芳','20:47'], 
@@ -443,7 +442,7 @@ var trainSchedule = {
   ['桃園','22:09'], ['中壢','22:19'], ['楊梅','22:30'], ['竹北','22:54'], ['新竹','23:02'], ['竹南','23:18'], ['苗栗','23:30']
   ]
 },
-'167': {
+'165': {
     '車種': '自強號',
     '車站時間': [
         ['臺東','18:02'],['鹿野','18:18'],['瑞源','18:27'],['關山','18:38'],['池上','18:54'],['富里','19:01'],['東竹','19:08'],
@@ -451,7 +450,7 @@ var trainSchedule = {
         ['豐田','20:35'],['壽豐','20:41'],['志學','20:49'],['吉安','21:00'],['花蓮','21:08']
     ]
   },
-'169': {
+'167': {
 '車種': '自強號',
 '車站時間': [
    ['花蓮','21:15'], ['新城','21:28'], ['南澳','22:01'], ['蘇澳新','22:16'], ['羅東','22:26'], ['宜蘭','22:36'], ['礁溪','22:45'], 
@@ -462,8 +461,8 @@ var trainSchedule = {
    ['新左營','05:27'], ['高雄','05:38'], ['鳳山','05:45'], ['屏東','05:58'], ['潮州','06:13']
 ]
 },
-'171': {
-'車種': '自強號(新)',
+'169': {
+'車種': '自強號',
 '車站時間': [
   ['臺東','22:25'], ['鹿野','22:38'], ['關山','22:53'], ['池上','23:03'], ['富里','23:07'], ['玉里','23:24'], ['瑞穗','23:41'], 
   ['富源','00:02'], ['光復','00:12'], ['萬榮','00:20'], ['鳳林','00:28'], ['壽豐','00:40'], ['志學','00:47'], ['吉安','00:56'], 
@@ -475,7 +474,7 @@ var trainSchedule = {
   ['高雄','09:00'], ['鳳山','09:07'], ['屏東','09:19'], ['潮州','09:32']
   ]
 },
-'173': {
+'171': {
 '車種': '自強號',
 '車站時間': [
   ['花蓮','19:12'], ['新城','19:27'], ['南澳','20:01'], ['蘇澳新','20:17'], ['羅東','20:27'], ['宜蘭','20:37'], ['礁溪','20:45'], 
@@ -483,7 +482,7 @@ var trainSchedule = {
   ['萬華','22:20'], ['板橋','22:27'], ['樹林','22:36']
 ]
 },
-'175': {
+'173': {
 '車種': '自強號',
 '車站時間': [
   ['臺東','23:55'], ['鹿野','00:10'], ['關山','00:25'], ['池上','00:35'], ['富里','00:39'], ['玉里','00:56'], ['瑞穗','01:13'], 
@@ -3468,246 +3467,155 @@ var trainSchedule = {
   
       //加班車5xxx
     };
-
-    // === 全線車站列表 ===
-var stations = [
-  '臺東','山里', '鹿野', '瑞源', '瑞和', '關山', '海端', '池上', '富里', '東竹', '東里', '玉里', '三民', '瑞穗', '富源', 
-  '光復', '萬榮', '鳳林', '南平', '林榮新光', '豐田', '壽豐', '平和', '志學', '吉安', 
-  '花蓮', '北埔', '景美', '新城', '崇德', '和仁', '和平', '漢本', '武塔', '南澳', '東澳', '蘇澳', '永樂', '蘇澳新', '冬山',
-  '羅東', '中里', '二結', '宜蘭', '礁溪', '頂埔', '頭城', '外澳', '龜山', '大溪', '大里', '石城', '福隆', '雙溪', '猴硐','瑞芳', 
-  '基隆', '三坑', '八堵', '七堵', '百福',
-  '汐止', '汐科', '南港', '松山', '臺北', '萬華', '板橋', '浮洲', '樹林', '山佳', '鶯歌', '鳳鳴', '桃園', '內壢',
-  '中壢', '埔心', '楊梅', '富岡', '北湖', '湖口', '新豐', '竹北', '新竹', '香山', '崎頂', '竹南',
-  '談文', '大山', '後龍', '白沙屯', '通宵', '苑裡', '日南', '大甲','台中港', '清水', '沙鹿', '大肚', '追分', 
-  '造橋','苗栗', '銅鑼', '三義', '后里',
-  '豐原', '栗林', '潭子', '松竹', '太原', '臺中', '五權', '大慶', '新烏日', '彰化', '花壇', '大村', '員林', '永靖', '社頭',
-  '田中', '二水', '林內', '石榴', '斗六',
-  '斗南','石龜','大林', '民雄', '嘉北', '嘉義', '水上', '南靖', '後壁', '新營', '柳營', '林鳳營', '隆田', '拔林', '善化','南科', '新市', '永康', '大橋', '臺南', '岡山', '新左營', '高雄',
-  '鳳山', '九曲堂', '屏東', '西勢', '潮州',
-  '崁頂', '南州', '鎮安', '林邊', '佳冬', '東海', '枋寮'
-];
-
-// === 竹南～彰化之間：海線 & 山線定義 ===
-const seaLine = [
-  '竹南', 
-  '談文', '大山', '後龍', '白沙屯', '通宵', '苑裡', '日南', '大甲', '台中港', '清水', '沙鹿', '大肚', '追分',
-  '彰化'
-];
-
-const mountainLine = [
-  '竹南',
-  '造橋','苗栗', '銅鑼', '三義', '后里',
-  '豐原', '栗林', '潭子', '松竹', '太原', '臺中', '五權', '大慶', '新烏日',
-  '彰化'
-];
-
-console.log('trainSchedule:', trainSchedule);
-console.log('stations:', stations);
-
-// ===== 全站逐站迭代衝突修正（開車時間 + 最小1分鐘間隔 + 中間站同秒衝突） =====
-;(function(){
-  const priorityTypes = [
-    "普悠瑪","新自強","自強號(新)","自強號",
-    "加班車","莒光號","復興號","區間快","區間車"
-  ];
-  // ✅ 固定最小間隔 1 分鐘（同站同時刻調整 & 同站出發間隔都用這個）
-  const interval = 1;
-
-  // HH:MM + N 分鐘
-  function addMinutes(hhmm, minutes) {
-    let [h, m] = hhmm.split(":").map(Number);
-    let t = ((h * 60 + m + minutes) % 1440 + 1440) % 1440;
-    let nh = Math.floor(t / 60), nm = t % 60;
-    return `${String(nh).padStart(2, "0")}:${String(nm).padStart(2, "0")}`;
-  }
-
-  // "HH:MM" → 整數分鐘
-  function parseTime(hhmm) {
-    let [h, m] = hhmm.split(":").map(Number);
-    return h * 60 + m;
-  }
-
-  // 取得「車種優先順序 + 剩餘停靠站數」作為排序 key
-  function getTrainPriority(num, currIdx) {
-    const type = trainSchedule[num]['車種'];
-    const typeOrder = priorityTypes.indexOf(type);
-    const totalStops = trainSchedule[num]['車站時間'].length;
-    const remainingStops = Math.max(1, totalStops - currIdx); // 防呆
-
-    return { typeOrder, remainingStops };
-  }
-
-  // === 依兩站所屬路線，選擇適合的站序列表（山線 / 海線 / 全線） ===
-  function pickBaseStations(stA, stB) {
-    const inSeaA = seaLine.includes(stA);
-    const inSeaB = seaLine.includes(stB);
-    const inMtA  = mountainLine.includes(stA);
-    const inMtB  = mountainLine.includes(stB);
-
-    if (inSeaA && inSeaB) return seaLine;       // 都在海線
-    if (inMtA && inMtB)  return mountainLine;   // 都在山線
-    return stations;                            // 其他情況用全線
-  }
-
-  // 生成每列車在所有經過站的通過時間（分鐘），只沿著實際路線：
-  // 竹南～彰化區段會區分山線 / 海線，不會跨到另一條線的站。
-  function computeAllPassageTimes() {
-    const result = {};
-
-    for (const num in trainSchedule) {
-      const stopsRaw = trainSchedule[num]['車站時間'];
-      if (!stopsRaw || stopsRaw.length === 0) continue;
-
-      const stops = stopsRaw.map(([st, tm]) => ({
-        name: st,
-        time: parseTime(tm)
-      }));
-
-      const passages = [];
-
-      // 只有一個停靠站的列車
-      if (stops.length === 1) {
-        passages.push({
-          station: stops[0].name,
-          timeMin: stops[0].time,
-          stopIdx: 0
-        });
-        result[num] = passages;
-        continue;
-      }
-
-      // 對每一對相鄰停靠站做區間插值
-      for (let s = 0; s < stops.length - 1; s++) {
-        const A = stops[s];
-        const B = stops[s + 1];
-
-        // 選擇適當的站序列表（山線 / 海線 / 全線）
-        let baseStations = pickBaseStations(A.name, B.name);
-        let idxA = baseStations.indexOf(A.name);
-        let idxB = baseStations.indexOf(B.name);
-
-        // 找不到時退回 stations
-        if (idxA === -1 || idxB === -1) {
-          baseStations = stations;
-          idxA = baseStations.indexOf(A.name);
-          idxB = baseStations.indexOf(B.name);
+    
+    var stations = [
+      '臺東','山里', '鹿野', '瑞源', '瑞和', '關山', '海端', '池上', '富里', '東竹', '東里', '玉里', '三民', '瑞穗', '富源', 
+      '光復', '萬榮', '鳳林', '南平', '林榮新光', '豐田', '壽豐', '平和', '志學', '吉安', 
+      '花蓮', '北埔', '景美', '新城', '崇德', '和仁', '和平', '漢本', '武塔', '南澳', '東澳', '蘇澳', '永樂', '蘇澳新', '冬山',
+      '羅東', '中里', '二結', '宜蘭', '礁溪', '頂埔', '頭城', '外澳', '龜山', '大溪', '大里', '石城', '福隆', '雙溪', '猴硐','瑞芳', 
+      '基隆', '三坑', '八堵', '七堵', '百福',
+      '汐止', '汐科', '南港', '松山', '臺北', '萬華', '板橋', '浮洲', '樹林', '山佳', '鶯歌', '鳳鳴', '桃園', '內壢',
+      '中壢', '埔心', '楊梅', '富岡', '北湖', '湖口', '新豐', '竹北', '新竹', '香山', '崎頂', '竹南',
+      '談文', '大山', '後龍', '白沙屯', '通宵', '苑裡', '日南', '大甲','台中港', '清水', '沙鹿', '大肚', '追分', 
+      '造橋','苗栗', '銅鑼', '三義', '后里',
+      '豐原', '栗林', '潭子', '松竹', '太原', '臺中', '五權', '大慶', '新烏日', '彰化', '花壇', '大村', '員林', '永靖', '社頭',
+      '田中', '二水', '林內', '石榴', '斗六',
+      '斗南','石龜','大林', '民雄', '嘉北', '嘉義', '水上', '南靖', '後壁', '新營', '柳營', '林鳳營', '隆田', '拔林', '善化','南科', '新市', '永康', '大橋', '臺南', '岡山', '新左營', '高雄',
+      '鳳山', '九曲堂', '屏東', '西勢', '潮州',
+      '崁頂', '南州', '鎮安', '林邊', '佳冬', '東海', '枋寮'
+    ];
+    
+    
+    console.log('trainSchedule:', trainSchedule);
+    console.log('stations:', stations);
+    
+  // ===== 全站逐站迭代冲突修正（开车时间 + 最小2分钟间隔 + 中间站同秒冲突） =====
+  ;(function(){
+    const priorityTypes = [
+      "普悠瑪","新自強","自強號(新)","自強號",
+      "加班車","莒光號","復興號","區間快","區間車"
+    ];
+    // 固定最小间隔 2 分钟
+    const interval = 2;
+  
+    // HH:MM + N 分钟
+    function addMinutes(hhmm, minutes) {
+      let [h, m] = hhmm.split(":").map(Number);
+      let t = ((h * 60 + m + minutes) % 1440 + 1440) % 1440;
+      let nh = Math.floor(t / 60), nm = t % 60;
+      return `${String(nh).padStart(2, "0")}:${String(nm).padStart(2, "0")}`;
+    }
+    // 字符串 "HH:MM" → 整数分钟
+    function parseTime(hhmm) {
+      let [h, m] = hhmm.split(":").map(Number);
+      return h * 60 + m;
+    }
+  
+    // 生成每列车在所有经过站的通過时间（以整数分钟计），包括未停靠的中间站
+    function computeAllPassageTimes() {
+      // 返回：{ trainId: [ { station, timeMin, stopIdx } , ... ] }
+      const result = {};
+      for (const num in trainSchedule) {
+        const stops = trainSchedule[num]['車站時間'];
+        // 首先把已停靠站的 index（在 stations 数组中的位置）与时间（分钟）记录
+        const stopIndices = stops.map(([st, tm]) => ({
+          idx: stations.indexOf(st),
+          time: parseTime(tm)
+        }));
+        const passages = [];
+        for (let s = 0; s < stopIndices.length - 1; s++) {
+          const { idx: idxA, time: tA } = stopIndices[s];
+          const { idx: idxB, time: tB } = stopIndices[s + 1];
+          const spanIdx = idxB - idxA;
+          // 这两个停靠站之间，包含 endpoints，共有 spanIdx 段
+          for (let offset = 0; offset <= spanIdx; offset++) {
+            const stationIndex = idxA + offset;
+            const stationName = stations[stationIndex];
+            // 线性插值计算经过该站的时间
+            const ratio = offset / spanIdx;
+            const rawTime = tA + Math.round((tB - tA) * ratio);
+            passages.push({
+              station: stationName,
+              timeMin: rawTime,
+              stopIdx: s + (offset > 0 ? 1 : 0) // 归属后续 stopIdx 用于延迟时定位
+            });
+          }
         }
-        if (idxA === -1 || idxB === -1) continue; // 還是找不到就跳過
-
-        const step = idxB >= idxA ? 1 : -1;
-        const span = Math.abs(idxB - idxA);
-
-        if (span === 0) {
-          // 同一站重複
+        // 只有一个停靠站的列车，直接记录该站
+        if (stopIndices.length === 1) {
           passages.push({
-            station: A.name,
-            timeMin: A.time,
-            stopIdx: s + 1
-          });
-          continue;
-        }
-
-        // 含兩端站，做線性插值
-        for (let offset = 0; offset <= span; offset++) {
-          const stationIndex = idxA + step * offset;
-          const stationName  = baseStations[stationIndex];
-          const ratio = offset / span;
-          const interpolatedTime = A.time + Math.round((B.time - A.time) * ratio);
-
-          passages.push({
-            station: stationName,
-            timeMin: interpolatedTime,
-            // offset > 0 視為靠近下一個停靠站 → 延後時從下一站開始推
-            stopIdx: s + (offset > 0 ? 1 : 0)
+            station: stops[0][0],
+            timeMin: stopIndices[0].time,
+            stopIdx: 0
           });
         }
+        // 去重（同一站可能重复，但时间相同，只保留一次）
+        const seen = new Set();
+        result[num] = passages.filter(p => {
+          const key = `${p.station}|${p.timeMin}`;
+          if (seen.has(key)) return false;
+          seen.add(key);
+          return true;
+        });
       }
-
-      // 去重（同一站同一時間只保留一次）
-      const seen = new Set();
-      result[num] = passages.filter(p => {
-        const key = `${p.station}|${p.timeMin}`;
-        if (seen.has(key)) return false;
-        seen.add(key);
-        return true;
-      });
+      return result;
     }
-
-    return result;
-  }
-
-  let changed;
-  do {
-    changed = false;
-
-    // (1) 同站同時間衝突：
-    //     先看車種優先順序；同車種時，之後到終點站「剩餘停靠站越多」者優先發車。
-    for (const station of stations) {
-      const groups = {}; // { 'HH:MM': [ { num, idx } ] }
-
-      for (const num in trainSchedule) {
-        trainSchedule[num]['車站時間'].forEach(([st, tm], idx) => {
-          if (st === station) {
-            (groups[tm] = groups[tm] || []).push({ num, idx });
-          }
-        });
+  
+    let changed;
+    do {
+      changed = false;
+  
+      // (1) 按照 stations 顺序，一站一站来处理“同时刻冲突”
+      for (const station of stations) {
+        const groups = {}; // { 'HH:MM': [ { num, idx } ] }
+        for (const num in trainSchedule) {
+          trainSchedule[num]['車站時間'].forEach(([st, tm], idx) => {
+            if (st === station) {
+              (groups[tm] = groups[tm] || []).push({ num, idx });
+            }
+          });
+        }
+        for (const tm in groups) {
+          const list = groups[tm];
+          if (list.length < 2) continue;
+          // 有冲突：先按优先级排
+          list.sort((a, b) => {
+            return priorityTypes.indexOf(trainSchedule[a.num]['車種'])
+                 - priorityTypes.indexOf(trainSchedule[b.num]['車種']);
+          });
+          // 第一辆不动，其它依次 + interval * rank
+          list.forEach((item, rank) => {
+            if (rank === 0) return;
+            const delay = interval * rank;
+            const sched = trainSchedule[item.num]['車站時間'];
+            for (let k = item.idx; k < sched.length; k++) {
+              sched[k][1] = addMinutes(sched[k][1], delay);
+            }
+          });
+          changed = true;
+        }
       }
-
-      for (const tm in groups) {
-        const list = groups[tm];
-        if (list.length < 2) continue;
-
-        // ✅ 排序方式：
-        // 1. 車種優先順序（priorityTypes）
-        // 2. 同車種 → 剩餘停靠站多的優先
-        list.sort((a, b) => {
-          const pa = getTrainPriority(a.num, a.idx);
-          const pb = getTrainPriority(b.num, b.idx);
-
-          if (pa.typeOrder !== pb.typeOrder) {
-            return pa.typeOrder - pb.typeOrder; // 車種優先序
-          }
-          // 同車種：剩餘停靠站多的優先（所以用「降冪」）
-          return pb.remainingStops - pa.remainingStops;
-        });
-
-        // 第一班不動，其餘依序 +1、+2、+3 分鐘…
-        list.forEach((item, rank) => {
-          if (rank === 0) return;
-          const delay = interval * rank; // interval = 1
-
-          const sched = trainSchedule[item.num]['車站時間'];
-          for (let k = item.idx; k < sched.length; k++) {
-            sched[k][1] = addMinutes(sched[k][1], delay);
-          }
-        });
-        changed = true;
-      }
-    }
-
-    // (2) 同站出發：任意相鄰兩班車在同站發車時間至少相隔 1 分鐘
-    for (const station of stations) {
-      const departures = [];
-
-      for (const num in trainSchedule) {
-        trainSchedule[num]['車站時間'].forEach(([st, tm], idx) => {
-          if (st === station) {
-            departures.push({ num, idx, time: tm });
-          }
-        });
-      }
-
-      departures.sort((a, b) => parseTime(a.time) - parseTime(b.time));
-
-      for (let i = 1; i < departures.length; i++) {
-        const prev = departures[i - 1];
-        const curr = departures[i];
-        const tPrev = parseTime(prev.time);
-        const tCurr = parseTime(curr.time);
-
-        if (tCurr - tPrev < interval) {
-          const need = interval - (tCurr - tPrev); // interval=1 時只有 0 或 1
-          if (need > 0) {
+  
+      // (2) 再次遍历每个车站，确保任意相邻两趟开车时间至少相隔 interval
+      for (const station of stations) {
+        // 收集所有在此站“开车”记录
+        const departures = [];
+        for (const num in trainSchedule) {
+          trainSchedule[num]['車站時間'].forEach(([st, tm], idx) => {
+            if (st === station) {
+              departures.push({ num, idx, time: tm });
+            }
+          });
+        }
+        // 按实际时间排序
+        departures.sort((a, b) => parseTime(a.time) - parseTime(b.time));
+        // 检查相邻两车
+        for (let i = 1; i < departures.length; i++) {
+          const prev = departures[i - 1], curr = departures[i];
+          const tPrev = parseTime(prev.time), tCurr = parseTime(curr.time);
+          if (tCurr - tPrev < interval) {
+            // 不够间隔：推后 curr 及其后所有站点
+            const need = interval - (tCurr - tPrev);
             const sched = trainSchedule[curr.num]['車站時間'];
             for (let k = curr.idx; k < sched.length; k++) {
               sched[k][1] = addMinutes(sched[k][1], need);
@@ -3716,239 +3624,241 @@ console.log('stations:', stations);
           }
         }
       }
-    }
-
-    // (3) 中間站「同秒通過」衝突（含未停靠站），已考慮山線 / 海線路徑
-    const allPassages = computeAllPassageTimes();
-
-    for (const station of stations) {
-      const passes = [];
-      for (const num in allPassages) {
-        allPassages[num].forEach(p => {
-          if (p.station === station) {
-            passes.push({ num, timeMin: p.timeMin, stopIdx: p.stopIdx });
-          }
-        });
-      }
-
-      if (passes.length < 2) continue;
-
-      passes.sort((a, b) => a.timeMin - b.timeMin);
-
-      for (let i = 1; i < passes.length; i++) {
-        const higher = passes[i - 1];
-        const lower  = passes[i];
-
-        const priHigh = priorityTypes.indexOf(trainSchedule[higher.num]['車種']);
-        const priLow  = priorityTypes.indexOf(trainSchedule[lower.num]['車種']);
-
-        // 這裡仍維持「車種優先順序」為主；
-        // 同車種就不另外用剩餘距離比（避免把較早的車往後推太多）
-        if (priHigh < priLow && Math.abs(lower.timeMin - higher.timeMin) <= 1) {
-          const desired = higher.timeMin + 1; // 讓低優先至少晚 1 分鐘
-          const currTime = lower.timeMin;
-          const diff = desired - currTime;
-
-          if (diff > 0) {
-            const sched = trainSchedule[lower.num]['車站時間'];
-            for (let k = lower.stopIdx; k < sched.length; k++) {
-              sched[k][1] = addMinutes(sched[k][1], diff);
+  
+      // (3) 新增：中间站“同时通过”冲突
+      // 先计算所有列车在各站的经过时间
+      const allPassages = computeAllPassageTimes();
+      // 对每个站点，收集所有列车经过该站的时间，再检查优先级
+      for (const station of stations) {
+        // 收集此站所有车次经过信息
+        const passes = [];
+        for (const num in allPassages) {
+          allPassages[num].forEach(p => {
+            if (p.station === station) {
+              passes.push({ num, timeMin: p.timeMin, stopIdx: p.stopIdx });
             }
-            changed = true;
+          });
+        }
+        // 若不到两辆则跳过
+        if (passes.length < 2) continue;
+        // 按通过时间排序
+        passes.sort((a, b) => a.timeMin - b.timeMin);
+        // 比对相邻两辆：若高优列车与低优列车时间差 ≤ 1 分钟，则延迟低优
+        for (let i = 1; i < passes.length; i++) {
+          const higher = passes[i - 1], lower = passes[i];
+          // 判断优先级：higher 必须优先级更高
+          const priHigh = priorityTypes.indexOf(trainSchedule[higher.num]['車種']);
+          const priLow  = priorityTypes.indexOf(trainSchedule[lower.num]['車種']);
+          if (priHigh < priLow && Math.abs(lower.timeMin - higher.timeMin) <= 1) {
+            // 需要延迟 lower 列车，使其通過时间 = higher.timeMin + 1
+            const desired = higher.timeMin + 1;
+            const currTime = lower.timeMin;
+            const diff = desired - currTime;
+            if (diff > 0) {
+              // 推后 lower 列车从停靠站 lower.stopIdx 及之后的所有停靠站
+              const sched = trainSchedule[lower.num]['車站時間'];
+              for (let k = lower.stopIdx; k < sched.length; k++) {
+                sched[k][1] = addMinutes(sched[k][1], diff);
+              }
+              changed = true;
+            }
           }
         }
       }
+  
+    } while (changed);
+  })();
+  
+  
+  
+    // 動態生成車站下拉選單
+    function generateStationOptions() {
+      var startStationSelect = document.getElementById('startStation');
+      var endStationSelect = document.getElementById('endStation');
+      var stationSelect = document.getElementById('stationSelect');
+    
+      for (var i = 0; i < stations.length; i++) {
+          var option1 = document.createElement('option');
+          option1.value = stations[i];
+          option1.text = stations[i];
+          startStationSelect.add(option1);
+    
+          var option2 = option1.cloneNode(true);
+          endStationSelect.add(option2);
+    
+          var option3 = option1.cloneNode(true);
+          stationSelect.add(option3);
+      }
     }
-
-  } while (changed);
-})();
-
-// ====== 動態生成車站下拉選單 ======
-function generateStationOptions() {
-  var startStationSelect = document.getElementById('startStation');
-  var endStationSelect   = document.getElementById('endStation');
-  var stationSelect      = document.getElementById('stationSelect');
-
-  for (var i = 0; i < stations.length; i++) {
-    var option1 = document.createElement('option');
-    option1.value = stations[i];
-    option1.text  = stations[i];
-    startStationSelect.add(option1);
-
-    var option2 = option1.cloneNode(true);
-    endStationSelect.add(option2);
-
-    var option3 = option1.cloneNode(true);
-    stationSelect.add(option3);
-  }
-}
-
-// 初始化生成車站下拉選單
-generateStationOptions();
-
-// ====== 依車次查詢 ======
-function filterTrainScheduleByNumber() {
-  var trainNumber = document.getElementById('trainNumber').value;
-
-  var scheduleTable = document
-    .getElementById('scheduleTableByNumber')
-    .getElementsByTagName('tbody')[0];
-  scheduleTable.innerHTML = ''; // Clear previous content
-
-  if (trainSchedule[trainNumber]) {
-    var stationTimes = trainSchedule[trainNumber]['車站時間'];
-
-    var firstStop = stationTimes[0][0];
-    var lastStop  = stationTimes.slice(-1)[0][0];
-
-    var row  = scheduleTable.insertRow();
-    var cell1 = row.insertCell(0);
-    var cell2 = row.insertCell(1);
-
-    cell1.innerHTML = trainNumber;
-    cell2.innerHTML =
-      getTrainTypeWithColor(trainSchedule[trainNumber]['車種']) +
-      ' (' + firstStop + ' ➝ ' + lastStop + ')';
-
-    row.setAttribute('onclick', 'showTrainDetails(\'' + trainNumber + '\')');
-
-    // 同時在 modal 顯示詳細時刻
-    var modalTitle = document.getElementById('modalTitle');
-    var modalTable = document.getElementById('modalTable');
-    var modalBody  = modalTable.getElementsByTagName('tbody')[0];
-    modalBody.innerHTML = '';
-
-    modalTitle.innerHTML = '列車詳細資訊 - 車次 ' + trainNumber;
-
-    for (var i = 0; i < stationTimes.length; i++) {
-      var rowModal  = modalBody.insertRow();
-      var cell1Modal = rowModal.insertCell(0);
-      var cell2Modal = rowModal.insertCell(1);
-
-      cell1Modal.innerHTML = stationTimes[i][0];
-      cell2Modal.innerHTML = stationTimes[i][1];
+    
+    // 初始化生成車站下拉選單
+    generateStationOptions();
+    
+    
+    
+    
+    
+    function filterTrainScheduleByNumber() {
+      var trainNumber = document.getElementById('trainNumber').value;
+    
+      var scheduleTable = document.getElementById('scheduleTableByNumber').getElementsByTagName('tbody')[0];
+      scheduleTable.innerHTML = ''; // Clear previous content
+    
+      if (trainSchedule[trainNumber]) {
+          var stationTimes = trainSchedule[trainNumber]['車站時間'];
+    
+          var firstStop = stationTimes[0][0];
+          var lastStop = stationTimes.slice(-1)[0][0];
+    
+          var row = scheduleTable.insertRow();
+          var cell1 = row.insertCell(0);
+          var cell2 = row.insertCell(1);
+    
+          cell1.innerHTML = trainNumber;
+          cell2.innerHTML = getTrainTypeWithColor(trainSchedule[trainNumber]['車種']) + ' (' + firstStop + ' ➝ ' + lastStop + ')';
+    
+          row.setAttribute('onclick', 'showTrainDetails(\'' + trainNumber + '\')');
+    
+          // Show detailed information in the modal
+          var modalTitle = document.getElementById('modalTitle');
+          var modalTable = document.getElementById('modalTable');
+          var modalBody = modalTable.getElementsByTagName('tbody')[0];
+          modalBody.innerHTML = ''; // Clear previous content
+    
+          modalTitle.innerHTML = '列車詳細資訊 - 車次' + trainNumber  ;
+    
+          for (var i = 0; i < stationTimes.length; i++) {
+              var rowModal = modalBody.insertRow();
+              var cell1Modal = rowModal.insertCell(0);
+              var cell2Modal = rowModal.insertCell(1);
+    
+              cell1Modal.innerHTML = stationTimes[i][0];
+              cell2Modal.innerHTML = stationTimes[i][1];
+          }
+      }
     }
-  }
-}
-
-// 取得指定列車在指定站點的出發時間
-function getDepartureTimeForStation(trainNumber, station) {
-  var stationTimes = trainSchedule[trainNumber]['車站時間'];
-  var stationIndex = stationTimes.findIndex(
-    stationInfo => stationInfo[0] === station
-  );
-  return stationIndex !== -1 ? stationTimes[stationIndex][1] : '';
-}
-
-// ====== 列車詳細資訊 Modal ======
-function showTrainDetails(trainNumber) {
-  var modalTitle = document.getElementById('modalTitle');
-  var modalTable = document.getElementById('modalTable');
-  var modalBody  = modalTable.getElementsByTagName('tbody')[0];
-  modalBody.innerHTML = '';
-
-  if (trainSchedule[trainNumber] && trainSchedule[trainNumber]['車站時間']) {
-    var stationTimes = trainSchedule[trainNumber]['車站時間'];
-    var trainType    = trainSchedule[trainNumber]['車種'];
-
-    modalTitle.innerHTML = '列車詳細訊息 : ' + trainNumber + ' 車次 ' + trainType;
-
-    for (var i = 0; i < stationTimes.length; i++) {
-      var row  = modalBody.insertRow();
-      var cell1 = row.insertCell(0);
-      var cell2 = row.insertCell(1);
-
-      cell1.innerHTML = stationTimes[i][0];
-      cell2.innerHTML = stationTimes[i][1];
+    
+    
+    
+    
+    
+    // 使用 getDepartureTimeForStation 函数获取指定列车在指定站点的出发时间
+    function getDepartureTimeForStation(trainNumber, station) {
+      var stationTimes = trainSchedule[trainNumber]['車站時間'];
+      var stationIndex = stationTimes.findIndex(stationInfo => stationInfo[0] === station);
+      return stationIndex !== -1 ? stationTimes[stationIndex][1] : '';
     }
-  } else {
-    modalTitle.innerHTML = '找不到車次資訊';
+    
+    
+    function showTrainDetails(trainNumber) {
+      var modalTitle = document.getElementById('modalTitle');
+      var modalTable = document.getElementById('modalTable');
+      var modalBody = modalTable.getElementsByTagName('tbody')[0];
+      modalBody.innerHTML = ''; // 清除之前的內容
+  
+      if (trainSchedule[trainNumber] && trainSchedule[trainNumber]['車站時間']) {
+          var stationTimes = trainSchedule[trainNumber]['車站時間'];
+          
+          // 取得車種資訊
+          var trainType = trainSchedule[trainNumber]['車種'];
+          modalTitle.innerHTML = '列車詳細訊息 :' + trainNumber + '車次 ' + trainType;
+  
+          for (var i = 0; i < stationTimes.length; i++) {
+              var row = modalBody.insertRow();
+              var cell1 = row.insertCell(0);
+              var cell2 = row.insertCell(1);
+  
+              cell1.innerHTML = stationTimes[i][0];
+              cell2.innerHTML = stationTimes[i][1];
+          }
+      } else {
+          // 若找不到相應的資料，顯示一個錯誤訊息或採取其他操作
+          modalTitle.innerHTML = '找不到車次資訊';
+      }
+  
+      document.getElementById('trainDetailsModal').style.display = 'block';
   }
-
-  document.getElementById('trainDetailsModal').style.display = 'block';
-}
-
-function closeTrainDetailsModal() {
-  document.getElementById('trainDetailsModal').style.display = 'none';
-}
-
-// ====== 依「經過某站」篩列車 ======
-function generateStationFilterOptions() {
-  var stationFilterSelect = document.getElementById('stationFilter');
-
-  for (var i = 0; i < stations.length; i++) {
-    var option = document.createElement('option');
-    option.value = stations[i];
-    option.text  = stations[i];
-    stationFilterSelect.add(option);
-  }
-}
-
-// （記得在頁面載入時呼叫 generateStationFilterOptions()）
-function filterTrainsByStation() {
-  var selectedStation = document.getElementById('stationFilter').value;
-
-  var filteredTrainsTable = document
-    .getElementById('filteredTrainsTable')
-    .getElementsByTagName('tbody')[0];
-  filteredTrainsTable.innerHTML = ''; // Clear previous content
-
-  for (var trainNumberKey in trainSchedule) {
-    var stationTimes = trainSchedule[trainNumberKey]['車站時間'];
-    var stationIndex = stationTimes.findIndex(
-      station => station[0] === selectedStation
-    );
-
-    if (stationIndex !== -1) {
-      var row  = filteredTrainsTable.insertRow();
-      var cell1 = row.insertCell(0);
-      var cell2 = row.insertCell(1);
-      var cell3 = row.insertCell(2);
-
-      cell1.innerHTML = trainNumberKey;
-      cell2.innerHTML = getTrainTypeWithColor(
-        trainSchedule[trainNumberKey]['車種']
-      );
-      cell3.innerHTML = stationTimes[stationIndex][1];
+  
+    
+    
+    
+    
+    
+    
+    
+    function closeTrainDetailsModal() {
+      document.getElementById('trainDetailsModal').style.display = 'none';
     }
-  }
-}
-
-// ====== 車種顏色 ======
-function getTrainTypeWithColor(trainType) {
-  var color = '';
-
-  switch (trainType) {
-    case '新自強':
-      color = '#8600FF';
-      break;
-    case '普悠瑪':
-      color = '#FF1493';
-      break;
-    case '自強號':
-      color = 'red';
-      break;
-    case '莒光號':
-      color = 'orange';
-      break;
-    case '區間快':
-      color = 'green';
-      break;
-    case '復興號':
-      color = '#0080FF';
-      break;
-    case '區間車':
-      color = 'black';
-      break;
-    case '自強號(新)':
-      color = 'brown';
-      break;
-    case '加班車':
-      color = 'teal';
-      break;
-    default:
-      color = 'black';
-  }
-
-  return '<span style="color: ' + color + ';">' + trainType + '</span>';
-}
+    
+    // 新增的 JavaScript 部分
+    function generateStationFilterOptions() {
+      var stationFilterSelect = document.getElementById('stationFilter');
+    
+      for (var i = 0; i < stations.length; i++) {
+          var option = document.createElement('option');
+          option.value = stations[i];
+          option.text = stations[i];
+          stationFilterSelect.add(option);
+      }
+    }
+    
+    function filterTrainsByStation() {
+      var selectedStation = document.getElementById('stationFilter').value;
+    
+      var filteredTrainsTable = document.getElementById('filteredTrainsTable').getElementsByTagName('tbody')[0];
+      filteredTrainsTable.innerHTML = ''; // Clear previous content
+    
+      for (var trainNumberKey in trainSchedule) {
+          var stationTimes = trainSchedule[trainNumberKey]['車站時間'];
+          var stationIndex = stationTimes.findIndex(station => station[0] === selectedStation);
+    
+          if (stationIndex !== -1) {
+              var row = filteredTrainsTable.insertRow();
+              var cell1 = row.insertCell(0);
+              var cell2 = row.insertCell(1);
+              var cell3 = row.insertCell(2);
+    
+              cell1.innerHTML = trainNumberKey;
+              cell2.innerHTML = getTrainTypeWithColor(trainSchedule[trainNumberKey]['車種']);
+              cell3.innerHTML = stationTimes[stationIndex][1];
+          }
+      }
+    }
+    
+    function getTrainTypeWithColor(trainType) {
+      var color = '';
+    
+      switch (trainType) {
+        case '新自強':
+          color = '#8600FF';
+          break;
+        case '普悠瑪':
+          color = '#FF1493'; // Deep Pink
+          break;
+        case '自強號':
+          color = 'red';
+          break;
+        case '莒光號':
+          color = 'orange';
+          break;
+        case '區間快':
+          color = 'green';
+          break;
+        case '復興號':
+          color = '#0080FF';
+          break;
+        case '區間車':
+          color = 'black';
+          break;
+        case '自強號(新)':
+          color = 'brown';
+          break;
+        case '加班車':
+          color = 'teal';
+          break;
+        default:
+          color = 'black';
+      }
+    
+      return '<span style="color: ' + color + ';">' + trainType + '</span>';
+    }
