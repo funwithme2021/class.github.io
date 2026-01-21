@@ -3,102 +3,279 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>台鐵列車時刻表查詢</title>
+  <title>台鐵時刻表 (Live版)</title>
+  
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+  
   <style>
-  /* ===== Reset & 基本 ===== */
-  *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
-  body{font-family:"Noto Sans TC",sans-serif;line-height:1.6;background:#f6f8ff;color:#333;transition:.25s}
-  :root{--primary:#0460fe;--primary-dark:#034ad0;--surface:#fff;--surface-dark:#1f1f1f;--text-dark:#ddd;--shadow:0 4px 12px rgba(0,0,0,.08)}
-  @media(prefers-color-scheme:dark){body{background:#121212;color:var(--text-dark)}}
-  body.dark-mode{background:#121212;color:var(--text-dark)}
-  body.dark-mode .card{background:var(--surface-dark);color:var(--text-dark)}
-  body.dark-mode .navbar{background:#222;}
-  body.dark-mode .navbar .brand, body.dark-mode .navbar a{color:#fff}
-  body.dark-mode .navbar button{background:#444}
-  body.dark-mode th{background:#303030;color:#fff}
-  body.dark-mode tr{background:#121212}
-  body.dark-mode tr:hover{background:#1e1e1e}
-
-  /* ===== Navbar ===== */
-  .navbar{position:sticky;top:0;z-index:1000;display:flex;justify-content:space-between;align-items:center;padding:.75rem 1rem;background:#333;box-shadow:var(--shadow)}
-  .navbar .brand{color:#fff;font-weight:700;font-size:1.05rem}
-  .navbar a{color:#fff;text-decoration:none;font-size:.85rem;margin-left:1rem;white-space:nowrap}
-  .navbar button{border:0;border-radius:4px;padding:.35rem .8rem;font-size:.75rem;background:#444;color:#fff;cursor:pointer}
-  .navbar button:hover{background:#222}
-  .hamburger{display:none;flex-direction:column;gap:4px;cursor:pointer}
-  .hamburger span{width:24px;height:2px;background:#fff;transition:.3s}
-  @media(max-width:767.98px){
-    .navbar a{margin-left:0}
-    .nav-links{position:absolute;left:0;top:100%;width:100%;background:#333;flex-direction:column;max-height:0;overflow:hidden;transition:max-height .3s}
-    .nav-links.open{max-height:320px;padding:.5rem 1rem}
-    .hamburger{display:flex}
+  /* ===== 1. 核心變數與 Reset ===== */
+  :root {
+    --font-main: 'Inter', 'Noto Sans TC', sans-serif;
+    
+    --bg-body: #f8fafc;
+    --bg-surface: #ffffff;
+    --bg-header: rgba(255, 255, 255, 0.9);
+    
+    --text-main: #0f172a;
+    --text-muted: #64748b;
+    --text-light: #94a3b8;
+    
+    --border: #e2e8f0;
+    --primary: #2563eb;
+    --primary-bg: rgba(37, 99, 235, 0.1);
+    
+    --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    
+    --radius: 10px;
   }
 
-  /* ===== Layout ===== */
-  .container{max-width:900px;margin:auto;padding:1.25rem}
-  .grid{display:grid;gap:1.25rem}
+  body.dark-mode {
+    --bg-body: #0f172a;
+    --bg-surface: #1e293b;
+    --bg-header: rgba(30, 41, 59, 0.9);
+    
+    --text-main: #f1f5f9;
+    --text-muted: #94a3b8;
+    --text-light: #64748b;
+    
+    --border: #334155;
+    --primary: #60a5fa;
+    --primary-bg: rgba(96, 165, 250, 0.15);
+  }
 
-  /* ===== Card ===== */
-  .card{background:var(--surface);border-radius:12px;box-shadow:var(--shadow);padding:1rem 1.25rem;display:flex;flex-direction:column;gap:.8rem}
-  .section-title{font-weight:700;font-size:1.05rem;border-left:4px solid #130058;padding-left:.6rem}
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  
+  body {
+    font-family: var(--font-main);
+    background: var(--bg-body);
+    color: var(--text-main);
+    line-height: 1.5;
+    padding-bottom: 40px;
+  }
 
-  /* ===== Form ===== */
-  label{font-size:.85rem;font-weight:600;margin-right:.15rem}
-  input,select,button{font-size:.8rem;padding:.42rem .7rem;border:1px solid #ddd;border-radius:4px;outline:none;transition:.2s}
-  input:focus,select:focus{border-color:var(--primary)}
-  button{background:var(--primary);color:#fff;border:none;cursor:pointer}
-  button:hover{background:var(--primary-dark)}
-  button:active{transform:translateY(1px)}
+  /* ===== 2. 導航列 ===== */
+  .navbar {
+    position: sticky; top: 0; z-index: 100;
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 0.8rem 1.5rem;
+    background: var(--bg-header);
+    backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border);
+  }
+  .navbar .brand { font-weight: 700; font-size: 1.1rem; color: var(--primary); display: flex; align-items: center; gap: 8px; }
+  .nav-links { display: flex; gap: 4px; align-items: center; }
+  .nav-links a {
+    color: var(--text-muted); text-decoration: none; font-size: 0.9rem; font-weight: 500;
+    padding: 6px 12px; border-radius: 6px; transition: 0.2s;
+  }
+  .nav-links a:hover { background: var(--bg-body); color: var(--primary); }
+  .theme-btn {
+    border: 1px solid var(--border); background: var(--bg-surface); color: var(--text-main);
+    padding: 6px 12px; border-radius: 6px; cursor: pointer; display: flex; align-items: center; gap: 6px;
+  }
+  .hamburger { display: none; flex-direction: column; gap: 5px; cursor: pointer; padding: 5px; }
+  .hamburger span { width: 24px; height: 2px; background: var(--text-main); }
 
-  /* ===== Table ===== */
-  .table-wrapper{overflow-x:auto}
-  table{width:100%;border-collapse:collapse;font-size:.75rem;background:var(--surface)}
-  th,td{padding:.5rem .7rem;border-bottom:1px solid #e0e0e0;white-space:nowrap}
-  th.sortable{cursor:pointer;position:relative}
-  th.sortable:after{content:"↕";position:absolute;right:8px;font-size:.6rem;color:#999}
-  tr:nth-child(even){background:#f9f9f9}
-  tr:hover{background:#ececec;cursor:pointer}
-  body.dark-mode tr:nth-child(even){background:#121212}
+  @media(max-width: 900px) {
+    .nav-links {
+      position: absolute; top: 100%; left: 0; width: 100%;
+      background: var(--bg-surface); border-bottom: 1px solid var(--border);
+      flex-direction: column; align-items: flex-start; padding: 0;
+      max-height: 0; overflow: hidden; opacity: 0; transition: 0.3s;
+    }
+    .nav-links.open { max-height: 500px; opacity: 1; padding: 1rem; }
+    .nav-links a { width: 100%; padding: 10px; }
+    .hamburger { display: flex; }
+  }
 
-  /* Progress bar */
-  .progress-bar{width:100%;height:6px;background:#e0e0e0;border-radius:3px;margin-top:4px}
-  .progress-fill{height:100%;background:var(--primary);border-radius:3px}
+  /* ===== 3. 主要容器 ===== */
+  .container { max-width: 1200px; margin: 20px auto; padding: 0 16px; }
+  .grid { display: grid; gap: 24px; }
 
-  /* Extra stops */
-  .extra-stops td{background:#e3f2fd;font-size:.75rem;white-space:normal;word-wrap:break-word}
+  .card {
+    background: var(--bg-surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 24px;
+    box-shadow: var(--shadow-sm);
+  }
 
-  /* Badges & Peak */
-  .badge-sea{display:inline-block;background:#1e80ff;color:#fff;font-size:.65rem;padding:1px 4px;border-radius:3px;margin-left:2px}
-  .peak-hour{background:#ffe0a0;padding:2px 6px;border-radius:4px;font-weight:700}
-  body.dark-mode .peak-hour{background:#e09f00;color:#fff}
-  .toggle-arrow{cursor:pointer;font-weight:700;margin-left:.4rem}
+  .section-title {
+    font-size: 1.1rem; font-weight: 700; margin-bottom: 16px;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .section-title::before { content: ''; width: 4px; height: 18px; background: var(--primary); border-radius: 2px; }
 
-  /* ===== Modal ===== */
-  .modal{display:none;position:fixed;left:0;top:0;width:100%;height:100%;background:rgba(0,0,0,.55);z-index:1050;justify-content:center;align-items:center}
-  .modal-content{background:var(--surface);border-radius:10px;max-width:500px;width:95%;max-height:85%;overflow-y:auto;position:relative;padding:1rem 1.25rem;animation:slide .25s ease-out}
-  @keyframes slide{from{transform:translateY(-40px);opacity:0}to{transform:translateY(0);opacity:1}}
-  body.dark-mode .modal-content{background:var(--surface-dark);color:var(--text-dark)}
-  .close{position:absolute;right:1rem;top:.6rem;font-size:1.4rem;font-weight:bold;color:#666;cursor:pointer}
-  body.dark-mode .close{color:#ccc}
-  .modal-content thead th{background:#303030;color:#fff}
-  body.dark-mode .modal-content thead th{background:#444;color:#fff}
-  .transfer-tip{background:#000;color:#fff;padding:10px;border-radius:5px;margin-bottom:.75rem}
+  /* ===== 4. 表單與篩選 ===== */
+  .form-row { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; margin-bottom: 16px; }
+  
+  .input-group { 
+    display: flex; align-items: center; gap: 8px; 
+    background: var(--bg-body); padding: 4px 8px; 
+    border: 1px solid var(--border); border-radius: 8px; 
+  }
+  .input-group label { font-size: 0.85rem; color: var(--text-muted); font-weight: 600; white-space: nowrap; }
+  input, select {
+    border: none; background: transparent; color: var(--text-main); 
+    font-size: 0.95rem; padding: 6px; outline: none; width: 140px; 
+  }
+
+  button.btn-primary {
+    background: var(--primary); color: #fff; border: none;
+    padding: 8px 16px; border-radius: 8px; font-weight: 600;
+    cursor: pointer; white-space: nowrap;
+  }
+
+  /* 標籤式 Checkbox */
+  .chip-group { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px; }
+  .chip-label {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 5px 10px; border-radius: 20px;
+    border: 1px solid var(--border); background: var(--bg-surface);
+    color: var(--text-muted); font-size: 0.85rem; cursor: pointer;
+    user-select: none; transition: 0.2s;
+  }
+  .chip-label:hover { background: var(--bg-body); }
+  .chip-label input { display: none; }
+  .chip-label:has(input:checked) {
+    background: var(--primary-bg); color: var(--primary); border-color: var(--primary); font-weight: 500;
+  }
+  .chip-label input:checked + span { color: var(--primary); }
+
+  /* ===== 5. 表格樣式 ===== */
+  .table-wrapper { overflow-x: auto; border: 1px solid var(--border); border-radius: 8px; }
+  table { width: 100%; border-collapse: collapse; font-size: 0.9rem; white-space: nowrap; }
+  
+  th {
+    background: var(--bg-body); color: var(--text-muted); font-weight: 600; text-align: left;
+    padding: 12px 16px; border-bottom: 1px solid var(--border);
+  }
+  th.sortable { cursor: pointer; }
+  td { padding: 12px 16px; border-bottom: 1px solid var(--border); color: var(--text-main); }
+  tr:last-child td { border-bottom: none; }
+  tr:hover { background: var(--bg-body); cursor: pointer; }
+
+  /* 數字對齊 */
+  td { font-feature-settings: "tnum"; font-variant-numeric: tabular-nums; }
+  
+  /* 標籤 Badge */
+  .badge-sea { font-size: 0.7rem; padding: 2px 6px; border-radius: 4px; background: #0ea5e9; color: #fff; margin-left: 4px; }
+  .peak-hour { color: #d97706; font-weight: 700; background: #fef3c7; padding: 2px 6px; border-radius: 4px; }
+  body.dark-mode .peak-hour { background: rgba(217, 119, 6, 0.2); color: #fbbf24; }
+  
+  .train-route { font-size: 0.85rem; color: var(--text-muted); margin-left: 6px; }
+  .progress-bar { width: 100px; height: 6px; background: var(--border); border-radius: 3px; overflow: hidden; margin-top: 4px; }
+  .progress-fill { height: 100%; background: var(--primary); border-radius: 3px; }
+
+  /* ===== 6. Modal (彈窗) & 時間軸 ===== */
+  .modal {
+    display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(2px);
+    z-index: 2000; justify-content: center; align-items: center;
+    opacity: 0; transition: opacity 0.3s;
+  }
+  .modal[style*="display: flex"] { opacity: 1; }
+
+  .modal-content {
+    background: var(--bg-surface); width: 95%; max-width: 500px; max-height: 85vh;
+    border-radius: 16px; box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+    overflow: hidden; display: flex; flex-direction: column;
+    transform: translateY(20px); transition: transform 0.3s;
+  }
+  .modal[style*="display: flex"] .modal-content { transform: translateY(0); }
+
+  .modal-header {
+    padding: 16px 20px; border-bottom: 1px solid var(--border);
+    display: flex; justify-content: space-between; align-items: center;
+    background: var(--bg-body);
+  }
+  .modal-title-main { font-size: 1.1rem; font-weight: 700; color: var(--text-main); }
+  .modal-title-sub { font-size: 0.85rem; color: var(--text-muted); margin-top: 2px; }
+  .close { font-size: 1.5rem; color: var(--text-muted); cursor: pointer; }
+
+  .modal-body { padding: 0; overflow-y: auto; background: var(--bg-surface); }
+
+  /* 時間軸樣式 */
+  .timeline { padding: 10px 20px; }
+  .timeline-item { display: flex; position: relative; padding-bottom: 0; }
+  
+  /* 左側時間 */
+  .tl-time {
+    width: 50px; text-align: right; font-size: 0.9rem; font-weight: 600; 
+    color: var(--text-main); padding-right: 15px; padding-top: 2px;
+    font-variant-numeric: tabular-nums;
+  }
+  
+  /* 中間線條與圓點 */
+  .tl-marker {
+    display: flex; flex-direction: column; align-items: center; width: 20px; position: relative;
+  }
+  .tl-line {
+    width: 2px; background: var(--border); flex-grow: 1; margin-top: 4px; margin-bottom: -4px;
+  }
+  .timeline-item:last-child .tl-line { display: none; }
+  .tl-dot {
+    width: 10px; height: 10px; border-radius: 50%; background: var(--border);
+    border: 2px solid var(--bg-surface); z-index: 1; flex-shrink: 0; transition: all 0.3s;
+  }
+  
+  /* 右側站名 */
+  .tl-content { padding-left: 15px; padding-bottom: 24px; flex-grow: 1; }
+  .timeline-item:last-child .tl-content { padding-bottom: 10px; }
+  
+  .tl-station { font-size: 1rem; font-weight: 600; color: var(--text-main); display: flex; align-items: center; }
+  .tl-desc { font-size: 0.8rem; color: var(--text-muted); margin-top: 2px; }
+
+  /* --- 狀態樣式 --- */
+  /* 已過 */
+  .timeline-item.passed .tl-time, 
+  .timeline-item.passed .tl-station { opacity: 0.4; filter: grayscale(1); }
+  .timeline-item.passed .tl-dot { background: var(--border); }
+
+  /* 下一站/目前位置 */
+  .timeline-item.next .tl-dot { 
+    background: #22c55e; width: 14px; height: 14px; 
+    box-shadow: 0 0 0 4px rgba(34, 197, 94, 0.2); 
+    border-color: #fff; 
+  }
+  .timeline-item.next .tl-station { color: #15803d; font-weight: 700; }
+  body.dark-mode .timeline-item.next .tl-station { color: #4ade80; }
+  
+  /* 轉乘站 */
+  .timeline-item.transfer .tl-dot { background: #d97706; width: 12px; height: 12px; }
+  .timeline-item.transfer .tl-station { color: #b45309; }
+
+  /* 徽章 */
+  .badge-next {
+    display: inline-flex; align-items: center; gap: 4px;
+    background: #22c55e; color: #fff; font-size: 0.7rem; 
+    padding: 2px 8px; border-radius: 10px; margin-left: 8px;
+    animation: pulse 2s infinite;
+  }
+  @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.7; } 100% { opacity: 1; } }
+
+  .transfer-banner {
+    background: var(--bg-body); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border);
+    padding: 10px 20px; display: flex; align-items: center; gap: 10px; margin: 10px -20px 20px -20px;
+  }
   </style>
 </head>
 <body>
 
 <nav class="navbar">
-  <div class="brand">台鐵列車時刻表查詢</div>
+  <div class="brand">台鐵時刻表 Pro+</div>
   <div class="hamburger" id="hamburger"><span></span><span></span><span></span></div>
   <div class="nav-links" id="navLinks">
+    <a class="tab" href="index-tra.transfer.html">轉乘查詢</a>
+        <a class="tab" href="index-tra.move.html">列車動態</a>
+        <a class="tab active">車站看板</a>
+        <a class="tab" href="index-tra.table.html">時刻總表</a>
     <a href="index-speed.html">高鐵時刻表</a>
     <a href="index-thsr.html">高鐵時刻表(專用)</a>
     <a href="index.html">時刻表</a>
-    <a href="index.trainrate-2.html">時刻表(含運用)</a>
-    <a href="index-tra.transfer.html">轉乘時刻表</a>
+    <a href="index-tra.transfer.html">時刻表(含運用)</a>
     <a href="index-tra.easy.html">簡式時刻表</a>
     <a href="index-tra.type.html">依車種時刻表</a>
     <a href="train-info.html">車站資訊板</a>
@@ -106,39 +283,51 @@
     <a href="index.trainrate.html">運用率查詢</a>
     <a href="index-tra.book.html">訂票系統</a>
     <a href="index-tra.make.html">列車排點</a>
-    <a href="index-tra.table.html">時刻總表</a>
   </div>
-  <button onclick="toggleDarkMode()">Dark Mode</button>
+  <button class="theme-btn" onclick="toggleDarkMode()">
+    <span>◑</span> <span>模式</span>
+  </button>
 </nav>
 
 <main class="container">
   <div class="grid">
 
-    <!-- 出發/抵達 查詢 -->
     <section class="card">
-      <h2 class="section-title">出發站 & 抵達站查詢</h2>
+      <div class="section-title">點對點 / 轉乘查詢</div>
       <datalist id="stationList"></datalist>
-      <div style="display:flex;gap:1rem;flex-wrap:wrap;">
-        <label>出發：<input id="startStationInput" list="stationList"></label>
-        <label>抵達：<input id="endStationInput" list="stationList"></label>
+      
+      <div class="form-row">
+        <div class="input-group">
+          <label>出發</label>
+          <input id="startStationInput" list="stationList" placeholder="請選擇">
+        </div>
+        <div class="input-group">
+          <label>抵達</label>
+          <input id="endStationInput" list="stationList" placeholder="請選擇">
+        </div>
+        <button class="btn-primary" onclick="filterTrainScheduleByStation()">🔍 查詢時刻</button>
       </div>
-      <!-- 車種篩選 -->
-      <div style="display:flex;gap:1rem;flex-wrap:wrap;margin-top:.5rem;">
-        <label><input type="checkbox" onclick="toggleTrainTypeFilter('start-end','新自強')">新自強</label>
-        <label><input type="checkbox" onclick="toggleTrainTypeFilter('start-end','普悠瑪')">普悠瑪</label>
-        <label><input type="checkbox" onclick="toggleTrainTypeFilter('start-end','自強號(新)')">自強號(新)</label>
-        <label><input type="checkbox" onclick="toggleTrainTypeFilter('start-end','自強號')">自強號</label>
-        <label><input type="checkbox" onclick="toggleTrainTypeFilter('start-end','莒光號')">莒光號</label>
-        <label><input type="checkbox" onclick="toggleTrainTypeFilter('start-end','復興號')">復興號</label>
-        <label><input type="checkbox" onclick="toggleTrainTypeFilter('start-end','區間快')">區間快</label>
-        <label><input type="checkbox" onclick="toggleTrainTypeFilter('start-end','區間車')">區間車</label>
-        <label><input type="checkbox" onclick="toggleTrainTypeFilter('start-end','加班車')">加班車</label>
+
+      <div class="chip-group">
+        <label class="chip-label"><input type="checkbox" onclick="toggleTrainTypeFilter('start-end','新自強')"> 新自強</label>
+        <label class="chip-label"><input type="checkbox" onclick="toggleTrainTypeFilter('start-end','普悠瑪')"> 普悠瑪</label>
+        <label class="chip-label"><input type="checkbox" onclick="toggleTrainTypeFilter('start-end','自強號(新)')"> 自強(新)</label>
+        <label class="chip-label"><input type="checkbox" onclick="toggleTrainTypeFilter('start-end','自強號')"> 自強號</label>
+        <label class="chip-label"><input type="checkbox" onclick="toggleTrainTypeFilter('start-end','莒光號')"> 莒光號</label>
+        <label class="chip-label"><input type="checkbox" onclick="toggleTrainTypeFilter('start-end','復興號')"> 復興號</label>
+        <label class="chip-label"><input type="checkbox" onclick="toggleTrainTypeFilter('start-end','區間快')"> 區間快</label>
+        <label class="chip-label"><input type="checkbox" onclick="toggleTrainTypeFilter('start-end','區間車')"> 區間車</label>
+        <label class="chip-label"><input type="checkbox" onclick="toggleTrainTypeFilter('start-end','加班車')"> 加班車</label>
       </div>
-      <div style="display:flex;align-items:center;gap:1rem;margin-top:.75rem;">
-        <label>接受轉乘<input type="checkbox" id="acceptTransfers"></label>
-        <button onclick="filterTrainScheduleByStation()">查詢</button>
+
+      <div class="form-row" style="margin-bottom:0;">
+        <label class="chip-label" style="border-radius:6px; padding:8px 12px; background:var(--bg-body);">
+          <input type="checkbox" id="acceptTransfers">
+          <span>🔄 包含轉乘方案 (最早抵達)</span>
+        </label>
       </div>
-      <div class="table-wrapper" style="margin-top:1rem;">
+
+      <div class="table-wrapper" style="margin-top:1.5rem;">
         <table id="scheduleTableByStation">
           <thead><tr id="startEndHeader"></tr></thead>
           <tbody></tbody>
@@ -146,52 +335,64 @@
       </div>
     </section>
 
-    <!-- 車站 查詢 -->
     <section class="card">
-      <h2 class="section-title">車站查詢</h2>
+      <div class="section-title">車站時刻表</div>
       <datalist id="stationList2"></datalist>
-      <div style="display:flex;gap:1rem;flex-wrap:wrap;">
-        <label>車站：<input id="stationNameInput" list="stationList2"></label>
-        <label>方向：
+      
+      <div class="form-row">
+        <div class="input-group">
+          <label>車站</label>
+          <input id="stationNameInput" list="stationList2" placeholder="輸入站名">
+        </div>
+        <div class="input-group">
+          <label>方向</label>
           <select id="directionSelect">
-            <option value="northbound">北上</option>
-            <option value="southbound">南下</option>
+            <option value="northbound">北上 (順行)</option>
+            <option value="southbound">南下 (逆行)</option>
           </select>
-        </label>
+        </div>
+        <button class="btn-primary" onclick="filterTrainScheduleByStationName()">查詢</button>
       </div>
-      <div style="display:flex;gap:1rem;flex-wrap:wrap;margin-top:.5rem;">
-        <label><input type="checkbox" onclick="toggleTrainTypeFilter('station','新自強')">新自強</label>
-        <label><input type="checkbox" onclick="toggleTrainTypeFilter('station','普悠瑪')">普悠瑪</label>
-        <label><input type="checkbox" onclick="toggleTrainTypeFilter('station','自強號(新)')">自強號(新)</label>
-        <label><input type="checkbox" onclick="toggleTrainTypeFilter('station','自強號')">自強號</label>
-        <label><input type="checkbox" onclick="toggleTrainTypeFilter('station','莒光號')">莒光號</label>
-        <label><input type="checkbox" onclick="toggleTrainTypeFilter('station','復興號')">復興號</label>
-        <label><input type="checkbox" onclick="toggleTrainTypeFilter('station','區間快')">區間快</label>
-        <label><input type="checkbox" onclick="toggleTrainTypeFilter('station','區間車')">區間車</label>
-        <label><input type="checkbox" onclick="toggleTrainTypeFilter('station','加班車')">加班車</label>
-        <button onclick="filterTrainScheduleByStationName()">查詢</button>
+
+      <div class="chip-group">
+        <label class="chip-label"><input type="checkbox" onclick="toggleTrainTypeFilter('station','新自強')"> 新自強</label>
+        <label class="chip-label"><input type="checkbox" onclick="toggleTrainTypeFilter('station','普悠瑪')"> 普悠瑪</label>
+        <label class="chip-label"><input type="checkbox" onclick="toggleTrainTypeFilter('station','自強號(新)')"> 自強(新)</label>
+        <label class="chip-label"><input type="checkbox" onclick="toggleTrainTypeFilter('station','自強號')"> 自強號</label>
+        <label class="chip-label"><input type="checkbox" onclick="toggleTrainTypeFilter('station','莒光號')"> 莒光號</label>
+        <label class="chip-label"><input type="checkbox" onclick="toggleTrainTypeFilter('station','復興號')"> 復興號</label>
+        <label class="chip-label"><input type="checkbox" onclick="toggleTrainTypeFilter('station','區間快')"> 區間快</label>
+        <label class="chip-label"><input type="checkbox" onclick="toggleTrainTypeFilter('station','區間車')"> 區間車</label>
+        <label class="chip-label"><input type="checkbox" onclick="toggleTrainTypeFilter('station','加班車')"> 加班車</label>
       </div>
+
       <div class="table-wrapper" style="margin-top:1rem;">
         <table id="scheduleTableByStationName">
-          <thead><tr><th>車次</th><th>車種(行駛區間)</th><th>時間</th><th>運用率</th></tr></thead>
+          <thead><tr><th>車次</th><th>車種 (區間)</th><th>時間</th><th>預估混雜率</th></tr></thead>
           <tbody></tbody>
         </table>
       </div>
     </section>
 
-    <!-- 車次 查詢 -->
     <section class="card">
-      <h2 class="section-title">車次查詢</h2>
-      <div style="display:flex;gap:1rem;flex-wrap:wrap;">
-        <label>車次：<input id="trainNumberInput" oninput="filterTrainNumbers()"></label>
-        <select id="trainNumbersDropdown" onchange="selectTrainNumber()">
-          <option>參考車次</option>
-        </select>
-        <button onclick="filterTrainScheduleByNumber()">查詢</button>
+      <div class="section-title">車次查詢</div>
+      <div class="form-row">
+        <div class="input-group">
+          <label>車次</label>
+          <input id="trainNumberInput" oninput="filterTrainNumbers()" placeholder="如 408">
+        </div>
+        <div class="input-group">
+          <label>列表</label>
+          <select id="trainNumbersDropdown" onchange="selectTrainNumber()">
+            <option>輸入後選擇</option>
+          </select>
+        </div>
+        <button class="btn-primary" onclick="filterTrainScheduleByNumber()">查詢</button>
       </div>
+
       <div class="table-wrapper" style="margin-top:1rem;">
         <table id="scheduleTableByNumber">
-          <thead><tr><th>車次</th><th>車種(行駛區間)</th><th>運用率</th></tr></thead>
+          <thead><tr><th>車次</th><th>車種 (區間)</th><th>預估混雜率</th></tr></thead>
           <tbody></tbody>
         </table>
       </div>
@@ -200,38 +401,40 @@
   </div>
 </main>
 
-<!-- Modal for train details -->
 <div id="trainDetailsModal" class="modal">
   <div class="modal-content">
-    <span class="close" onclick="closeTrainDetailsModal()">&times;</span>
-    <h2 id="modalTitle">沿途停靠站</h2>
-    <div id="transferTip" class="transfer-tip" style="display:none;"></div>
-    <div id="modalBody" style="margin-top:.6rem;"></div>
+    <div class="modal-header">
+      <div>
+        <div class="modal-title-main" id="modalTitleMain">車次資訊</div>
+        <div class="modal-title-sub" id="modalTitleSub">區間資訊</div>
+      </div>
+      <span class="close" onclick="closeTrainDetailsModal()">&times;</span>
+    </div>
+    <div id="modalBody" class="modal-body"></div>
   </div>
 </div>
 
 <script src="train-schedule.js"></script>
 <script>
-// Dark Mode & Hamburger
+// ===== 基礎邏輯與資料載入 =====
 function toggleDarkMode(){ document.body.classList.toggle('dark-mode'); }
 const hb=document.getElementById('hamburger'), nav=document.getElementById('navLinks');
 hb.addEventListener('click',()=>nav.classList.toggle('open'));
 nav.querySelectorAll('a').forEach(a=>a.addEventListener('click',()=>nav.classList.remove('open')));
 
-// datalists
 const stationListEl=document.getElementById('stationList'),
       stationList2El=document.getElementById('stationList2');
-stations.forEach(s=>{
-  let o1=document.createElement('option'); o1.value=s; stationListEl.appendChild(o1);
-  let o2=document.createElement('option'); o2.value=s; stationList2El.appendChild(o2);
-});
+if (typeof stations !== 'undefined') {
+  stations.forEach(s=>{
+    let o1=document.createElement('option'); o1.value=s; stationListEl.appendChild(o1);
+    let o2=document.createElement('option'); o2.value=s; stationList2El.appendChild(o2);
+  });
+}
 
-// global state
 let selectedTrainTypesStartEnd=[], selectedTrainTypesStation=[];
 let currentStartEndList=[], currentTransferList=[];
 let sortState={ key:null, asc:true };
 
-// toggle filter
 function toggleTrainTypeFilter(ctx,type){
   const arr = ctx==='start-end'? selectedTrainTypesStartEnd : selectedTrainTypesStation;
   const idx=arr.indexOf(type);
@@ -240,7 +443,6 @@ function toggleTrainTypeFilter(ctx,type){
   else filterTrainScheduleByStationName();
 }
 
-// sorting helpers
 function sortStartEndList(key){
   if(sortState.key===key) sortState.asc=!sortState.asc;
   else{ sortState.key=key; sortState.asc=true; }
@@ -254,125 +456,103 @@ function sortTransferList(key){
   renderTransferTable();
 }
 
-// time helpers
 function parseTime(t){ const [h,m]=t.split(':').map(v=>parseInt(v)||0); return h*60+m; }
 function diff(a,b){
   if(!a||!b) return '--';
   let d=parseTime(b)-parseTime(a);
   if(d<0) d+=1440;
   const hh=Math.floor(d/60), mm=d%60;
-  return `${hh}小時${mm}分`;
+  return `${hh}時${mm}分`;
 }
 
-// build headers
+// ===== 表頭生成 =====
 const startEndHeader=document.getElementById('startEndHeader');
 function buildStartEndHeader(isTransfer){
   startEndHeader.innerHTML='';
   if(isTransfer){
-    // 轉乘模式：出發／抵達／行駛 都可排序
     [
-      {text:'車次',key:null},
-      {text:'車種(行駛區間)',key:null},
-      {text:'出發',key:'startTimeMin'},
-      {text:'轉乘站(時間)',key:null},
-      {text:'抵達',key:'endTimeMin'},
-      {text:'行駛',key:'travelMin'}
+      {text:'車次',key:null}, {text:'車種 (區間)',key:null}, 
+      {text:'出發',key:'startTimeMin'}, {text:'轉乘資訊',key:null}, // Changed title
+      {text:'抵達',key:'endTimeMin'}, {text:'耗時',key:'travelMin'}
     ].forEach(col=>{
       let th=document.createElement('th'); th.textContent=col.text;
-      if(col.key){
-        th.classList.add('sortable');
-        th.addEventListener('click',()=>sortTransferList(col.key));
-      }
+      if(col.key){ th.classList.add('sortable'); th.addEventListener('click',()=>sortTransferList(col.key)); }
       startEndHeader.appendChild(th);
     });
   } else {
-    // 直達模式
     [
-      {text:'車次',key:null},
-      {text:'車種(行駛區間)',key:null},
-      {text:'出發',key:'sTimeMin'},
-      {text:'抵達',key:'eTimeMin'},
-      {text:'行駛',key:'travelMin'},
-      {text:'沿途',key:null},
-      {text:'運用率',key:null}
+      {text:'車次',key:null}, {text:'車種 (區間)',key:null}, 
+      {text:'出發',key:'sTimeMin'}, {text:'抵達',key:'eTimeMin'},
+      {text:'耗時',key:'travelMin'}, {text:'停靠',key:null}, {text:'混雜率',key:null}
     ].forEach(col=>{
       let th=document.createElement('th'); th.textContent=col.text;
-      if(col.key){
-        th.classList.add('sortable');
-        th.addEventListener('click',()=>sortStartEndList(col.key));
-      }
+      if(col.key){ th.classList.add('sortable'); th.addEventListener('click',()=>sortStartEndList(col.key)); }
       startEndHeader.appendChild(th);
     });
   }
 }
 
-// render 直達
+// ===== 渲染直達車 =====
 function renderStartEndTable(){
   const tbody=document.querySelector('#scheduleTableByStation tbody');
   tbody.innerHTML='';
   let maxTravel=Math.max(...currentStartEndList.map(r=>r.travelMin),1);
   currentStartEndList.forEach(r=>{
     let tr=tbody.insertRow();
-    tr.insertCell().innerHTML=r.num.includes('A')?`${r.num}<span class="badge-sea">海線</span>`:r.num;
-    tr.insertCell().innerHTML=`${colorType(r.type)} (${r.range})`;
+    tr.insertCell().innerHTML=r.num.includes('A')?`<b>${r.num}</b><span class="badge-sea">海</span>`:`<b>${r.num}</b>`;
+    tr.insertCell().innerHTML=`${colorType(r.type)} <span class="train-route">(${r.range})</span>`;
     tr.insertCell().innerHTML=highlightPeak(r.sTime);
     tr.insertCell().innerHTML=highlightPeak(r.eTime);
     let cell=tr.insertCell();
-    cell.innerHTML=`
-      <div style="font-size:.75rem;">${r.travel}</div>
-      <div class="progress-bar"><div class="progress-fill" style="width:${((r.travelMin/maxTravel)*100).toFixed(1)}%"></div></div>
-    `;
+    cell.innerHTML=`<div style="font-size:.85rem;font-weight:600">${r.travel}</div><div class="progress-bar"><div class="progress-fill" style="width:${((r.travelMin/maxTravel)*100).toFixed(1)}%"></div></div>`;
     let stopsCell=tr.insertCell();
     if(r.stopsCount>0){
       stopsCell.innerHTML=`${r.stopsCount}站 <span class="toggle-arrow">▼</span>`;
-      stopsCell.querySelector('.toggle-arrow').addEventListener('click',e=>{
-        e.stopPropagation(); toggleStopsRow(tr,r.startStation,r.endStation,r.num);
-      });
-    } else stopsCell.textContent='直達';
+      stopsCell.querySelector('.toggle-arrow').addEventListener('click',e=>{ e.stopPropagation(); toggleStopsRow(tr,r.startStation,r.endStation,r.num); });
+    } else stopsCell.innerHTML='<span style="color:#16a34a;font-weight:600">直達</span>';
     tr.insertCell().innerHTML=r.usage;
     tr.addEventListener('click',()=>showTrainDetails(r.num));
   });
 }
 
-// render 轉乘
+// ===== 渲染轉乘車 (增強轉乘資訊) =====
 function renderTransferTable(){
   const tbody=document.querySelector('#scheduleTableByStation tbody');
   tbody.innerHTML='';
   let maxTravel=Math.max(...currentTransferList.map(r=>r.travelMin),1);
   currentTransferList.forEach(r=>{
     let tr=tbody.insertRow();
-    tr.insertCell().innerHTML=r.trainNumber.includes('A')?`${r.trainNumber}<span class="badge-sea">海線</span>`:r.trainNumber;
+    // 1. 車次
+    tr.insertCell().innerHTML=r.trainNumber.includes('A')?`<b>${r.trainNumber}</b><span class="badge-sea">海</span>`: `<b>${r.trainNumber}</b>`;
+    // 2. 車種 (區間)
     const full=trainSchedule[r.trainNumber]['車站時間'];
-    tr.insertCell().innerHTML=`${colorType(r.trainType)} (${full[0][0]} ➝ ${full.slice(-1)[0][0]})`;
+    tr.insertCell().innerHTML=`${colorType(r.trainType)} <span class="train-route">(${full[0][0]}➝${full.slice(-1)[0][0]})</span>`;
+    // 3. 出發
     tr.insertCell().innerHTML=highlightPeak(r.startTime);
+    // 4. 轉乘 (增強顯示)
     let td=tr.insertCell(), t0=r.transferStations[0];
     if(t0){
-      td.innerHTML=`
-        ${t0.station} (${highlightPeak(t0.transferStartTime)}) → 🚉${t0.transferTrainNumber}
-        ${colorType(t0.transferTrainType)}
-      `;
+      td.innerHTML=`<div style="font-size:0.85rem">
+        於 <b>${t0.station}</b> 轉 <span style="color:var(--text-muted)">${highlightPeak(t0.transferStartTime)}</span>
+        ➝ <b>${t0.transferTrainNumber}</b> ${colorType(t0.transferTrainType)}
+      </div>`;
       tr.addEventListener('click',()=>showTrainDetails(r.trainNumber,t0.transferTrainNumber,t0.station));
     } else {
       td.textContent='-';
       tr.addEventListener('click',()=>showTrainDetails(r.trainNumber));
     }
+    // 5. 抵達
     tr.insertCell().innerHTML=highlightPeak(r.endTime);
+    // 6. 行駛
     let cell=tr.insertCell();
-    cell.innerHTML=`
-      <div style="font-size:.75rem;">${r.travelTime}</div>
-      <div class="progress-bar"><div class="progress-fill" style="width:${((r.travelMin/maxTravel)*100).toFixed(1)}%"></div></div>
-    `;
+    cell.innerHTML=`<div style="font-weight:600;font-size:0.85rem">${r.travelTime}</div><div class="progress-bar"><div class="progress-fill" style="width:${((r.travelMin/maxTravel)*100).toFixed(1)}%"></div></div>`;
   });
 }
 
-// 出發/抵達 vs 轉乘 篩選
+// 查詢邏輯 (同前)
 function filterTrainScheduleByStation(){
-  const st=document.getElementById('startStationInput').value.trim(),
-        ed=document.getElementById('endStationInput').value.trim(),
-        acceptTransfers=document.getElementById('acceptTransfers').checked;
-  if(acceptTransfers){
-    filterTrainScheduleWithTransfers(st,ed);
-  } else {
+  const st=document.getElementById('startStationInput').value.trim(), ed=document.getElementById('endStationInput').value.trim(), acceptTransfers=document.getElementById('acceptTransfers').checked;
+  if(acceptTransfers){ filterTrainScheduleWithTransfers(st,ed); } else {
     buildStartEndHeader(false);
     let list=[];
     for(let num in trainSchedule){
@@ -380,340 +560,241 @@ function filterTrainScheduleByStation(){
       if(selectedTrainTypesStartEnd.length && !selectedTrainTypesStartEnd.includes(t['車種'])) continue;
       let arr=t['車站時間'], si=arr.findIndex(s=>s[0]===st), ei=arr.findIndex(s=>s[0]===ed);
       if(si>-1&&ei>-1&&si<ei){
-        let sTime=arr[si][1], eTime=arr[ei][1],
-            travel=diff(sTime,eTime),
-            travelMin=parseTime(eTime)-parseTime(sTime)+(parseTime(eTime)<parseTime(sTime)?1440:0),
-            stopsCount=ei-si-1,
-            usage=calcSegUtil(t,arr.slice(si,ei+1));
-        list.push({
-          num, type:t['車種'], range:`${arr[0][0]} ➝ ${arr[arr.length-1][0]}`,
-          sTime,eTime,
-          sTimeMin:parseTime(sTime), eTimeMin:parseTime(eTime),
-          travel,travelMin,stopsCount,
-          usage,usagePct:parseFloat(usage),
-          startStation:st,endStation:ed
-        });      }
+        let sTime=arr[si][1], eTime=arr[ei][1], travel=diff(sTime,eTime), travelMin=parseTime(eTime)-parseTime(sTime)+(parseTime(eTime)<parseTime(sTime)?1440:0), stopsCount=ei-si-1, usage=calcSegUtil(t,arr.slice(si,ei+1));
+        list.push({ num, type:t['車種'], range:`${arr[0][0]}➝${arr[arr.length-1][0]}`, sTime,eTime, sTimeMin:parseTime(sTime), eTimeMin:parseTime(eTime), travel,travelMin,stopsCount, usage,usagePct:parseFloat(usage), startStation:st,endStation:ed });
+      }
     }
-    list.sort((a,b)=>a.sTimeMin-b.sTimeMin);
-    currentStartEndList=list; sortState={key:null,asc:true};
-    renderStartEndTable();
+    list.sort((a,b)=>a.sTimeMin-b.sTimeMin); currentStartEndList=list; sortState={key:null,asc:true}; renderStartEndTable();
   }
 }
 
-// 轉乘 篩選（最早抵達）
 function filterTrainScheduleWithTransfers(st,ed){
   buildStartEndHeader(true);
   let combos={};
-
-  // (1) 直達先加入
   for(let num in trainSchedule){
-    let t=trainSchedule[num], arr=t['車站時間'],
-        si=arr.findIndex(x=>x[0]===st), ei=arr.findIndex(x=>x[0]===ed);
+    let t=trainSchedule[num], arr=t['車站時間'], si=arr.findIndex(x=>x[0]===st), ei=arr.findIndex(x=>x[0]===ed);
     if(si>-1&&ei>-1&&si<ei){
       if(selectedTrainTypesStartEnd.length && !selectedTrainTypesStartEnd.includes(t['車種'])) continue;
-      let sTime=arr[si][1], eTime=arr[ei][1],
-          arriveMin=parseTime(eTime),
-          travelTime=diff(sTime,eTime),
-          travelMin=arriveMin-parseTime(sTime)+(arriveMin<parseTime(sTime)?1440:0);
-      combos[num]=[{
-        trainNumber:num, trainType:t['車種'],
-        startTime:sTime, endTime:eTime,
-        startTimeMin:parseTime(sTime), endTimeMin:arriveMin,
-        travelTime, travelMin,
-        transferStations:[]
-      }];
+      let sTime=arr[si][1], eTime=arr[ei][1], arriveMin=parseTime(eTime), travelTime=diff(sTime,eTime), travelMin=arriveMin-parseTime(sTime)+(arriveMin<parseTime(sTime)?1440:0);
+      combos[num]=[{ trainNumber:num, trainType:t['車種'], startTime:sTime, endTime:eTime, startTimeMin:parseTime(sTime), endTimeMin:arriveMin, travelTime, travelMin, transferStations:[] }];
     }
   }
-
-  // （在 filterTrainScheduleWithTransfers 裡面）
-// ── 找接續（最早抵達）──
-function findConnecting(fromSt, toSt, afterTime) {
-  const afterRaw = parseTime(afterTime); // 參考點（第一班列車到達時間，單位分鐘）
-  let best = null;
-  for (const n in trainSchedule) {
-    const tr = trainSchedule[n];
-    const a = tr['車站時間'];
-    const si = a.findIndex(x => x[0] === fromSt);
-    const ei = a.findIndex(x => x[0] === toSt);
-    if (si > -1 && ei > -1 && si < ei) {
-      const departStr = a[si][1];
-      const arriveStr = a[ei][1];
-      const departRaw = parseTime(departStr);
-      // 如果出發時間 <= 參考到達時間，就視為隔天（加一天）
-      const departDayOffset = departRaw <= afterRaw ? 1 : 0;
-      const departMin = departRaw + departDayOffset * 1440;
-      // 只取真正在參考時間之後發車的班次
-      if (departMin <= afterRaw) continue;
-
-      const arriveRaw = parseTime(arriveStr);
-      // 如果到達時間字串小於出發時間字串，代表跨午夜，要再多加一天
-      let arriveDayOffset = departDayOffset + (arriveRaw < departRaw ? 1 : 0);
-      const arriveMin = arriveRaw + arriveDayOffset * 1440;
-
-      if (!best || arriveMin < best.arriveMin) {
-        best = {
-          trainNumber: n,
-          transferTrainType: tr['車種'],
-          transferStartTime: departStr,
-          transferEndTime: arriveStr,
-          arriveMin
-        };
+  function findConnecting(fromSt,toSt,afterTime){
+    const afterRaw=parseTime(afterTime); let best=null;
+    for(const n in trainSchedule){
+      const tr=trainSchedule[n], a=tr['車站時間'], si=a.findIndex(x=>x[0]===fromSt), ei=a.findIndex(x=>x[0]===toSt);
+      if(si>-1&&ei>-1&&si<ei){
+        const departStr=a[si][1], arriveStr=a[ei][1], departRaw=parseTime(departStr);
+        const dOff=departRaw<=afterRaw?1:0, departMin=departRaw+dOff*1440;
+        if(departMin<=afterRaw) continue;
+        const arriveRaw=parseTime(arriveStr), aOff=dOff+(arriveRaw<departRaw?1:0), arriveMin=arriveRaw+aOff*1440;
+        if(!best||arriveMin<best.arriveMin) best={trainNumber:n,transferTrainType:tr['車種'],transferStartTime:departStr,transferEndTime:arriveStr,arriveMin};
       }
     }
+    return best;
   }
-  return best;
-}
-
-
-  // (3) 拼接
   for(let num in trainSchedule){
-    let t=trainSchedule[num], arr=t['車站時間'],
-        si=arr.findIndex(x=>x[0]===st);
+    let t=trainSchedule[num], arr=t['車站時間'], si=arr.findIndex(x=>x[0]===st);
     if(si===-1) continue;
     if(selectedTrainTypesStartEnd.length && !selectedTrainTypesStartEnd.includes(t['車種'])) continue;
     for(let i=si+1;i<arr.length;i++){
-      let ts=arr[i][0], reach=arr[i][1];
-      let nxt=findConnecting(ts,ed,reach);
+      let ts=arr[i][0], reach=arr[i][1], nxt=findConnecting(ts,ed,reach);
       if(nxt){
-        let first=diff(arr[si][1],reach),
-            wait=diff(reach,nxt.transferStartTime),
-            second=diff(nxt.transferStartTime,nxt.transferEndTime);
-        function toMin(t){ if(t==='--')return 0; let [h,rm]=t.split('小時'), m=parseInt(rm)||0; return parseInt(h)*60+m; }
+        let first=diff(arr[si][1],reach), wait=diff(reach,nxt.transferStartTime), second=diff(nxt.transferStartTime,nxt.transferEndTime);
+        function toMin(t){ if(t==='--')return 0; let [h,rm]=t.split('小時'),m=parseInt(rm)||0; return parseInt(h)*60+m; }
         let tm=toMin(first)+toMin(wait)+toMin(second);
-        let obj={
-          trainNumber:num, trainType:t['車種'],
-          startTime:arr[si][1], endTime:nxt.transferEndTime,
-          startTimeMin:parseTime(arr[si][1]), endTimeMin:nxt.arriveMin,
-          travelTime:`${Math.floor(tm/60)}小時${tm%60}分`, travelMin:tm,
-          transferStations:[{
-            station:ts,
-            transferTrainNumber:nxt.trainNumber,
-            transferTrainType:nxt.transferTrainType,
-            transferStartTime:nxt.transferStartTime
-          }]
-        };
-        if(!combos[num]||obj.endTimeMin<combos[num][0].endTimeMin){
-          combos[num]=[obj];
-        }
+        let obj={ trainNumber:num, trainType:t['車種'], startTime:arr[si][1], endTime:nxt.transferEndTime, startTimeMin:parseTime(arr[si][1]), endTimeMin:nxt.arriveMin, travelTime:`${Math.floor(tm/60)}時${tm%60}分`, travelMin:tm, transferStations:[{station:ts,transferTrainNumber:nxt.trainNumber,transferTrainType:nxt.transferTrainType,transferStartTime:nxt.transferStartTime}] };
+        if(!combos[num]||obj.endTimeMin<combos[num][0].endTimeMin) combos[num]=[obj];
       }
     }
   }
-
-  // (4) 列表 & 排序
   let bestList=Object.values(combos).map(a=>a[0]);
-  bestList.sort((a,b)=>a.startTimeMin-b.startTimeMin);
-  currentTransferList=bestList; sortState={key:null,asc:true};
-  renderTransferTable();
+  bestList.sort((a,b)=>a.startTimeMin-b.startTimeMin); currentTransferList=bestList; sortState={key:null,asc:true}; renderTransferTable();
 }
 
-// 車站查詢
 function filterTrainScheduleByStationName(){
-  const station=document.getElementById('stationNameInput').value.trim(),
-        dir=document.getElementById('directionSelect').value;
+  const station=document.getElementById('stationNameInput').value.trim(), dir=document.getElementById('directionSelect').value;
   const tbody=document.querySelector('#scheduleTableByStationName tbody');
   tbody.innerHTML='';
-  Object.keys(trainSchedule).sort((a,b)=>
-    (getTime(a,station)||'99:99').localeCompare(getTime(b,station)||'99:99')
-  ).forEach(num=>{
+  Object.keys(trainSchedule).sort((a,b)=>(getTime(a,station)||'99:99').localeCompare(getTime(b,station)||'99:99')).forEach(num=>{
     let t=trainSchedule[num];
     if(selectedTrainTypesStation.length && !selectedTrainTypesStation.includes(t['車種'])) return;
     if(!t['車站時間'].some(s=>s[0]===station)) return;
     if(getDirection(num)!==dir) return;
     let arr=t['車站時間'], idx=arr.findIndex(s=>s[0]===station);
     let tr=tbody.insertRow();
-    tr.insertCell().innerHTML=num.includes('A')?`${num}<span class="badge-sea">海線</span>`:num;
-    tr.insertCell().innerHTML=`${colorType(t['車種'])} (${arr[0][0]} ➝ ${arr.slice(-1)[0][0]})`;
+    tr.insertCell().innerHTML=num.includes('A')?`<b>${num}</b><span class="badge-sea">海</span>`:`<b>${num}</b>`;
+    tr.insertCell().innerHTML=`${colorType(t['車種'])} <span class="train-route">(${arr[0][0]}➝${arr.slice(-1)[0][0]})</span>`;
     tr.insertCell().innerHTML=highlightPeak(arr[idx][1]||'--');
     tr.insertCell().innerHTML=calcStationUtil(t,station,arr[idx][1]||'');
     tr.addEventListener('click',()=>showTrainDetails(num));
   });
 }
 
-// 車次查詢
-function filterTrainNumbers(){
-  const v=document.getElementById('trainNumberInput').value.trim(),
-        drop=document.getElementById('trainNumbersDropdown');
-  drop.innerHTML='';
-  const matched=Object.keys(trainSchedule).filter(k=>k.startsWith(v));
-  if(matched.length){
-    matched.forEach(n=>{let o=document.createElement('option'); o.value=o.text=n; drop.add(o);});
-  } else {
-    let o=document.createElement('option'); o.text='查無此班次'; drop.add(o);
-  }
-}
-function selectTrainNumber(){
-  document.getElementById('trainNumberInput').value=
-    document.getElementById('trainNumbersDropdown').value;
-}
 function filterTrainScheduleByNumber(){
-  const num=document.getElementById('trainNumberInput').value.trim(),
-        tbody=document.querySelector('#scheduleTableByNumber tbody');
+  const num=document.getElementById('trainNumberInput').value.trim(), tbody=document.querySelector('#scheduleTableByNumber tbody');
   tbody.innerHTML='';
   const t=trainSchedule[num];
   if(!t) return;
   let arr=t['車站時間'];
   let tr=tbody.insertRow();
-  tr.insertCell().innerHTML=num.includes('A')?`${num}<span class="badge-sea">海線</span>`:num;
-  tr.insertCell().innerHTML=`${colorType(t['車種'])} (${arr[0][0]} ➝ ${arr.slice(-1)[0][0]})`;
+  tr.insertCell().innerHTML=num.includes('A')?`<b>${num}</b><span class="badge-sea">海</span>`:`<b>${num}</b>`;
+  tr.insertCell().innerHTML=`${colorType(t['車種'])} <span class="train-route">(${arr[0][0]}➝${arr.slice(-1)[0][0]})</span>`;
   tr.insertCell().innerHTML=calcTrainUtil(t);
   tr.addEventListener('click',()=>showTrainDetails(num));
 }
 
-// 初始化 header
-buildStartEndHeader(false);
-
-/* ===== 工具函式 ===== */
 const stationMaxCapacities={新自強:638,普悠瑪:406,'自強號(新)':906,'自強號':866,莒光號:1000,復興號:1000,區間快:1700,區間車:1700,加班車:638};
 const popularityWeights={普悠瑪:1.42,新自強:2.4,加班車:2.4,'自強號(新)':4.7,'自強號':3.15,莒光號:3.0,復興號:3.35,區間快:5.85,區間車:5.65};
 const timeWeights={short_peak:5,long_peak:7.5,short_offpeak:3,long_offpeak:3};
-
-// 站點密度
 const stationDensity={};
-for(const n in trainSchedule){
-  trainSchedule[n]['車站時間'].forEach(s=>{
-    stationDensity[s[0]]=(stationDensity[s[0]]||0)+1;
-  });
-}
-
-// 時間權重
-function calculateTimeWeight(t){
-  const h=parseInt(t.split(':')[0],10);
-  const isShortPeak=((h>=6&&h<9.5)||(h>=12&&h<13)||(h>=16&&h<20)||(h>=21&&h<22));
-  const isLongPeak=((h>=6.5&&h<10)||(h>=16&&h<20.5)||(h>=0.5&&h<4.5));
-  if(isShortPeak) return timeWeights.short_peak;
-  if(isLongPeak) return timeWeights.long_peak;
-  return timeWeights.short_offpeak;
-}
-
-// 隨機因子
-function randFactor(type){
-  return ['普悠瑪','新自強','自強號','自強號(新)','莒光號'].includes(type)
-    ? (Math.random()*0.15)-0.1
-    : (Math.random()*0.22)-0.1;
-}
-
-// 計算車站運用率
-function calcStationUtil(t,st,time){
-  const max=stationMaxCapacities[t['車種']]||110;
-  const pop=popularityWeights[t['車種']]||1;
-  const tw=calculateTimeWeight(time);
-  let load=0;
-  for(let i=0;i<3;i++){
-    load+=((stationDensity[st]||0)*tw*pop)*(1+randFactor(t['車種']));
-  }
-  return Math.min(Math.max((load/3)/max*50,0),100).toFixed(2)+'%';
-}
-
-// 計算區間運用率
-function calcSegUtil(t,sub){
-  const max=stationMaxCapacities[t['車種']]||110;
-  const pop=popularityWeights[t['車種']]||1;
-  let total=0;
-  for(let i=0;i<3;i++){
-    let d=0;
-    sub.forEach(s=>{
-      d+=((stationDensity[s[0]]||0)*calculateTimeWeight(s[1])*pop)*(1+randFactor(t['車種']));
-    });
-    total+=d/sub.length;
-  }
-  return Math.min(Math.max(((total/3)/max)*50,0),100).toFixed(2)+'%';
-}
-
-// 計算整列車運用率
-function calcTrainUtil(t){
-  const max=stationMaxCapacities[t['車種']]||110;
-  const pop=popularityWeights[t['車種']]||1;
-  const arr=t['車站時間'];
-  let total=0;
-  for(let i=0;i<3;i++){
-    let d=0;
-    arr.forEach(s=>{
-      d+=((stationDensity[s[0]]||0)*calculateTimeWeight(s[1])*pop)*(1+randFactor(t['車種']));
-    });
-    total+=d/arr.length;
-  }
-  return Math.min(Math.max(((total/3)/max)*50,0),100).toFixed(2)+'%';
-}
-
-// 尖峰時間高亮
-function highlightPeak(t){
-  if(!t) return t;
-  const h=parseInt(t.split(':')[0],10);
-  return ((h>=7&&h<9)||(h>=17&&h<19))
-    ? `<span class="peak-hour">${t}</span>`
-    : t;
-}
-
-// 車種著色
-function colorType(t){
-  const dark=document.body.classList.contains('dark-mode');
-  const map={新自強:'#8600FF',普悠瑪:'#FF1493','自強號':'red','莒光號':'orange','區間快':'green','復興號':'#0080FF','區間車':dark?'#fff':'#000','自強號(新)':'brown','加班車':'teal'};
-  return `<span style="color:${map[t]||'#333'}">${t}</span>`;
-}
-
-// 方向 & 抓時間
+for(const n in trainSchedule){ trainSchedule[n]['車站時間'].forEach(s=>{ stationDensity[s[0]]=(stationDensity[s[0]]||0)+1; }); }
+function calculateTimeWeight(t){ const h=parseInt(t.split(':')[0],10); return ((h>=6&&h<9.5)||(h>=12&&h<13)||(h>=16&&h<20)||(h>=21&&h<22))?timeWeights.short_peak:((h>=6.5&&h<10)||(h>=16&&h<20.5))?timeWeights.long_peak:timeWeights.short_offpeak; }
+function randFactor(type){ return ['普悠瑪','新自強'].includes(type)?(Math.random()*0.15)-0.1:(Math.random()*0.22)-0.1; }
+function calcStationUtil(t,st,time){ let max=stationMaxCapacities[t['車種']]||110, pop=popularityWeights[t['車種']]||1, tw=calculateTimeWeight(time), load=0; for(let i=0;i<3;i++) load+=((stationDensity[st]||0)*tw*pop)*(1+randFactor(t['車種'])); return Math.min(Math.max((load/3)/max*50,0),100).toFixed(1)+'%'; }
+function calcSegUtil(t,sub){ let max=stationMaxCapacities[t['車種']]||110, pop=popularityWeights[t['車種']]||1, total=0; for(let i=0;i<3;i++){ let d=0; sub.forEach(s=>{ d+=((stationDensity[s[0]]||0)*calculateTimeWeight(s[1])*pop)*(1+randFactor(t['車種'])); }); total+=d/sub.length; } return Math.min(Math.max(((total/3)/max)*50,0),100).toFixed(1)+'%'; }
+function calcTrainUtil(t){ return calcSegUtil(t, t['車站時間']); }
+function highlightPeak(t){ if(!t)return t; const h=parseInt(t.split(':')[0],10); return ((h>=7&&h<9)||(h>=17&&h<19))?`<span class="peak-hour">${t}</span>`:t; }
+function colorType(t){ const map={新自強:'#8600FF',普悠瑪:'#db2777','自強號':'#e11d48','莒光號':'#ea580c','區間快':'#16a34a','復興號':'#0284c7','區間車':document.body.classList.contains('dark-mode')?'#fff':'#334155','自強號(新)':'#b45309','加班車':'teal'}; return `<span style="font-weight:600; color:${map[t]||'inherit'}">${t}</span>`; }
 const getDirection=num=>num%2===0?'northbound':'southbound';
 const getTime=(num,st)=>{ const f=trainSchedule[num]['車站時間'].find(x=>x[0]===st); return f?f[1]:''; };
-
-// 切換沿途停靠
+function filterTrainNumbers(){ const v=document.getElementById('trainNumberInput').value.trim(), drop=document.getElementById('trainNumbersDropdown'); drop.innerHTML=''; const matched=Object.keys(trainSchedule).filter(k=>k.startsWith(v)); if(matched.length){ matched.forEach(n=>{let o=document.createElement('option'); o.value=o.text=n; drop.add(o);}); } else { let o=document.createElement('option'); o.text='無此班次'; drop.add(o); } }
+function selectTrainNumber(){ document.getElementById('trainNumberInput').value=document.getElementById('trainNumbersDropdown').value; }
 function toggleStopsRow(row,start,end,num){
   const next=row.nextElementSibling;
-  if(next&&next.classList.contains('extra-stops')){
-    next.remove(); row.querySelector('.toggle-arrow').textContent='▼';
-  } else {
-    const arr=trainSchedule[num]['車站時間'];
-    const si=arr.findIndex(s=>s[0]===start), ei=arr.findIndex(s=>s[0]===end);
+  if(next&&next.classList.contains('extra-stops')){ next.remove(); row.querySelector('.toggle-arrow').textContent='▼'; }
+  else {
+    const arr=trainSchedule[num]['車站時間'], si=arr.findIndex(s=>s[0]===start), ei=arr.findIndex(s=>s[0]===end);
     const names=(si>-1&&ei>-1&&ei>si)?arr.slice(si+1,ei).map(s=>s[0]):[];
     const extra=document.createElement('tr'); extra.className='extra-stops';
     const td=document.createElement('td'); td.colSpan=7;
-    td.textContent='沿途停靠站：'+(names.length?names.join('，'):'無中途停靠站（直達）');
-    extra.appendChild(td); row.parentNode.insertBefore(extra,row.nextSibling);
-    row.querySelector('.toggle-arrow').textContent='▲';
+    td.textContent='沿途停靠：'+(names.length?names.join('、'):'直達');
+    extra.appendChild(td); row.parentNode.insertBefore(extra,row.nextSibling); row.querySelector('.toggle-arrow').textContent='▲';
   }
 }
 
-// 顯示細節 Modal
+// ===== 詳細資訊 Modal (Live Status) =====
 function showTrainDetails(num,transferNum,transferStation){
   const modal=document.getElementById('trainDetailsModal'),
-        title=document.getElementById('modalTitle'),
-        body=document.getElementById('modalBody'),
-        tip=document.getElementById('transferTip');
-  body.innerHTML=''; tip.style.display='none';
-  function mkTable(list,ts){
-    let html='<div class="table-wrapper"><table style="width:100%;border-collapse:collapse;font-size:.8rem">';
-    html+='<thead><tr><th style="text-align:left;padding:4px 6px;">停靠站</th><th style="text-align:left;padding:4px 6px;">時間</th></tr></thead><tbody>';
-    list.forEach(s=>{
-      const mark=(s[0]===ts)?`<strong>${s[0]}🚉</strong>`:s[0];
-      html+=`<tr><td style="padding:4px 6px">${mark}</td><td style="padding:4px 6px">${highlightPeak(s[1])||'--'}</td></tr>`;
+        titleMain=document.getElementById('modalTitleMain'),
+        titleSub=document.getElementById('modalTitleSub'),
+        body=document.getElementById('modalBody');
+  body.innerHTML='';
+
+  function buildTimeline(arr, type, trainNum, highlightStation=null){
+    // 取得當前時間
+    const now = new Date();
+    const curMin = now.getHours() * 60 + now.getMinutes();
+
+    // 處理時間 (含跨日)
+    let stops = [];
+    let offset = 0, prevM = -1;
+    arr.forEach(s => {
+      let m = parseTime(s[1]);
+      if (prevM !== -1 && m < prevM) offset += 1440;
+      stops.push({ name: s[0], timeStr: s[1], min: m + offset });
+      prevM = m;
     });
-    return html+'</tbody></table></div>';
+
+    // 判定目前位置 (下一站)
+    let adjustedNow = curMin;
+    let startMin = stops[0].min;
+    // 簡單校正 (如果現在是凌晨 00:30，車是晚上 23:00 發車，則 now 應該+1440)
+    if (adjustedNow < startMin - 720) adjustedNow += 1440;
+    else if (adjustedNow > startMin + 720) adjustedNow -= 1440;
+
+    let nextStopIdx = -1;
+    if (adjustedNow < stops[0].min) nextStopIdx = 0; // 尚未發車
+    else if (adjustedNow > stops[stops.length-1].min) nextStopIdx = -1; // 已抵達
+    else {
+      for(let i=0; i<stops.length; i++){
+        if(stops[i].min > adjustedNow){ nextStopIdx = i; break; }
+      }
+    }
+
+    let html = `<div class="timeline">`;
+    // Header
+    html += `<div style="padding:0 20px 10px; font-weight:700; color:var(--primary); font-size:1rem; border-bottom:1px dashed var(--border); margin-bottom:10px;">
+              ${colorType(type)} ${trainNum}次 
+              <span style="color:var(--text-muted); font-size:0.85rem; font-weight:normal; float:right;">${arr[0][0]} ➝ ${arr[arr.length-1][0]}</span>
+             </div>`;
+    
+    stops.forEach((s, i) => {
+      // 狀態判定
+      let isPassed = (nextStopIdx === -1) || (i < nextStopIdx); 
+      if (nextStopIdx === 0) isPassed = false; // 尚未發車，全部未過
+
+      let isNext = (i === nextStopIdx);
+      let isTransfer = (s.name === highlightStation);
+      
+      let itemClass = "timeline-item";
+      if (isPassed) itemClass += " passed";
+      if (isNext) itemClass += " next";
+      if (isTransfer) itemClass += " transfer";
+
+      html += `
+        <div class="${itemClass}">
+          <div class="tl-time">${s.timeStr}</div>
+          <div class="tl-marker">
+            <div class="tl-dot"></div>
+            <div class="tl-line"></div>
+          </div>
+          <div class="tl-content">
+            <div class="tl-station">
+              ${s.name} 
+              ${isNext ? '<span class="badge-next">🚀 下一站</span>' : ''}
+            </div>
+            ${isTransfer ? '<div class="tl-desc" style="color:#d97706;font-weight:600">🔄 請在此站轉乘</div>' : ''}
+          </div>
+        </div>
+      `;
+    });
+    html += `</div>`;
+    return html;
   }
+
+  // 判斷單程或轉乘
   if(!transferNum){
-    const arr=trainSchedule[num]['車站時間'];
-    body.innerHTML=mkTable(arr,null);
-    title.textContent=`車次 ${num} 的沿途停靠站`;
-    modal.style.display='flex'; return;
+    const t=trainSchedule[num], arr=t['車站時間'];
+    titleMain.textContent = `${num}次 列車詳情`;
+    titleSub.textContent = `${t['車種']} (${arr[0][0]} ➝ ${arr[arr.length-1][0]})`;
+    body.innerHTML = buildTimeline(arr, t['車種'], num);
+  } else {
+    const t1=trainSchedule[num], arr1=t1['車站時間'];
+    const t2=trainSchedule[transferNum], arr2=t2['車站時間'];
+    
+    titleMain.textContent = `轉乘行程規劃`;
+    titleSub.textContent = `${num}次 轉 ${transferNum}次`;
+
+    const idx1 = arr1.findIndex(x=>x[0]===transferStation);
+    const idx2 = arr2.findIndex(x=>x[0]===transferStation);
+    const leg1 = arr1.slice(0, idx1+1);
+    const leg2 = arr2.slice(idx2);
+
+    let content = ``;
+    content += buildTimeline(leg1, t1['車種'], num, transferStation);
+    
+    const waitTime = diff(arr1[idx1][1], arr2[idx2][1]);
+    content += `
+      <div class="transfer-banner">
+        <div class="transfer-icon">🏃</div>
+        <div class="transfer-text">
+          於 <strong>${transferStation}</strong> 換車，候車約 <strong>${waitTime}</strong>
+        </div>
+      </div>
+    `;
+    
+    content += buildTimeline(leg2, t2['車種'], transferNum, transferStation);
+    body.innerHTML = content;
   }
-  tip.style.display='block';
-  tip.innerHTML=`請在 <strong>${transferStation}</strong> 轉乘 <strong>${transferNum}</strong>`;
-  const arr1=trainSchedule[num]['車站時間'], arr2=trainSchedule[transferNum]['車站時間'];
-  const secA=arr1.slice(0,arr1.findIndex(x=>x[0]===transferStation)+1),
-        secB=arr2.slice(arr2.findIndex(x=>x[0]===transferStation));
-  body.innerHTML=
-    `<h3 style="margin:.4rem 0;">第一列車 ${num}</h3>`+mkTable(secA,transferStation)+
-    `<h3 style="margin:.8rem 0 .4rem;">轉乘列車 ${transferNum}</h3>`+mkTable(secB,transferStation);
-  title.textContent=`${num} → ${transferNum} 轉乘詳情`;
+  
   modal.style.display='flex';
 }
 
-// 關閉 Modal
-function closeTrainDetailsModal(){
-  document.getElementById('trainDetailsModal').style.display='none';
-}
-window.onclick=e=>{
-  if(e.target===document.getElementById('trainDetailsModal'))
-    closeTrainDetailsModal();
-};
+function closeTrainDetailsModal(){ document.getElementById('trainDetailsModal').style.display='none'; }
+window.onclick=e=>{ if(e.target===document.getElementById('trainDetailsModal')) closeTrainDetailsModal(); };
+
+buildStartEndHeader(false);
 </script>
 </body>
 </html>

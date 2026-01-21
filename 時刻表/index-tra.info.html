@@ -3,466 +3,544 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>台鐵｜車站資訊板（重製版）</title>
-  <!--
-    重新排版重製重點（保留原功能）：
-    - 站點下拉、方向切換（北上/南下）
-    - 每秒更新當前時間與清單
-    - 3 分鐘內閃爍紅點提醒
-    - 顯示接下來最多 10 班、依時間排序
-    - 跑馬燈顯示第一班沿途停靠站
-    - 深色模式切換（保留原 切換主題 按鈕）
-    - 導覽列連結保留
-    - 相容 train-schedule.js 的 stations 與 trainSchedule 結構
-  -->
+  <title>台鐵｜智慧車站看板</title>
+  
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;600;800&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet" />
+  
   <style>
-    :root[data-theme='light']{
-      --bg:#f6f8fb;
-      --bg-2:#ffffff;
-      --panel:#ffffff;
-      --panel-2:#f6f8fb;
-      --text:#0e1621;
-      --muted:#54627a;
-      --brand:#0b79d0;
-      --stroke:#dde3ea;
-      --row:#ffffff;
-      --row-alt:#f8fafc;
-      --chip:#eef4fb;
-      --shadow:0 6px 18px rgba(12,23,34,.08);
-      --radius:14px;
+    /* ===== 1. 核心變數 ===== */
+    :root {
+      --font-main: 'Inter', 'Noto Sans TC', sans-serif;
+      --radius: 12px;
+      --transition: 0.2s ease;
     }
-    :root[data-theme='dark']{
-      --bg:#0b0f14;
-      --bg-2:#0d1218;
-      --panel:#11171f;
-      --panel-2:#0e141b;
-      --text:#e7edf3;
-      --muted:#a7b4c3;
-      --brand:#2db3ff;
-      --stroke:#1b2531;
-      --row:#141b24;
-      --row-alt:#121a22;
-      --chip:#172231;
-      --shadow:0 8px 24px rgba(0,0,0,.45);
-      --radius:14px;
+
+    :root[data-theme='light'] {
+      --bg-body: #f3f4f6;
+      --bg-card: #ffffff;
+      --bg-header: rgba(255, 255, 255, 0.9);
+      --text-main: #1f2937;
+      --text-muted: #6b7280;
+      --border: #e5e7eb;
+      --primary: #2563eb;
+      --primary-bg: #eff6ff;
+      --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+      --marquee-bg: #1f2937;
+      --marquee-text: #f3f4f6;
     }
-    *{box-sizing:border-box}
-    html,body{height:100%}
-    body{
-      margin:0; font-family:"Noto Sans TC", system-ui, -apple-system, Segoe UI, Roboto, Arial, "Microsoft JhengHei", sans-serif;
-      background:linear-gradient(180deg,var(--bg) 0%, var(--bg-2) 60%, var(--bg) 100%);
-      color:var(--text);
+
+    :root[data-theme='dark'] {
+      --bg-body: #111827;
+      --bg-card: #1f2937;
+      --bg-header: rgba(31, 41, 55, 0.9);
+      --text-main: #f9fafb;
+      --text-muted: #9ca3af;
+      --border: #374151;
+      --primary: #60a5fa;
+      --primary-bg: rgba(59, 130, 246, 0.15);
+      --shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.5);
+      --marquee-bg: #000000;
+      --marquee-text: #fbbf24;
     }
-    a{color:inherit; text-decoration:none}
 
-    /* Header */
-    .app-header{
-      position:sticky; top:0; z-index:50;
-      backdrop-filter:saturate(140%) blur(8px);
-      background:rgba(11,15,20,.85);
-      border-bottom:1px solid var(--stroke);
+    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+    
+    body {
+      font-family: var(--font-main);
+      background: var(--bg-body);
+      color: var(--text-main);
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden; /* 固定視窗，內容捲動 */
     }
-    .nav-wrap{max-width:1100px; margin:0 auto; padding:14px 16px; display:flex; align-items:center; justify-content:space-between}
-    .brand{display:flex; align-items:center; gap:10px; font-weight:800; letter-spacing:.5px}
-    .brand .dot{width:10px; height:10px; border-radius:50%; background:radial-gradient(circle at 30% 30%, #7ad4ff, var(--brand)); box-shadow:0 0 12px rgba(45,179,255,.7)}
-    .tabs{display:flex; gap:8px; flex-wrap:wrap}
-    .tab{padding:8px 12px; border-radius:999px; background:var(--chip); border:1px solid var(--stroke); color:var(--muted); font-weight:600; font-size:13px}
-    .tab.active{background:linear-gradient(180deg,#13263a,#0f1d2d); color:#eaf6ff; border-color:#203041; box-shadow: inset 0 1px 0 rgba(255,255,255,.06)}
 
-    /* 切換主題 button（沿用原有概念但融入版頭） */
-    .dark-toggle{display:flex; align-items:center; gap:8px}
-    .dark-btn{padding:6px 10px; border-radius:10px; border:1px solid var(--stroke); background:#101722; color:#d9e8f9; cursor:pointer}
+    a { text-decoration: none; color: inherit; }
 
-    /* Main container */
-    .container{max-width:1100px; margin:18px auto 32px; padding:0 16px}
-
-    /* Controls */
-    .controls{display:grid; grid-template-columns:1fr 1fr; gap:12px; align-items:end}
-    @media (min-width:720px){.controls{grid-template-columns:2fr 1fr 1fr}}
-    .control{display:flex; flex-direction:column; gap:6px}
-    .control label{font-size:12px; color:var(--muted); letter-spacing:.3px}
-
-    .select{position:relative}
-    select{
-      width:100%; appearance:none; background:var(--panel); color:var(--text);
-      border:1px solid var(--stroke); border-radius:10px; padding:12px 40px 12px 12px; font-size:14px; outline:none; box-shadow:var(--shadow)
+    /* ===== 2. 導航列 ===== */
+    .app-header {
+      flex: 0 0 auto;
+      background: var(--bg-header);
+      backdrop-filter: blur(8px);
+      border-bottom: 1px solid var(--border);
+      z-index: 50;
     }
-    .select:after{content:"\25BE"; position:absolute; right:12px; top:50%; transform:translateY(-50%); color:var(--muted); pointer-events:none}
+    .nav-wrap {
+      max-width: 1400px; margin: 0 auto; padding: 0.75rem 1rem;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .brand { font-weight: 800; font-size: 1.2rem; color: var(--primary); display: flex; align-items: center; gap: 8px; }
+    .brand::before { content:'🚆'; font-size: 1.4rem; }
 
-    /* Info */
-    .info{margin-top:14px; display:grid; grid-template-columns:1fr; gap:12px}
-    @media (min-width:720px){.info{grid-template-columns:1fr 1fr}}
+    .tabs { display: flex; gap: 4px; overflow-x: auto; padding-bottom: 4px; }
+    .tab {
+      font-size: 0.9rem; font-weight: 500; color: var(--text-muted);
+      padding: 6px 12px; border-radius: 6px; white-space: nowrap;
+      transition: var(--transition);
+    }
+    .tab:hover { background: var(--bg-body); color: var(--primary); }
+    .tab.active { background: var(--primary-bg); color: var(--primary); font-weight: 600; }
 
-    .card{background:var(--panel); border:1px solid var(--stroke); border-radius:var(--radius); box-shadow:var(--shadow)}
-    .card-inner{padding:14px}
+    .actions { display: flex; gap: 8px; }
+    .action-btn {
+      background: var(--bg-card); border: 1px solid var(--border); color: var(--text-main);
+      padding: 6px 12px; border-radius: 8px; font-size: 0.85rem; font-weight: 600;
+      cursor: pointer; display: flex; align-items: center; gap: 6px; transition: var(--transition);
+    }
+    .action-btn:hover { border-color: var(--text-muted); }
+    .action-btn.primary { background: var(--primary); color: white; border-color: var(--primary); }
+    
+    /* ===== 3. 主要內容區 ===== */
+    .main-container {
+      flex: 1 1 auto;
+      display: flex; flex-direction: column;
+      max-width: 1400px; width: 100%; margin: 0 auto;
+      padding: 1rem; gap: 1rem;
+      overflow: hidden; /* 內部捲動 */
+    }
 
-    .now{display:flex; align-items:center; justify-content:space-between; gap:10px}
-    .now .t{font-size:28px; font-weight:800; letter-spacing:.5px}
-    .now .s{font-size:14px; color:var(--muted)}
+    /* 控制面板 Dashboard */
+    .dashboard-panel {
+      flex: 0 0 auto;
+      background: var(--bg-card); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 1rem;
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1rem; align-items: end;
+      box-shadow: var(--shadow);
+    }
 
-    /* Table */
-    .table-card{margin-top:14px}
-    table{width:100%; border-collapse:separate; border-spacing:0}
-    thead th{position:sticky; top:64px; z-index:10; background:linear-gradient(180deg,#0f1620,#0d141c); color:#dbe8f5; text-align:center; font-size:13px; padding:12px 8px; border-bottom:1px solid var(--stroke)}
-    tbody td{padding:12px 8px; text-align:center; background:var(--row); border-bottom:1px solid #10161e}
-    tbody tr:nth-child(even) td{background:var(--row-alt)}
-    .no-info{padding:20px; color:var(--muted); text-align:center}
+    .control-group { display: flex; flex-direction: column; gap: 6px; }
+    .control-label { font-size: 0.75rem; color: var(--text-muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+    
+    select {
+      width: 100%; padding: 10px; border-radius: 8px;
+      border: 1px solid var(--border); background: var(--bg-body); color: var(--text-main);
+      font-size: 1rem; outline: none; appearance: none;
+      background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+      background-repeat: no-repeat; background-position: right 10px center; background-size: 16px;
+    }
 
-    /* Badges */
-    .badge{display:inline-block; padding:2px 8px; border-radius:999px; font-weight:700; font-size:12px; border:1px solid var(--stroke)}
-    .badge.zq{color:#ff9696; background:#331b1b}     /* 自強號 */
-    .badge.zqs{color:#ffcfa6; background:#3a2c14}   /* 自強號(新) */
-    .badge.pym{color:#ffb4e1; background:#361a30}   /* 普悠瑪 */
-    .badge.xzq{color:#cbb6ff; background:#211a33}   /* 新自強 */
-    .badge.jg{ color:#ffe6a7; background:#3a2f14 }  /* 莒光號 */
-    .badge.fx{ color:#bde0ff; background:#162537 }  /* 復興號 */
-    .badge.qjk{color:#b8ffcc; background:#143223 }  /* 區間快 */
-    .badge.qj{ color:#d6e2ee; background:#223041 }  /* 區間車 */
-    .badge.gb{ color:#9ad7d0; background:#13302f }  /* 加班車 */
+    .fav-btn {
+      margin-top: 4px; width: 100%; padding: 8px; border-radius: 6px; border: 1px dashed var(--border);
+      background: transparent; color: var(--text-muted); cursor: pointer; font-size: 0.85rem;
+    }
+    .fav-btn.active { color: #f59e0b; border-color: #f59e0b; background: rgba(245, 158, 11, 0.1); }
 
-    /* Flashing next-departure */
-    .ball{display:inline-block; width:10px; height:10px; border-radius:50%; margin-right:6px; background:radial-gradient(circle at 30% 30%,#ffb3b3,#ff5d5d); box-shadow:0 0 10px rgba(255,93,93,.9); vertical-align:-1px}
-    .flash{animation:flash 1.2s ease-in-out infinite}
-    @keyframes flash{0%,100%{opacity:1} 50%{opacity:.25}}
-    .tnum{font-weight:800; letter-spacing:.5px}
+    /* 數字時鐘 */
+    .digital-clock {
+      display: flex; flex-direction: column; align-items: flex-end; justify-content: center;
+      background: var(--bg-body); border-radius: 8px; padding: 0.5rem 1rem;
+      border: 1px solid var(--border);
+    }
+    .clock-time { font-size: 2rem; font-weight: 800; font-variant-numeric: tabular-nums; line-height: 1; color: var(--text-main); }
+    .clock-station { font-size: 0.9rem; color: var(--text-muted); font-weight: 500; margin-top: 4px; }
 
-    /* Marquee */
-    .marquee{overflow:hidden; border:1px solid var(--stroke); border-radius:12px; background:var(--panel-2); box-shadow:var(--shadow)}
-    .marquee p{margin:0; padding:10px 14px; white-space:nowrap; animation:run 22s linear infinite; color:var(--marquee)}
-    html[data-theme='light'] .marquee p{color:#0e1621}
-    html[data-theme='dark'] .marquee p{color:#d5e7ff}
-    @keyframes run{from{transform:translateX(100%)} to{transform:translateX(-100%)}}
+    /* 時刻表卡片 */
+    .schedule-card {
+      flex: 1 1 auto;
+      background: var(--bg-card); border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      display: flex; flex-direction: column;
+      overflow: hidden; /* 表格捲動 */
+    }
 
-    .right{justify-self:end; text-align:right}
-  /* 倒數顯示與看板模式 */
-    .cd{font-weight:800}
-    .cd.soon{color:#ff3b30}
-    html[data-board='on'] .tabs{display:none}
-    html[data-board='on'] thead th{top:20px}
-    html[data-board='on'] .now .t{font-size:40px}
-    html[data-board='on'] tbody td{font-size:20px; padding:16px 10px}
-    html[data-board='on'] thead th{font-size:16px}
-    html[data-board='on'] .marquee p{font-size:18px; animation-duration: 30s}
+    .table-header {
+      background: var(--bg-body); border-bottom: 1px solid var(--border);
+      padding: 12px 16px;
+      display: grid; grid-template-columns: 1.2fr 1.5fr 2fr 1fr 1.2fr;
+      font-weight: 600; color: var(--text-muted); font-size: 0.9rem;
+    }
+
+    .table-body {
+      flex: 1; overflow-y: auto;
+    }
+
+    .table-row {
+      display: grid; grid-template-columns: 1.2fr 1.5fr 2fr 1fr 1.2fr;
+      padding: 14px 16px; border-bottom: 1px solid var(--border);
+      align-items: center; transition: background 0.1s;
+      font-size: 1.1rem; color: var(--text-main);
+    }
+    .table-row:nth-child(even) { background: rgba(0,0,0,0.01); }
+    .table-row:hover { background: var(--primary-bg); }
+
+    /* 表格欄位樣式 */
+    .col-train { font-weight: 700; font-family: monospace; display: flex; align-items: center; gap: 6px; }
+    .col-dest { font-weight: 600; }
+    .col-time { font-weight: 700; font-family: monospace; letter-spacing: 1px; }
+    .col-status { font-weight: 700; }
+    
+    .status-ok { color: var(--text-muted); font-size: 0.9rem; }
+    .status-soon { color: #f59e0b; animation: pulse 2s infinite; }
+    .status-now { color: #ef4444; font-weight: 800; animation: flash 1s infinite; }
+
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.6} }
+    @keyframes flash { 0%,100%{opacity:1; color:#ef4444} 50%{opacity:0.5; color:#b91c1c} }
+
+    /* 跑馬燈 */
+    .marquee-container {
+      flex: 0 0 auto;
+      background: var(--marquee-bg);
+      color: var(--marquee-text);
+      padding: 12px 0;
+      overflow: hidden;
+      font-size: 1.1rem;
+      font-weight: 500;
+      white-space: nowrap;
+      position: relative;
+      border-top: 1px solid var(--border);
+    }
+    .marquee-content {
+      display: inline-block;
+      padding-left: 100%;
+      animation: marquee 25s linear infinite;
+    }
+    @keyframes marquee { 0% { transform: translate(0, 0); } 100% { transform: translate(-100%, 0); } }
+
+    /* 車種文字顏色 (無方框) */
+    .train-type-text { font-weight: 700; font-size: 1.05rem; }
+    
+    .text-zq { color: #ef4444; }   /* 自強 Red */
+    .text-pym { color: #db2777; }  /* 普悠瑪 Pink */
+    .text-xzq { color: #8b5cf6; }  /* 新自強 Purple */
+    .text-jg { color: #f59e0b; }   /* 莒光 Orange */
+    .text-qj { color: var(--text-main); } /* 區間 (跟隨主題) */
+    .text-qjk { color: #10b981; }  /* 區間快 Green */
+    .text-fx { color: #3b82f6; }   /* 復興 Blue */
+
+    /* 閃爍圓點 */
+    .dot-flash {
+      width: 8px; height: 8px; background: #ef4444; border-radius: 50%;
+      box-shadow: 0 0 8px #ef4444;
+    }
+
+    /* ===== 看板模式 (Board Mode) ===== */
+    body[data-board="on"] .app-header,
+    body[data-board="on"] .dashboard-panel,
+    body[data-board="on"] .fav-btn {
+      display: none !important;
+    }
+    
+    body[data-board="on"] {
+      background: #000; color: #fff;
+    }
+    body[data-board="on"] .main-container {
+      padding: 0; margin: 0; max-width: 100%; height: 100vh;
+    }
+    body[data-board="on"] .schedule-card {
+      border: none; border-radius: 0; height: 100%; background: #000;
+    }
+    body[data-board="on"] .table-header {
+      background: #111; color: #888; border-color: #333; font-size: 1.4rem;
+    }
+    body[data-board="on"] .table-row {
+      border-color: #222; font-size: 2.2rem; padding: 24px; color: #fff;
+    }
+    body[data-board="on"] .table-row:nth-child(even) { background: #0a0a0a; }
+    body[data-board="on"] .train-type-text { font-size: 2.2rem; }
+    body[data-board="on"] .marquee-container {
+      background: #111; color: #fbbf24; font-size: 1.8rem; padding: 16px 0; border-top: 2px solid #333;
+    }
+    /* 看板模式下，區間車強制白色以利閱讀 */
+    body[data-board="on"] .text-qj { color: #fff; }
+    
+    .exit-board-btn {
+      position: fixed; top: 20px; right: 20px; z-index: 1000;
+      background: rgba(255,255,255,0.2); color: #fff;
+      border: 1px solid rgba(255,255,255,0.4);
+      padding: 8px 16px; border-radius: 8px; cursor: pointer;
+      display: none;
+    }
+    body[data-board="on"] .exit-board-btn { display: block; }
+
+    /* RWD */
+    @media (max-width: 768px) {
+      .table-header, .table-row {
+        grid-template-columns: 1.1fr 1.3fr 1.2fr 1fr 1.2fr;
+      }
+      .dashboard-panel { grid-template-columns: 1fr; }
+      .digital-clock { align-items: center; margin-top: 10px; }
+    }
   </style>
 </head>
 <body>
-  <!-- Header / Tabs -->
+
+  <button class="exit-board-btn" id="exitBoardBtn">退出看板模式</button>
+
   <header class="app-header">
     <div class="nav-wrap">
-      <div class="brand"><span class="dot"></span><span>台鐵列車資訊</span></div>
-      <nav class="tabs" aria-label="頁面導覽">
-        <a class="tab" href="index.html">時刻表</a>
-        <a class="tab" href="index-tra.transfer.html">時刻表(含運用)</a>
-        <a class="tab" href="index-tra.move.html">列車即時動態</a>
-        <a class="tab" href="index-tra.easy.html">簡式時刻表</a>
-        <a class="tab" href="index-tra.type.html">依車種時刻表</a>
-        <a class="tab active" href="index-tra.info.html" aria-current="page">車站資訊板</a>
-        <a class="tab" href="people.html">運量查詢</a>
-        <a class="tab" href="index.trainrate.html">運用率查詢</a>
-        <a class="tab" href="index-tra.delay.html">列車狀態</a>
-        <a class="tab" href="index-tra.book.html">訂票系統</a>
-        <a class="tab" href="index-tra.make.html">列車排點</a>
-        <a class="tab" href="index-tra.operation.html">運行圖</a>
+      <div class="brand">台鐵智慧看板</div>
+      <nav class="tabs">
+        <a class="tab" href="index-tra.transfer.html">轉乘查詢</a>
+        <a class="tab" href="index-tra.move.html">列車動態</a>
+        <a class="tab active">車站看板</a>
+        <a class="tab" href="index-tra.table.html">時刻總表</a>
+        <a href="index-speed.html">高鐵時刻表</a>
+    <a href="index-thsr.html">高鐵時刻表(專用)</a>
+    <a href="index.html">時刻表</a>
+    <a href="index-tra.transfer.html">時刻表(含運用)</a>
+    <a href="index-tra.easy.html">簡式時刻表</a>
+    <a href="index-tra.type.html">依車種時刻表</a>
+    <a href="train-info.html">車站資訊板</a>
+    <a href="people.html">運量查詢</a>
+    <a href="index.trainrate.html">運用率查詢</a>
+    <a href="index-tra.book.html">訂票系統</a>
+    <a href="index-tra.make.html">列車排點</a>
       </nav>
-      <div class="dark-toggle"><button id="boardBtn" class="dark-btn" type="button">看板模式</button><button id="darkBtn" class="dark-btn" type="button">切換主題</button></div>
+      <div class="actions">
+        <button id="boardModeBtn" class="action-btn">📺 看板模式</button>
+        <button id="themeBtn" class="action-btn primary">◑</button>
+      </div>
     </div>
   </header>
 
-  <main class="container">
-    <!-- Controls -->
-    <section class="controls">
-      <div class="control">
-        <label for="station">選擇車站</label>
-        <div class="select"><select id="station" aria-label="選擇車站"></select></div>
-        <button id="favBtn" class="dark-btn" type="button" style="margin-top:6px">☆ 收藏本站</button>
+  <main class="main-container">
+    <section class="dashboard-panel">
+      <div class="control-group">
+        <label class="control-label">車站 Station</label>
+        <select id="stationSelect"></select>
+        <button id="favBtn" class="fav-btn">☆ 加入常用車站</button>
       </div>
-      <div class="control">
-        <label for="direction">選擇方向</label>
-        <div class="select">
-          <select id="direction" aria-label="選擇方向">
-            <option value="north">北上</option>
-            <option value="south">南下</option>
-          </select>
-        </div>
+      <div class="control-group">
+        <label class="control-label">方向 Direction</label>
+        <select id="directionSelect">
+          <option value="north">北上 (Northbound)</option>
+          <option value="south">南下 (Southbound)</option>
+        </select>
       </div>
-      <div class="control right">
-        <label>現在時間</label>
-        <div class="card"><div class="card-inner now">
-          <div class="t" id="current-time">--:--:--</div>
-          <div class="s"><span id="current-station">--</span></div>
-        </div></div>
+      <div class="digital-clock">
+        <div class="clock-time" id="clockTime">--:--:--</div>
+        <div class="clock-station" id="clockStation">台北 ｜ 北上</div>
       </div>
     </section>
 
-    <!-- Info cards -->
-    <section class="info">
-      <div class="card table-card" role="region" aria-label="即將發車清單">
-        <div class="card-inner">
-          <table id="upcoming-trains">
-            <thead>
-              <tr>
-                <th style="width:16%">車次</th>
-                <th style="width:22%">車種</th>
-                <th style="width:26%">開往</th>
-                <th style="width:12%">倒數</th>
-                <th style="width:24%">開車時間</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr><td colspan="4" class="no-info">載入中…</td></tr>
-            </tbody>
-          </table>
-        </div>
+    <section class="schedule-card">
+      <div class="table-header">
+        <div>車次</div>
+        <div>車種</div>
+        <div>開往</div>
+        <div style="text-align:center">狀態</div>
+        <div style="text-align:right">開車時間</div>
       </div>
-
-      <div class="card marquee" aria-live="polite">
-        <p id="next-train-marquee">下一班列車資訊載入中…</p>
+      <div class="table-body" id="trainList">
+        <div style="padding:40px; text-align:center; color:var(--text-muted)">載入中...</div>
+      </div>
+      
+      <div class="marquee-container">
+        <div class="marquee-content" id="marqueeText">
+          系統連線中... 歡迎使用台鐵智慧看板系統...
+        </div>
       </div>
     </section>
   </main>
 
-  <!-- 資料檔：需與本檔同資料夾 -->
   <script src="train-schedule.js"></script>
 
   <script>
-  /************ 工具函式 ************/
-  function pad2(n){return n.toString().padStart(2,'0')}
-  function ensureHHMMSS(t){
-    if(!t) return null;
-    const parts = String(t).split(":");
-    if(parts.length===2) return `${parts[0]}:${parts[1]}:00`;
-    if(parts.length===3) return t;
-    return null;
-  }
-  function compareTime(a,b){
-    a = ensureHHMMSS(a); b = ensureHHMMSS(b);
-    if(!a||!b) return 0;
-    const [h1,m1,s1] = a.split(":").map(Number);
-    const [h2,m2,s2] = b.split(":").map(Number);
-    if(h1!==h2) return h1-h2; if(m1!==m2) return m1-m2; return s1-s2;
-  }
-  function isWithinThreeMinutes(departureTime){
-    const hhmmss = ensureHHMMSS(departureTime);
-    if(!hhmmss) return false;
-    const now = new Date();
-    const [H,M,S] = hhmmss.split(":").map(Number);
-    const dep = new Date(now.getFullYear(), now.getMonth(), now.getDate(), H, M, S||0);
-    const diffMin = (dep - now)/60000;
-    return diffMin <= 3 && diffMin >= 0;
-  }
-  function isTrainUpcoming(departureTime){return isWithinThreeMinutes(departureTime)}
+    document.addEventListener('DOMContentLoaded', () => {
+      // DOM Elements
+      const stationSel = document.getElementById('stationSelect');
+      const dirSel = document.getElementById('directionSelect');
+      const clockTimeEl = document.getElementById('clockTime');
+      const clockStationEl = document.getElementById('clockStation');
+      const listEl = document.getElementById('trainList');
+      const marqueeEl = document.getElementById('marqueeText');
+      const themeBtn = document.getElementById('themeBtn');
+      const boardBtn = document.getElementById('boardModeBtn');
+      const exitBoardBtn = document.getElementById('exitBoardBtn');
+      const favBtn = document.getElementById('favBtn');
 
-  /************ UI 建立 ************/
-  function populateStations(){
-    const sel = document.getElementById('station');
-    sel.innerHTML = '';
-    if(Array.isArray(stations)){
-      stations.forEach(s=>{
-        const opt = document.createElement('option');
-        opt.value = s; opt.textContent = s; sel.appendChild(opt);
-      });
-    }
-  }
-
-  function typeBadge(trainType){
-    const map = {
-      '自強號':'zq', '自強號(新)':'zqs', '普悠瑪':'pym', '新自強':'xzq', '莒光號':'jg', '復興號':'fx', '區間快':'qjk', '區間車':'qj', '加班車':'gb'
-    };
-    const cls = map[trainType] || 'qj';
-    return `<span class="badge ${cls}">${trainType||'—'}</span>`;
-  }
-
-  function getUpcomingStations(currentStation, train){
-    const stationTimes = trainSchedule[train.trainNumber]["車站時間"];
-    const idx = stationTimes.findIndex(x=>x[0]===currentStation);
-    if(idx!==-1 && idx<stationTimes.length-1){
-      const arr = [];
-      for(let i=idx+1;i<stationTimes.length;i++) arr.push(stationTimes[i][0]);
-      return arr;
-    }
-    return [];
-  }
-
-  function findNextTrain(selectedStation, currentTime, selectedDirection){
-    const list = [];
-    const ct = ensureHHMMSS(currentTime);
-
-    for(const trainNumber in trainSchedule){
-      const info = trainSchedule[trainNumber];
-      const stationTimes = info["車站時間"];
-      const idx = stationTimes.findIndex(x=>x[0]===selectedStation);
-      if(idx===-1) continue;
-      const dep = ensureHHMMSS(stationTimes[idx][1]);
-      if(!dep) continue;
-      if(compareTime(ct, dep) < 0){
-        // 方向（偶數=北上、奇數=南下）
-        const isNorth = (parseInt(trainNumber,10) % 2 === 0);
-        if( (selectedDirection==='north' && isNorth) || (selectedDirection==='south' && !isNorth) ){
-          const destination = stationTimes.at(-1)[0];
-          const display = stationTimes[idx][1];
-          list.push({trainNumber, trainType: info["車種"], destination, time: dep, displayTime: display});
-        }
-      }
-    }
-    list.sort((a,b)=>compareTime(a.time,b.time));
-    return list.slice(0,10);
-  }
-
-  /************ 主流程 ************/
-  // 收藏站輔助 & 站點排序（localStorage）
-  function getFavs(){ try{ return JSON.parse(localStorage.getItem('favStations')||'[]') }catch(e){ return [] } }
-  function setFavs(arr){ localStorage.setItem('favStations', JSON.stringify(Array.from(new Set(arr)))) }
-  function toggleFavStation(station){ const favs = getFavs(); const i = favs.indexOf(station); if(i>=0){ favs.splice(i,1); } else { favs.push(station); } setFavs(favs); }
-  function reorderStationSelectByFavs(){
-    const sel = document.getElementById('station'); if(!sel) return;
-    const favs = getFavs(); const favSet = new Set(favs);
-    const options = Array.from(sel.querySelectorAll('option'));
-    const ogFav = document.createElement('optgroup'); ogFav.label='★ 常用站';
-    const ogAll = document.createElement('optgroup'); ogAll.label='所有車站';
-    // 移除舊的 optgroup
-    Array.from(sel.querySelectorAll('optgroup')).forEach(g=>g.remove());
-    // 將原 options 先移出，再依喜好分組
-    options.forEach(opt=>{ (favSet.has(opt.value)?ogFav:ogAll).appendChild(opt); });
-    sel.appendChild(ogFav); sel.appendChild(ogAll);
-  }
-
-  document.addEventListener('DOMContentLoaded', () => {
-    const currentTimeEl = document.getElementById('current-time');
-    const currentStationEl = document.getElementById('current-station');
-    const stationSel = document.getElementById('station');
-    const dirSel = document.getElementById('direction');
-    const table = document.getElementById('upcoming-trains');
-    const marqueeEl = document.getElementById('next-train-marquee');
-    const darkBtn = document.getElementById('darkBtn');
-    const boardBtn = document.getElementById('boardBtn');
-    const favBtn = document.getElementById('favBtn');
-
-    // 切換主題 切換（保留原功能）
-    // 主題切換（白底／黑底）
-    function applyTheme(theme){
-      document.documentElement.setAttribute('data-theme', theme);
-      localStorage.setItem('theme', theme);
-      darkBtn.textContent = theme === 'dark' ? '切換為白底' : '切換為黑底';
-    }
-    const savedTheme = localStorage.getItem('theme') || 'light';
-    applyTheme(savedTheme);
-    darkBtn.addEventListener('click', ()=>{
-      const current = document.documentElement.getAttribute('data-theme') || 'light';
-      applyTheme(current === 'dark' ? 'light' : 'dark');
-    });
-
-    populateStations();
-    reorderStationSelectByFavs();
-
-    function render(){
-      const now = new Date();
-      const hh = pad2(now.getHours());
-      const mm = pad2(now.getMinutes());
-      const ss = pad2(now.getSeconds());
-      const nowStr = `${hh}:${mm}:${ss}`;
-      currentTimeEl.textContent = nowStr;
-
-      const station = stationSel.value || (stations && stations[0]) || '—';
-      const dirText = dirSel.value==='north' ? '北上' : '南下';
-      currentStationEl.textContent = `${station} ｜ ${dirText}`;
-
-      const list = findNextTrain(station, nowStr, dirSel.value);
-      const tbody = table.querySelector('tbody');
-      tbody.innerHTML = '';
-
-      if(list.length===0){
-        const tr = document.createElement('tr');
-        const td = document.createElement('td');
-        td.colSpan = 4; td.className = 'no-info';
-        td.textContent = '本日已無列車';
-        tr.appendChild(td); tbody.appendChild(tr);
-        marqueeEl.textContent = '本日已無列車';
+      // 1. 初始化資料驗證
+      if (typeof trainSchedule === 'undefined' || typeof stations === 'undefined') {
+        listEl.innerHTML = '<div style="padding:20px;text-align:center;color:red">找不到資料檔 (train-schedule.js)</div>';
         return;
       }
 
-      list.forEach((t) => {
-        const tr = document.createElement('tr');
-        // 車次（紅點 + 粗體編號）
-        const tdNum = document.createElement('td');
-        const soon = isWithinThreeMinutes(t.time);
-        tdNum.innerHTML = `${soon ? '<span class="ball flash" aria-label="即將發車"></span>' : ''}<span class="tnum">${t.trainNumber}</span>`;
+      // 2. 填充車站選單 & 常用車站邏輯
+      function getFavs() { return JSON.parse(localStorage.getItem('favStations') || '[]'); }
+      function toggleFav() {
+        const s = stationSel.value;
+        const favs = getFavs();
+        const idx = favs.indexOf(s);
+        if (idx >= 0) favs.splice(idx, 1); else favs.push(s);
+        localStorage.setItem('favStations', JSON.stringify(favs));
+        renderStationOptions();
+        updateFavBtn();
+      }
 
-        // 車種徽章
-        const tdType = document.createElement('td');
-        tdType.innerHTML = typeBadge(t.trainType);
+      function renderStationOptions() {
+        const currentVal = stationSel.value;
+        stationSel.innerHTML = '';
+        const favs = new Set(getFavs());
+        
+        // 常用群組
+        if (favs.size > 0) {
+          const grpFav = document.createElement('optgroup');
+          grpFav.label = '★ 常用車站';
+          stations.forEach(s => {
+            if (favs.has(s)) grpFav.appendChild(new Option(s, s));
+          });
+          stationSel.appendChild(grpFav);
+        }
+        // 全部群組
+        const grpAll = document.createElement('optgroup');
+        grpAll.label = '所有車站';
+        stations.forEach(s => grpAll.appendChild(new Option(s, s)));
+        stationSel.appendChild(grpAll);
 
-        // 目的地
-        const tdDst = document.createElement('td');
-        tdDst.textContent = t.destination;
+        if (currentVal && Array.from(stationSel.options).some(o => o.value === currentVal)) {
+          stationSel.value = currentVal;
+        } else if (stations.includes("臺北")) {
+          stationSel.value = "臺北";
+        }
+      }
 
-        // 倒數（T-分）
-        const tdCd = document.createElement('td');
-        (function(){
-          const hhmmss = ensureHHMMSS(t.time);
-          let minsLeft = 0; let cdText='—';
-          if(hhmmss){
-            const [H,M,S] = hhmmss.split(':').map(Number);
-            const dep = new Date(now.getFullYear(), now.getMonth(), now.getDate(), H, M, S||0);
-            minsLeft = Math.ceil((dep - now)/60000);
-            cdText = minsLeft >= 0 ? `T-${String(minsLeft).padStart(2,'0')}` : '開車中';
+      function updateFavBtn() {
+        const isFav = getFavs().includes(stationSel.value);
+        favBtn.textContent = isFav ? '★ 已收藏' : '☆ 加入常用車站';
+        favBtn.classList.toggle('active', isFav);
+      }
+
+      renderStationOptions();
+      updateFavBtn();
+      favBtn.onclick = toggleFav;
+
+      // 3. 核心邏輯：找下一班車 (即時隱藏過期班次)
+      function getNextTrains(station, direction) {
+        const now = new Date();
+        const curMin = now.getHours() * 60 + now.getMinutes();
+        const list = [];
+
+        Object.entries(trainSchedule).forEach(([no, data]) => {
+          // 方向判斷：偶數北上，奇數南下
+          const isNorth = (parseInt(no) % 2 === 0);
+          if ((direction === 'north' && !isNorth) || (direction === 'south' && isNorth)) return;
+
+          const stops = data['車站時間'];
+          const stopIdx = stops.findIndex(s => s[0] === station);
+          
+          if (stopIdx !== -1 && stopIdx < stops.length - 1) { // 必須有停且不是終點
+            const timeStr = stops[stopIdx][1];
+            const [h, m] = timeStr.split(':').map(Number);
+            let min = h * 60 + m;
+            
+            // 處理跨日：若時間差超過 12 小時 (如現在23:00, 車次00:10)，視為隔天
+            let diff = min - curMin;
+            if (diff < -720) min += 1440; 
+            diff = min - curMin;
+
+            // ⚠️ 關鍵修改：只顯示 diff > 0 (未來班次)，時間一到(<=0)立即隱藏
+            if (diff > 0 && diff < 360) { // 顯示 未來 1 分鐘 ~ 未來 6 小時
+              list.push({
+                no,
+                type: data['車種'],
+                dest: stops[stops.length - 1][0],
+                time: timeStr,
+                min: min,
+                diff: diff,
+                stops: stops.slice(stopIdx + 1).map(s => s[0])
+              });
+            }
           }
-          tdCd.textContent = cdText;
-          tdCd.className = (minsLeft <= 3 && minsLeft >= 0) ? 'cd soon' : 'cd';
-        })();
+        });
 
-        // 時間（只到分鐘）
-        const tdTime = document.createElement('td');
-        tdTime.textContent = (t.displayTime || (t.time ? t.time.slice(0,5) : '—'));
+        return list.sort((a, b) => a.min - b.min).slice(0, 10); // 取前 10 班
+      }
 
-        tr.append(tdNum, tdType, tdDst, tdCd, tdTime);
-        tbody.appendChild(tr);
+      // 4. 渲染畫面
+      function render() {
+        const st = stationSel.value;
+        const dir = dirSel.value;
+        const trains = getNextTrains(st, dir);
+        
+        // 更新時鐘與標題
+        const now = new Date();
+        clockTimeEl.innerText = now.toLocaleTimeString('en-US', { hour12: false });
+        clockStationEl.innerText = `${st} ｜ ${dir === 'north' ? '北上 Northbound' : '南下 Southbound'}`;
+
+        // 更新列表
+        listEl.innerHTML = '';
+        if (trains.length === 0) {
+          listEl.innerHTML = `<div style="padding:40px;text-align:center;font-size:1.2rem;color:var(--text-muted)">目前無列車資訊 / Service Ends</div>`;
+          marqueeEl.innerText = `現在時刻 ${now.toLocaleTimeString()}，目前無列車資訊。`;
+          return;
+        }
+
+        trains.forEach((t, idx) => {
+          const row = document.createElement('div');
+          row.className = 'table-row';
+          
+          // Color Class (Text Only)
+          let typeClass = 'text-qj';
+          if (t.type.includes('新自強')) typeClass = 'text-xzq';
+          else if (t.type.includes('普悠瑪')) typeClass = 'text-pym';
+          else if (t.type.includes('自強')) typeClass = 'text-zq';
+          else if (t.type.includes('莒光')) typeClass = 'text-jg';
+          else if (t.type.includes('區間快')) typeClass = 'text-qjk';
+          else if (t.type.includes('復興')) typeClass = 'text-fx';
+
+          // 狀態文字 (依使用者需求調整)
+          let statusHtml = `<span class="status-ok">${t.diff} 分</span>`;
+          if (t.diff <= 1) {
+            statusHtml = `<span class="status-now">即將開車</span>`;
+          } else if (t.diff <= 3) {
+            statusHtml = `<span class="status-now">進站中</span>`;
+          } else if (t.diff <= 5) {
+            statusHtml = `<span class="status-soon">即將進站</span>`;
+          }
+
+          // 閃爍點 (第一班)
+          const dot = (idx === 0 && t.diff <= 3) ? `<div class="dot-flash"></div>` : ``;
+
+          row.innerHTML = `
+            <div class="col-train">${dot} ${t.no}</div>
+            <div class="col-type"><span class="train-type-text ${typeClass}">${t.type}</span></div>
+            <div class="col-dest">${t.dest}</div>
+            <div class="col-status" style="text-align:center">${statusHtml}</div>
+            <div class="col-time" style="text-align:right">${t.time}</div>
+          `;
+          listEl.appendChild(row);
+        });
+
+        // 更新跑馬燈 (顯示全站，移除英文)
+        const f = trains[0];
+        const stopText = f.stops.join('、'); 
+        marqueeEl.innerHTML = `
+          <span style="color:#fbbf24; font-weight:700">${f.time}</span> 開往 ${f.dest} 的 ${f.no}次 ${f.type} 即將進站。
+          沿途停靠：${stopText}。
+        `;
+      }
+
+      // 5. 事件監聽
+      stationSel.onchange = () => { render(); updateFavBtn(); };
+      dirSel.onchange = render;
+      
+      // 主題切換
+      themeBtn.onclick = () => {
+        const cur = document.documentElement.getAttribute('data-theme');
+        document.documentElement.setAttribute('data-theme', cur === 'dark' ? 'light' : 'dark');
+      };
+
+      // 看板模式
+      function toggleBoard(on) {
+        if (on) document.body.setAttribute('data-board', 'on');
+        else document.body.removeAttribute('data-board');
+      }
+      boardBtn.onclick = () => toggleBoard(true);
+      exitBoardBtn.onclick = () => toggleBoard(false);
+      
+      // 鍵盤 ESC 退出
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') toggleBoard(false);
       });
 
-      // 跑馬燈：第一班沿途站
-      const first = list[0];
-      const stops = getUpcomingStations(station, first);
-      if(!stops.includes(first.destination)) stops.push(first.destination);
-      marqueeEl.innerHTML = `${first.displayTime || (first.time ? first.time.slice(0,5) : '--:--')} 開往 ${first.destination} 的 <strong>${first.trainNumber}</strong> 次 ${typeBadge(first.trainType)} 即將進站，沿途停靠：${stops.join('、')}`;
-    }
-
-    stationSel.addEventListener('change', ()=>{ render(); updateFavBtnState(); });
-    dirSel.addEventListener('change', ()=>{ localStorage.setItem('lastDirection', dirSel.value); render(); });
-
-    // 初始化方向（記憶上次）
-    const savedDir = localStorage.getItem('lastDirection');
-    if(savedDir && (savedDir==='north' || savedDir==='south')) dirSel.value = savedDir;
-
-    // 看板模式
-    function applyBoard(on){
-      document.documentElement.setAttribute('data-board', on ? 'on' : 'off');
-      localStorage.setItem('boardMode', on ? 'on' : 'off');
-      boardBtn.textContent = on ? '退出看板' : '看板模式';
-    }
-    applyBoard(localStorage.getItem('boardMode')==='on');
-    boardBtn.addEventListener('click', ()=>{
-      const isOn = document.documentElement.getAttribute('data-board')==='on';
-      applyBoard(!isOn);
+      // 啟動
+      setInterval(render, 1000);
+      render();
     });
-
-    // 收藏本站按鈕
-    function updateFavBtnState(){
-      const st = stationSel.value;
-      const favs = getFavs();
-      const on = favs.includes(st);
-      favBtn.textContent = on ? '★ 已收藏' : '☆ 收藏本站';
-      favBtn.classList.toggle('active', on);
-    }
-    favBtn.addEventListener('click', ()=>{
-      const st = stationSel.value; toggleFavStation(st); reorderStationSelectByFavs(); updateFavBtnState();
-    });
-
-    render();
-    updateFavBtnState();
-    setInterval(render, 1000);
-  });
   </script>
 </body>
 </html>
