@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>臺鐵時刻表 (智慧排序版)</title>
+  <title>臺鐵時刻表 (Pro版)</title>
 
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -13,8 +13,8 @@
     :root {
       /* 色系設定 (Slate 風格) */
       --bg-body: #f1f5f9;
-      --bg-surface: #ffffff;     /* 確保是不透明的白色 */
-      --bg-header: #ffffff;      /* 固定表頭背景 */
+      --bg-surface: #ffffff;
+      --bg-header: #ffffff;
       
       --text-main: #0f172a;
       --text-muted: #64748b;
@@ -98,6 +98,15 @@
     button.primary:hover { background: var(--primary-hover); }
     button.secondary { background: #fff; border-color: var(--border-dark); color: var(--text-main); }
     button.secondary:hover { background: #f8fafc; }
+    
+    /* 交換按鈕樣式 */
+    button.icon-btn {
+      padding: 4px 8px;
+      font-size: 14px;
+      line-height: 1;
+      color: var(--accent);
+      border-color: var(--border);
+    }
 
     /* --- 車種複選下拉選單 --- */
     details.custom-select { position: relative; }
@@ -148,7 +157,7 @@
       border: 1px solid var(--border);
       border-radius: 8px;
       box-shadow: var(--shadow-md);
-      overflow: hidden; /* 為了圓角 */
+      overflow: hidden;
     }
 
     .table-scroll {
@@ -158,7 +167,7 @@
     }
 
     table {
-      border-collapse: separate; /* 必須用 separate 才能讓 sticky border 正常顯示 */
+      border-collapse: separate;
       border-spacing: 0;
       width: max-content;
       min-width: 100%;
@@ -170,25 +179,21 @@
       border-right: 1px solid var(--border);
       border-bottom: 1px solid var(--border);
       font-size: 11px;
-      background-clip: padding-box; /* 防止背景蓋住邊框 */
+      background-clip: padding-box;
     }
 
-    /* --- 表頭設計 (不透明背景修正) --- */
-    thead {
-      position: sticky; top: 0; z-index: 20;
-    }
+    thead { position: sticky; top: 0; z-index: 20; }
 
     /* 車次資訊欄 */
     th.train-header {
       position: relative;
-      background-color: var(--bg-surface) !important; /* 強制不透明 */
+      background-color: var(--bg-surface) !important;
       vertical-align: top;
-      height: 90px;
-      min-width: 48px;
+      height: 110px; /* 稍微再增加一點高度，確保空間充足 */
+      min-width: 54px;
       font-weight: normal;
-      z-index: 10; /* 確保蓋過下面捲動的內容 */
+      z-index: 10;
     }
-    /* 加強底線，避免視覺混淆 */
     th.train-header::after {
       content: ''; position: absolute; left: 0; right: 0; bottom: -1px;
       border-bottom: 2px solid var(--border); pointer-events: none;
@@ -199,11 +204,32 @@
     }
     .train-no { font-weight: 800; font-size: 12px; display: block; margin-bottom: 2px; }
     .train-type { font-size: 12px; font-weight: 600; display: block; line-height: 1.2; }
-    .train-route { color: var(--text-muted); font-size: 11px; margin-top: auto; line-height: 1.2; }
+    
+    /* 路線與時間的容器 */
+    .route-wrapper {
+      margin-top: auto; /* 將整個區塊推到底部 */
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 3px;
+    }
+    .train-route { color: var(--text-muted); font-size: 11px; line-height: 1.2; }
+    
+    /* 耗時顯示樣式微調 */
+    .train-duration {
+      font-family: Menlo, monospace;
+      font-size: 11px;
+      color: var(--accent);
+      background: #eff6ff;
+      border-radius: 3px;
+      padding: 1px 3px;
+      font-weight: 600;
+      display: inline-block;
+    }
 
     /* 左上角 */
     .corner-header {
-      position: sticky; left: 0; top: 0; z-index: 30; /* 最高層級 */
+      position: sticky; left: 0; top: 0; z-index: 30;
       background-color: var(--bg-header) !important;
       border-right: 2px solid var(--border);
       border-bottom: 2px solid var(--border);
@@ -214,12 +240,11 @@
     /* 左側站名 (凍結) */
     td.station-name {
       position: sticky; left: 0; z-index: 10;
-      background-color: var(--bg-surface) !important; /* 強制不透明 */
+      background-color: var(--bg-surface) !important;
       border-right: 2px solid var(--border);
       font-weight: 700; color: var(--text-main);
     }
 
-    /* 時間數據格 */
     td.time-cell {
       font-family: Menlo, Monaco, Consolas, "Courier New", monospace;
       font-variant-numeric: tabular-nums;
@@ -229,7 +254,6 @@
     tr:hover td { background-color: #f8fafc; }
     tr:hover td.station-name { background-color: #f1f5f9; }
 
-    /* RWD */
     @media (max-width: 768px) {
       .control-group { flex: 1; justify-content: space-between; }
       .toolbar { gap: 8px; }
@@ -244,6 +268,7 @@
       <div class="control-group">
         <span>起</span>
         <select id="rangeStart"></select>
+        <button id="swapBtn" class="secondary icon-btn" title="交換起訖">⇄</button>
         <span>迄</span>
         <select id="rangeEnd"></select>
       </div>
@@ -290,7 +315,6 @@
     const nonReservedTypes = new Set(['區間快', '區間車']);
     const isSea = (id) => String(id).includes('A');
     
-    // 顏色定義
     const typeColor = (t) => ({
       '新自強': '#8600FF', '普悠瑪': '#e11d48', '太魯閣': '#be123c',
       '自強號': '#ea580c', '自強': '#ea580c', '自強號(新)': '#b45309',
@@ -347,8 +371,19 @@
     selEnd.appendChild(frag.cloneNode(true));
     pivot1.appendChild(frag.cloneNode(true));
     
-    selStart.selectedIndex = 0;
-    selEnd.selectedIndex = stations.length - 1;
+    selStart.value = "臺北";
+    selEnd.value = "臺中";
+    if(selStart.selectedIndex === -1) selStart.selectedIndex = 0;
+    if(selEnd.selectedIndex === -1) selEnd.selectedIndex = stations.length - 1;
+
+    function loadFromUrl() {
+      const params = new URLSearchParams(window.location.search);
+      const pStart = params.get('start');
+      const pEnd = params.get('end');
+      if (pStart && stations.includes(pStart)) selStart.value = pStart;
+      if (pEnd && stations.includes(pEnd)) selEnd.value = pEnd;
+    }
+    loadFromUrl();
 
     // 複選選單
     const allTypes = Array.from(allTypesSet).sort();
@@ -408,8 +443,6 @@
     });
 
     // 5. 排序與渲染邏輯
-    
-    // 判斷是否經過
     function passesStation(id, stIdx) {
       const meta = trainMeta[id];
       const a = meta.firstIdx, b = meta.lastIdx;
@@ -417,10 +450,8 @@
       return meta.dir === 1 ? (stIdx > a && stIdx < b) : (stIdx < a && stIdx > b);
     }
 
-    // 取得範圍內的第一個時間 (舊邏輯備用)
     function firstTimeInRange(id, rangeSet) {
       const meta = trainMeta[id];
-      const map = trainStopsMap[id];
       const seq = [];
       for (const rec of meta.stops) {
         if (rangeSet.has(rec[0])) {
@@ -429,7 +460,6 @@
         }
       }
       if (seq.length === 0) return null;
-      // 跨日處理
       let adj = [seq[0]];
       let offset = 0;
       for (let i=1; i<seq.length; i++) {
@@ -439,7 +469,6 @@
       return adj[0];
     }
 
-    // 判斷是否跨夜
     function isOvernightInRange(id, rangeSet) {
       const meta = trainMeta[id];
       let prev = null;
@@ -453,12 +482,19 @@
       return false;
     }
 
-    // 主渲染函式
+    function updateUrl() {
+      const url = new URL(window.location);
+      url.searchParams.set('start', selStart.value);
+      url.searchParams.set('end', selEnd.value);
+      window.history.replaceState({}, '', url);
+    }
+
     function renderAll() {
-      // 確定範圍
+      updateUrl();
+
       let sIdx = stations.indexOf(selStart.value);
       let eIdx = stations.indexOf(selEnd.value);
-      if (sIdx > eIdx) [sIdx, eIdx] = [eIdx, sIdx]; // 自動交換
+      if (sIdx > eIdx) [sIdx, eIdx] = [eIdx, sIdx]; 
       const range = stations.slice(sIdx, eIdx + 1);
       const rangeSet = new Set(range);
 
@@ -466,52 +502,39 @@
       const onlyStop = document.getElementById('onlyStopStations').checked;
       const pivotVal = pivot1.value;
 
-      // 篩選車次
       const reserved = [], nonRes = [];
       
       for (const id in trainMeta) {
         const meta = trainMeta[id];
         if (!selectedTypes.has(meta.type)) continue;
         if (q && !id.includes(q)) continue;
-        
-        // 必須在範圍內有停靠
         if (!meta.stops.some(r => rangeSet.has(r[0]))) continue;
-        // 必須經過 Pivot
         if (pivotVal && !trainStopsMap[id].has(pivotVal)) continue;
 
         if (nonReservedTypes.has(meta.type)) nonRes.push(id);
         else reserved.push(id);
       }
 
-      // ★★★ 智慧排序器 ★★★
-      // 邏輯：優先比較「兩台車在當前畫面範圍內，第一個共同停靠的站」
       function smartSorter(a, b) {
-        // 1. 如果有指定 Pivot，直接比 Pivot 時間
         if (pivotVal) {
            const tA = parseMin(trainStopsMap[a].get(pivotVal)) || 9999;
            const tB = parseMin(trainStopsMap[b].get(pivotVal)) || 9999;
            if (tA !== tB) return tA - tB;
         }
-
-        // 2. 自動尋找共同站點比較 (解決 109 vs 111 問題)
-        // 從範圍的起點開始找，看這兩台車哪一站重疊
         for (const st of range) {
           const mapA = trainStopsMap[a];
           const mapB = trainStopsMap[b];
           if (mapA.has(st) && mapB.has(st)) {
              const tA = parseMin(mapA.get(st));
              const tB = parseMin(mapB.get(st));
-             if (tA !== tB) return tA - tB; // 找到重疊點，直接定勝負
+             if (tA !== tB) return tA - tB;
           }
         }
-
-        // 3. 如果完全沒有重疊站點 (極少見)，退回比較「第一個出現時間」
         const fA = firstTimeInRange(a, rangeSet) || 9999;
         const fB = firstTimeInRange(b, rangeSet) || 9999;
         return fA - fB;
       }
 
-      // 分組排序 (日班/夜班)
       function arrange(ids) {
         const day = [], night = [];
         ids.forEach(id => (isOvernightInRange(id, rangeSet) ? night : day).push(id));
@@ -523,19 +546,17 @@
       const sortedRes = arrange(reserved);
       const sortedNon = arrange(nonRes);
 
-      // 繪製
       document.getElementById('reservedBlock').innerHTML = '';
       document.getElementById('nonReservedBlock').innerHTML = '';
 
-      const finalStList = onlyStop ? range.filter(st => 
-        [...sortedRes, ...sortedNon].some(id => trainStopsMap[id].has(st))
-      ) : range;
+      const reservedStList = range.filter(st => sortedRes.some(id => trainStopsMap[id].has(st)));
+      const nonReservedStList = onlyStop ? range.filter(st => sortedNon.some(id => trainStopsMap[id].has(st))) : range;
 
       if (sortedRes.length) {
-        drawTable(sortedRes, 'reservedBlock', '對號列車', finalStList);
+        drawTable(sortedRes, 'reservedBlock', '對號列車', reservedStList);
       }
       if (sortedNon.length) {
-        drawTable(sortedNon, 'nonReservedBlock', '區間 / 區間快', finalStList);
+        drawTable(sortedNon, 'nonReservedBlock', '區間 / 區間快', nonReservedStList);
       }
     }
 
@@ -549,12 +570,14 @@
       scroll.className = 'table-scroll';
       const tbl = document.createElement('table');
 
-      // Thead
       const thead = tbl.createTHead();
       const r1 = thead.insertRow();
       const corner = r1.insertCell();
       corner.className = 'corner-header';
       corner.textContent = '車站';
+
+      const userStart = selStart.value;
+      const userEnd = selEnd.value;
 
       ids.forEach(id => {
         const meta = trainMeta[id];
@@ -565,23 +588,44 @@
         const first = meta.stops[0][0];
         const last = meta.stops[meta.stops.length-1][0];
 
+        // 計算時間
+        let durationHtml = '';
+        const map = trainStopsMap[id];
+        if (map.has(userStart) && map.has(userEnd)) {
+          let t1 = parseMin(map.get(userStart));
+          let t2 = parseMin(map.get(userEnd));
+          if (t1 !== null && t2 !== null) {
+            let diff = t2 - t1;
+            if (diff < 0) diff += 1440; // 跨日
+            const h = Math.floor(diff / 60);
+            const m = diff % 60;
+            const hStr = h > 0 ? `${h}時` : '';
+            durationHtml = `<div class="train-duration">${hStr}${m}分</div>`;
+          }
+        }
+
+        // 修改：將 durationHtml 移至 route-wrapper 內
         th.innerHTML = `
           <div class="th-content">
-            <span class="train-no" style="color:${color}">${id}</span>
-            <span class="train-type" style="color:${color}">${meta.type}${sea}</span>
-            <span class="train-route">${first}<br>↓<br>${last}</span>
+            <div>
+              <span class="train-no" style="color:${color}">${id}</span>
+              <span class="train-type" style="color:${color}">${meta.type}${sea}</span>
+            </div>
+            
+            <div class="route-wrapper">
+              <span class="train-route">${first}<br>↓<br>${last}</span>
+              ${durationHtml}
+            </div>
           </div>
         `;
       });
 
-      // Tbody
       const tbody = tbl.createTBody();
       stList.forEach(st => {
         const tr = tbody.insertRow();
         const nameTd = tr.insertCell();
         nameTd.className = 'station-name';
         nameTd.textContent = st;
-
         const gIdx = stationIndex.get(st);
 
         ids.forEach(id => {
@@ -590,7 +634,6 @@
           if (map.has(st)) {
             td.className = 'time-cell';
             td.textContent = map.get(st);
-            // 簡單的同站時間高亮 (若需更複雜邏輯可加)
           } else {
             if (passesStation(id, gIdx)) {
               td.style.color = '#cbd5e1';
@@ -605,7 +648,6 @@
       container.appendChild(wrapper);
     }
 
-    // 事件監聽
     document.getElementById('applyBtn').onclick = renderAll;
     document.getElementById('renderBtn').onclick = renderAll;
     document.getElementById('resetBtn').onclick = () => {
@@ -615,6 +657,13 @@
       document.getElementById('trainSearch').value = '';
       document.getElementById('onlyStopStations').checked = false;
       document.getElementById('tAll').click();
+    };
+
+    document.getElementById('swapBtn').onclick = () => {
+      const temp = selStart.value;
+      selStart.value = selEnd.value;
+      selEnd.value = temp;
+      renderAll();
     };
     
     let timer;
@@ -626,7 +675,6 @@
     selEnd.onchange = renderAll;
     pivot1.onchange = renderAll;
 
-    // 初次執行
     renderAll();
   });
   </script>
