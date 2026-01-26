@@ -18,9 +18,18 @@
       --font-family: 'Inter', 'Noto Sans TC', sans-serif;
     }
     * { box-sizing: border-box; }
-    body { margin: 0; font-family: var(--font-family); background: var(--bg-body); color: var(--text-main); height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
     
-    /* Layout */
+    body { 
+      margin: 0; 
+      font-family: var(--font-family); 
+      background: var(--bg-body); 
+      color: var(--text-main); 
+      height: 100vh; 
+      display: flex; 
+      flex-direction: column; 
+      overflow: hidden; 
+    }
+    
     header { height: 60px; background: rgba(30,41,59,0.9); border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; padding: 0 20px; flex-shrink: 0; }
     .brand { font-size: 1.2rem; font-weight: 700; color: var(--primary); }
     
@@ -28,7 +37,6 @@
     aside { width: 320px; background: var(--bg-panel); border-right: 1px solid var(--border); overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 20px; flex-shrink: 0; }
     main { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 20px; }
 
-    /* UI Components */
     .panel-block { padding-bottom: 20px; border-bottom: 1px solid var(--border); }
     .panel-block:last-child { border-bottom: none; }
     .panel-title { font-size: 0.8rem; font-weight: 600; color: var(--text-muted); margin-bottom: 10px; text-transform: uppercase; }
@@ -42,11 +50,9 @@
     .chip { display: inline-block; padding: 4px 10px; border-radius: 15px; font-size: 0.8rem; background: var(--bg-body); border: 1px solid var(--border); color: var(--text-muted); cursor: pointer; margin: 2px; }
     .chip.active { background: rgba(59,130,246,0.2); border-color: var(--primary); color: var(--primary); }
 
-    /* Table & Checkbox */
     .checkbox-wrapper { display: flex; align-items: center; justify-content: center; }
     input[type="checkbox"] { width: 16px; height: 16px; margin: 0; cursor: pointer; accent-color: var(--primary); }
 
-    /* KPI & Charts */
     .card { background: var(--bg-panel); border: 1px solid var(--border); border-radius: 12px; padding: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); position: relative; }
     .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
     .kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px; }
@@ -55,8 +61,15 @@
     
     .trend-up { color: var(--accent-green); }
     .trend-down { color: var(--accent-red); }
+    
+    .trend-badge {
+      display: inline-block; padding: 2px 8px; border-radius: 4px; 
+      font-size: 0.8rem; font-weight: 600;
+    }
+    .badge-red { background: rgba(239, 68, 68, 0.15); color: #fca5a5; border: 1px solid rgba(239, 68, 68, 0.3); }
+    .badge-green { background: rgba(16, 185, 129, 0.15); color: #6ee7b7; border: 1px solid rgba(16, 185, 129, 0.3); }
+    .badge-gray { background: rgba(148, 163, 184, 0.15); color: #cbd5e1; border: 1px solid rgba(148, 163, 184, 0.3); }
 
-    /* Table */
     .table-wrapper { background: var(--bg-panel); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; display: flex; flex-direction: column; flex: 1; min-height: 300px; }
     .table-scroll { overflow: auto; flex: 1; }
     table { width: 100%; border-collapse: collapse; white-space: nowrap; font-size: 0.9rem; }
@@ -64,14 +77,19 @@
     td { padding: 10px 15px; border-bottom: 1px solid var(--border); }
     tr:hover { background: rgba(255,255,255,0.03); cursor: pointer; }
 
-    /* Modal */
     .modal-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,0.7); backdrop-filter: blur(4px); z-index: 100; display: none; align-items: center; justify-content: center; padding: 20px; }
     .modal-backdrop.show { display: flex; }
     .modal-content { background: var(--bg-panel); width: 100%; max-width: 1000px; max-height: 90vh; border-radius: 16px; border: 1px solid var(--border); display: flex; flex-direction: column; overflow: hidden; }
     .modal-body { padding: 20px; overflow-y: auto; }
     .chart-container { position: relative; height: 250px; width: 100%; }
 
-    @media (max-width: 900px) { .container { flex-direction: column; overflow: visible; } aside { width: 100%; overflow: visible; } }
+    @media (max-width: 900px) { 
+      body { height: auto; overflow: auto; overflow-x: hidden; }
+      .container { flex-direction: column; overflow: visible; height: auto; } 
+      aside { width: 100%; height: auto; overflow: visible; border-right: none; border-bottom: 1px solid var(--border); flex-shrink: 0; }
+      main { height: auto; overflow: visible; padding-bottom: 40px; }
+      .table-wrapper { min-height: auto; height: auto; }
+    }
   </style>
 </head>
 <body>
@@ -87,12 +105,12 @@
       <div class="panel-title">搜尋與排序</div>
       <input id="searchStation" placeholder="搜尋站名...">
       <select id="sortSelect">
+        <option value="file_order">路線順序 (北→南)</option>
         <option value="load_desc">預估運量 (高→低)</option>
         <option value="yoy_desc">運量成長率 (高→低)</option>
         <option value="yoy_asc">運量成長率 (低→高)</option>
         <option value="delta_desc">車次增加數 (多→少)</option>
         <option value="delta_asc">車次減少數 (多→少)</option>
-        <option value="file_order">路線順序 (北→南)</option>
       </select>
     </div>
 
@@ -140,13 +158,14 @@
           <thead>
             <tr>
               <th width="40" title="勾選以比較">比</th>
-              <th width="50">#</th>
+              <th width="50" title="列表序號">#</th>
               <th>車站</th>
               <th>預估運量</th>
+              <th>運量排名</th>
+              <th>近期趨勢</th>
               <th>運量變動 %</th>
               <th>總車次</th>
               <th>車次變動</th>
-              <th>運用率</th>
             </tr>
           </thead>
           <tbody></tbody>
@@ -215,7 +234,6 @@
 <script src="train-schedule.js"></script>
 <script src="tra-history.js"></script>
 <script>
-  // === 1. 設定與變數 ===
   const stationMaxCapacities = {
     '新自強': 838, '普悠瑪': 406, '自強號(新)': 1306, '自強號': 1366,
     '莒光號': 1000, '復興號': 1000, '區間快': 1700, '區間車': 1700, '加班車': 638
@@ -231,14 +249,12 @@
   let activeTypes = new Set(Object.keys(stationMaxCapacities));
   let selectedStations = new Set(); 
   
-  // Charts Instances
   let sysChart = null;
   let mHistChart = null;
   let mTypeChart = null;
   let mHourChart = null;
   let mHourLoadChart = null;
 
-  // === 2. 核心計算 ===
   function normalizeType(t) {
     if (!t) return '區間車';
     t = t.trim();
@@ -249,7 +265,6 @@
     return '區間車';
   }
 
-  // Live Stats (本年度)
   function calcLiveStats() {
     const stats = {};
     STATIONS_ORDER.forEach(st => {
@@ -329,7 +344,36 @@
     return stData.total || 0;
   }
 
-  // === 3. UI 渲染 ===
+  function analyzeTrend(st, currentLoad) {
+    const years = Object.keys(rawHistory).sort();
+    if (years.length < 2) return { text: "資料不足", class: "badge-gray" };
+
+    const lastYear = years[years.length - 1];
+    const prevYear = years[years.length - 2];
+    
+    const v1 = getEstHistoryLoad(lastYear, st); 
+    const v2 = getEstHistoryLoad(prevYear, st); 
+    const v0 = currentLoad; 
+
+    if (v1 > 0) {
+      let growth = (v0 - v1) / v1;
+      if (growth > 0.05) return { text: "🚀 大幅成長", class: "badge-green" };
+      if (growth < -0.05) return { text: "🔻 大幅衰退", class: "badge-red" };
+    }
+
+    if (v2 > 0) {
+      if (v0 > v1 && v1 > v2) return { text: "📈 連續成長", class: "badge-green" };
+      if (v0 < v1 && v1 < v2) return { text: "📉 連續下降", class: "badge-red" };
+    }
+
+    if (v1 > 0) {
+      let growth = (v0 - v1) / v1;
+      if (Math.abs(growth) < 0.015) return { text: "➡ 持平", class: "badge-gray" };
+    }
+
+    return { text: "🔄 波動", class: "badge-gray" };
+  }
+
   function updateAll() {
     currentStats = calcLiveStats();
     renderTable();
@@ -346,6 +390,13 @@
     const sortMode = document.getElementById('sortSelect').value;
     const search = document.getElementById('searchStation').value.trim();
 
+    let allStationsData = STATIONS_ORDER.map(st => {
+        return { name: st, load: currentStats[st] ? currentStats[st].totalLoad : 0 };
+    });
+    allStationsData.sort((a, b) => b.load - a.load);
+    let rankMap = {};
+    allStationsData.forEach((d, i) => rankMap[d.name] = i + 1);
+
     let rows = STATIONS_ORDER.map(st => {
       let s = currentStats[st];
       let prevLoad = getEstHistoryLoad(compYear, st); 
@@ -354,15 +405,12 @@
       let yoy = prevLoad > 0 ? ((s.totalLoad - prevLoad) / prevLoad) * 100 : 0;
       let trainDelta = s.trainCount - prevTrains;
       let usageRate = s.sumMaxCap > 0 ? (s.totalLoad / s.sumMaxCap * 100) : 0;
+      let trend = analyzeTrend(st, s.totalLoad);
 
       return {
-        name: st,
-        load: s.totalLoad,
-        yoy: yoy,
-        trains: s.trainCount,
-        delta: trainDelta,
-        rate: usageRate,
-        rankIdx: stationOrderMap[st]
+        name: st, load: s.totalLoad, yoy: yoy, trains: s.trainCount,
+        delta: trainDelta, rate: usageRate, rankIdx: stationOrderMap[st],
+        rankLoad: rankMap[st], trend: trend
       };
     });
 
@@ -391,6 +439,11 @@
       let deltaSign = r.delta > 0 ? '▲ ' : (r.delta < 0 ? '▼ ' : '');
       let isChecked = selectedStations.has(r.name) ? 'checked' : '';
 
+      let rankDisplay = `<span style="color:var(--text-muted)">#${r.rankLoad}</span>`;
+      if (r.rankLoad <= 3) {
+          rankDisplay = `<span style="display:inline-block; width:24px; height:24px; background:#f59e0b; color:white; border-radius:50%; text-align:center; line-height:24px; font-weight:bold;">${r.rankLoad}</span>`;
+      }
+
       tr.innerHTML = `
         <td class="checkbox-wrapper">
           <input type="checkbox" ${isChecked} onchange="toggleStation('${r.name}')">
@@ -398,16 +451,16 @@
         <td style="color:var(--text-muted);">${i+1}</td>
         <td style="font-weight:700;">${r.name}</td>
         <td style="font-family:monospace; font-size:1.05rem;">${r.load.toLocaleString()}</td>
+        <td>${rankDisplay}</td>
+        <td><span class="trend-badge ${r.trend.class}">${r.trend.text}</span></td>
         <td class="${yoyClass}">${yoySign}${r.yoy.toFixed(1)}%</td>
         <td>${r.trains}</td>
         <td class="${deltaClass}">${deltaSign}${Math.abs(r.delta)}</td>
-        <td>${r.rate.toFixed(1)}%</td>
       `;
       tbody.appendChild(tr);
     });
   }
 
-  // === 主圖表邏輯 (系統總覽 OR 多站比較) ===
   function renderMainChart() {
     const ctx = document.getElementById('systemChart');
     if (!ctx) return;
@@ -430,15 +483,11 @@
         d.push(currentStats[st] ? currentStats[st].totalLoad : 0);
         
         datasets.push({
-          label: st,
-          data: d,
-          borderColor: colors[i % colors.length],
-          backgroundColor: 'transparent',
-          tension: 0.3
+          label: st, data: d, borderColor: colors[i % colors.length],
+          backgroundColor: 'transparent', tension: 0.3
         });
         i++;
       });
-
     } else {
       title = "全系統歷年總運量趨勢 (含變動%)";
       document.getElementById('selectionHint').style.display = 'none';
@@ -453,12 +502,8 @@
       data.push(currSum);
 
       datasets.push({
-        label: '系統總運量',
-        data: data,
-        borderColor: '#3b82f6',
-        backgroundColor: 'rgba(59, 130, 246, 0.1)',
-        fill: true,
-        tension: 0.3
+        label: '系統總運量', data: data, borderColor: '#3b82f6',
+        backgroundColor: 'rgba(59, 130, 246, 0.1)', fill: true, tension: 0.3
       });
     }
 
@@ -470,24 +515,23 @@
       data: { labels: labels, datasets: datasets },
       options: {
         responsive: true, maintainAspectRatio: false,
-        layout: { 
-          // 修正：增加上方 padding 防止標籤被切掉
-          padding: { top: 30, right: 20, left: 10, bottom: 5 } 
-        },
+        layout: { padding: { top: 30, right: 20, left: 10, bottom: 5 } },
         plugins: { 
           legend: { display: selectedStations.size > 0 }, 
           tooltip: { mode: 'index', intersect: false }
         },
         scales: { 
-          y: { beginAtZero: true, grid: { color: '#334155' } },
+          y: { 
+            beginAtZero: false, // 改為自動縮放
+            grid: { color: '#334155' } 
+          },
           x: { grid: { display: false } }
         }
       },
       plugins: [{
         id: 'yoyLabels',
         afterDatasetsDraw(chart, args, options) {
-          if (chart.data.datasets.length > 1) return; // 比較模式不顯示
-
+          if (chart.data.datasets.length > 1) return; 
           const { ctx } = chart;
           chart.data.datasets.forEach((dataset, i) => {
             const meta = chart.getDatasetMeta(i);
@@ -496,19 +540,14 @@
                 const current = dataset.data[index];
                 const prev = dataset.data[index - 1];
                 let pct = prev === 0 ? 0 : ((current - prev) / prev) * 100;
-                
                 let text = (pct > 0 ? '+' : '') + pct.toFixed(1) + '%';
                 let color = pct >= 0 ? '#10b981' : '#ef4444';
-                
                 ctx.save();
                 ctx.fillStyle = color;
                 ctx.font = 'bold 12px Inter';
                 ctx.textAlign = 'center';
-                
-                // 智慧判斷：如果點太靠近頂部，字改印在下面
                 let yPos = element.y - 15;
                 if (yPos < 20) yPos = element.y + 25;
-
                 ctx.fillText(text, element.x, yPos);
                 ctx.restore();
               }
@@ -531,7 +570,6 @@
     renderMainChart();
   };
 
-  // === Modal ===
   function openModal(st) {
     document.getElementById('mTitle').textContent = st;
     document.getElementById('modalBackdrop').classList.add('show');
@@ -551,7 +589,6 @@
     let years = Object.keys(rawHistory).sort();
     let labels = [...years, document.getElementById('currentYearLabel').value];
 
-    // Chart 1: 該站總運量 (新增 YoY% 顯示)
     let histData = years.map(y => getEstHistoryLoad(y, st));
     histData.push(s.totalLoad);
     
@@ -566,9 +603,14 @@
         responsive: true, maintainAspectRatio: false,
         layout: { padding: { top: 30, right: 20, left: 10, bottom: 5 } },
         plugins: { legend: { display: false } },
-        scales: { y: { beginAtZero: true, grid: { color: '#334155' } }, x: { grid: { color: '#334155' } } }
+        scales: { 
+          y: { 
+            beginAtZero: false, // 改為自動縮放
+            grid: { color: '#334155' } 
+          }, 
+          x: { grid: { color: '#334155' } } 
+        }
       },
-      // 加入 Plugin 顯示各站 YoY
       plugins: [{
         id: 'yoyLabelsStation',
         afterDatasetsDraw(chart, args, options) {
@@ -580,18 +622,14 @@
                 const current = dataset.data[index];
                 const prev = dataset.data[index - 1];
                 let pct = prev === 0 ? 0 : ((current - prev) / prev) * 100;
-                
                 let text = (pct > 0 ? '+' : '') + pct.toFixed(1) + '%';
                 let color = pct >= 0 ? '#10b981' : '#ef4444';
-                
                 ctx.save();
                 ctx.fillStyle = color;
                 ctx.font = 'bold 12px Inter';
                 ctx.textAlign = 'center';
-                
                 let yPos = element.y - 15;
                 if (yPos < 20) yPos = element.y + 25;
-
                 ctx.fillText(text, element.x, yPos);
                 ctx.restore();
               }
@@ -601,7 +639,6 @@
       }]
     });
 
-    // Chart 2: 各車種趨勢
     let typeDatasets = [];
     let colors = ['#3b82f6','#f59e0b','#ef4444','#8b5cf6','#ec4899','#14b8a6','#6366f1'];
     Object.keys(stationMaxCapacities).forEach((t, idx) => {
@@ -622,10 +659,17 @@
     mTypeChart = new Chart(document.getElementById('modalTypeChart'), {
       type: 'line',
       data: { labels: labels, datasets: typeDatasets },
-      options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero:true, grid:{color:'#334155'} } } }
+      options: { 
+        responsive: true, maintainAspectRatio: false, 
+        scales: { 
+          y: { 
+            beginAtZero: false, // 改為自動縮放
+            grid: { color: '#334155' } 
+          } 
+        } 
+      }
     });
 
-    // Chart 3: 時段運量 (New)
     if (mHourLoadChart) mHourLoadChart.destroy();
     mHourLoadChart = new Chart(document.getElementById('modalHourlyLoadChart'), {
       type: 'bar',
@@ -636,7 +680,6 @@
       options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero:true, grid:{color:'#334155'} }, x: { grid: { display:false } } } }
     });
 
-    // Chart 4: 時段班次
     if (mHourChart) mHourChart.destroy();
     mHourChart = new Chart(document.getElementById('modalHourlyChart'), {
       type: 'bar',
