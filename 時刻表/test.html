@@ -1,774 +1,188 @@
 <!DOCTYPE html>
 <html lang="zh-Hant">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>臺鐵運量趨勢分析 Pro (完整版)</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>台鐵時刻表 - TDX 快速訂票版</title>
   
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Noto+Sans+TC:wght@300;400;500;700&display=swap" rel="stylesheet">
-  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
-
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+  
   <style>
-    :root {
-      --bg-body: #0f172a; --bg-panel: #1e293b; --border: #334155;
-      --text-main: #f1f5f9; --text-muted: #94a3b8;
-      --primary: #3b82f6; --accent-green: #10b981; --accent-red: #ef4444;
-      --font-family: 'Inter', 'Noto Sans TC', sans-serif;
-    }
-    * { box-sizing: border-box; }
-    
-    body { 
-      margin: 0; 
-      font-family: var(--font-family); 
-      background: var(--bg-body); 
-      color: var(--text-main); 
-      height: 100vh; 
-      display: flex; 
-      flex-direction: column; 
-      overflow: hidden; 
-    }
-    
-    header { height: 60px; background: rgba(30,41,59,0.9); border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; padding: 0 20px; flex-shrink: 0; }
-    .brand { font-size: 1.2rem; font-weight: 700; color: var(--primary); }
-    
-    .container { display: flex; flex: 1; overflow: hidden; }
-    aside { width: 320px; background: var(--bg-panel); border-right: 1px solid var(--border); overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 20px; flex-shrink: 0; }
-    main { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 20px; }
+  /* ===== 1. 核心變數與原本樣式保持一致 ===== */
+  :root {
+    --font-main: 'Inter', 'Noto Sans TC', sans-serif;
+    --bg-body: #f8fafc;
+    --bg-surface: #ffffff;
+    --bg-header: rgba(255, 255, 255, 0.9);
+    --text-main: #0f172a;
+    --text-muted: #64748b;
+    --border: #e2e8f0;
+    --primary: #2563eb; /* 藍色調 */
+    --radius: 12px;
+  }
 
-    .panel-block { padding-bottom: 20px; border-bottom: 1px solid var(--border); }
-    .panel-block:last-child { border-bottom: none; }
-    .panel-title { font-size: 0.8rem; font-weight: 600; color: var(--text-muted); margin-bottom: 10px; text-transform: uppercase; }
-    
-    input, select { width: 100%; background: var(--bg-body); border: 1px solid var(--border); color: var(--text-main); padding: 8px; border-radius: 6px; outline: none; margin-bottom: 10px; }
-    .btn { padding: 8px 16px; border-radius: 6px; border: none; font-weight: 600; cursor: pointer; background: var(--primary); color: white; }
-    .btn:hover { opacity: 0.9; }
-    .btn-ghost { background: transparent; border: 1px solid var(--border); color: var(--text-muted); }
-    .btn-sm { padding: 4px 8px; font-size: 0.8rem; }
-    
-    .chip { display: inline-block; padding: 4px 10px; border-radius: 15px; font-size: 0.8rem; background: var(--bg-body); border: 1px solid var(--border); color: var(--text-muted); cursor: pointer; margin: 2px; }
-    .chip.active { background: rgba(59,130,246,0.2); border-color: var(--primary); color: var(--primary); }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background-color: var(--bg-body); font-family: var(--font-main); padding-top: 80px; }
 
-    .checkbox-wrapper { display: flex; align-items: center; justify-content: center; }
-    input[type="checkbox"] { width: 16px; height: 16px; margin: 0; cursor: pointer; accent-color: var(--primary); }
+  /* 新增：訂票按鈕 */
+  .btn-book {
+    background-color: var(--primary);
+    color: white;
+    border: none;
+    padding: 6px 12px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 4px rgba(37, 99, 235, 0.15);
+  }
+  .btn-book:hover { background-color: #1d4ed8; transform: translateY(-1px); }
 
-    .card { background: var(--bg-panel); border: 1px solid var(--border); border-radius: 12px; padding: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); position: relative; }
-    .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
-    .kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px; }
-    .kpi-val { font-size: 1.6rem; font-weight: 700; margin: 5px 0; }
-    .kpi-sub { font-size: 0.85rem; color: var(--text-muted); }
-    
-    .trend-up { color: var(--accent-green); }
-    .trend-down { color: var(--accent-red); }
-    
-    .trend-badge {
-      display: inline-block; padding: 2px 8px; border-radius: 4px; 
-      font-size: 0.8rem; font-weight: 600;
-    }
-    .badge-red { background: rgba(239, 68, 68, 0.15); color: #fca5a5; border: 1px solid rgba(239, 68, 68, 0.3); }
-    .badge-green { background: rgba(16, 185, 129, 0.15); color: #6ee7b7; border: 1px solid rgba(16, 185, 129, 0.3); }
-    .badge-gray { background: rgba(148, 163, 184, 0.15); color: #cbd5e1; border: 1px solid rgba(148, 163, 184, 0.3); }
+  header { position: fixed; top: 0; left: 0; right: 0; height: 64px; background: var(--bg-header); backdrop-filter: blur(12px); border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: center; z-index: 1000; }
+  .logo { font-size: 1.25rem; font-weight: 700; color: var(--primary); }
+  .container { max-width: 600px; margin: 0 auto; padding: 0 16px 40px; }
+  .card { background: var(--bg-surface); border-radius: var(--radius); border: 1px solid var(--border); margin-bottom: 24px; overflow: hidden; }
+  .station-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; padding: 16px; }
+  .station-btn { border: 1px solid var(--border); background: var(--bg-surface); padding: 10px 4px; border-radius: 8px; cursor: pointer; }
+  .station-btn.active { background: var(--primary); color: white; }
+  
+  table { width: 100%; border-collapse: collapse; }
+  th { text-align: left; padding: 12px 20px; font-size: 0.75rem; color: var(--text-muted); border-bottom: 1px solid var(--border); }
+  td { padding: 16px 20px; font-size: 0.9375rem; border-bottom: 1px solid var(--border); cursor: pointer; vertical-align: middle; }
 
-    .table-wrapper { background: var(--bg-panel); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; display: flex; flex-direction: column; flex: 1; min-height: 300px; }
-    .table-scroll { overflow: auto; flex: 1; }
-    table { width: 100%; border-collapse: collapse; white-space: nowrap; font-size: 0.9rem; }
-    th { position: sticky; top: 0; background: var(--bg-panel); padding: 12px 15px; text-align: left; border-bottom: 1px solid var(--border); color: var(--text-muted); cursor: pointer; z-index: 10; }
-    td { padding: 10px 15px; border-bottom: 1px solid var(--border); }
-    tr:hover { background: rgba(255,255,255,0.03); cursor: pointer; }
-
-    .modal-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,0.7); backdrop-filter: blur(4px); z-index: 100; display: none; align-items: center; justify-content: center; padding: 20px; }
-    .modal-backdrop.show { display: flex; }
-    .modal-content { background: var(--bg-panel); width: 100%; max-width: 1000px; max-height: 90vh; border-radius: 16px; border: 1px solid var(--border); display: flex; flex-direction: column; overflow: hidden; }
-    .modal-body { padding: 20px; overflow-y: auto; }
-    .chart-container { position: relative; height: 250px; width: 100%; }
-
-    @media (max-width: 900px) { 
-      body { height: auto; overflow: auto; overflow-x: hidden; }
-      .container { flex-direction: column; overflow: visible; height: auto; } 
-      aside { width: 100%; height: auto; overflow: visible; border-right: none; border-bottom: 1px solid var(--border); flex-shrink: 0; }
-      main { height: auto; overflow: visible; padding-bottom: 40px; }
-      .table-wrapper { min-height: auto; height: auto; }
-    }
+  .detail-overlay { position: fixed; inset: 0; background: rgba(15, 23, 42, 0.5); display: none; align-items: center; justify-content: center; z-index: 2000; }
+  .detail-card { background: var(--bg-surface); width: 100%; max-width: 480px; border-radius: 20px; position: relative; padding: 24px; }
+  .close-btn { position: absolute; top: 15px; right: 15px; border: none; background: #eee; border-radius: 50%; width: 30px; height: 30px; cursor: pointer; }
   </style>
 </head>
 <body>
 
-<header>
-  <div class="brand">臺鐵運量分析 Pro</div>
-  <button id="copyCodeBtn" class="btn">複製本年度資料 (JSON)</button>
-</header>
+  <header><div class="logo">台鐵時刻表</div></header>
 
-<div class="container">
-  <aside>
-    <div class="panel-block">
-      <div class="panel-title">搜尋與排序</div>
-      <input id="searchStation" placeholder="搜尋站名...">
-      <select id="sortSelect">
-        <option value="file_order">路線順序 (北→南)</option>
-        <option value="load_desc">預估運量 (高→低)</option>
-        <option value="yoy_desc">運量成長率 (高→低)</option>
-        <option value="yoy_asc">運量成長率 (低→高)</option>
-        <option value="delta_desc">車次增加數 (多→少)</option>
-        <option value="delta_asc">車次減少數 (多→少)</option>
-      </select>
-    </div>
-
-    <div class="panel-block">
-      <div class="panel-title">資料設定</div>
-      <label style="font-size:0.8rem; color:var(--text-muted);">比較基準年份：</label>
-      <select id="compareYearSelect"></select>
-      
-      <label style="font-size:0.8rem; color:var(--text-muted);">本年度標籤 (複製用)：</label>
-      <input id="currentYearLabel" value="2026">
-    </div>
-
-    <div class="panel-block">
-      <div class="panel-title">車種篩選</div>
-      <div id="typeChips"></div>
-      <div style="margin-top:10px; display:flex; gap:5px;">
-        <button class="btn btn-ghost" style="flex:1; padding:4px;" onclick="toggleTypes(true)">全選</button>
-        <button class="btn btn-ghost" style="flex:1; padding:4px;" onclick="toggleTypes(false)">全不選</button>
-      </div>
-    </div>
-  </aside>
-
-  <main>
+  <div class="container">
     <div class="card">
-      <div class="card-header">
-        <div class="panel-title" style="margin:0;" id="chartTitle">全系統歷年總運量趨勢</div>
-        <div style="display:flex; gap:10px; align-items:center;">
-          <small id="selectionHint" style="color:var(--text-muted); display:none;">已選 <span id="selCount" style="color:var(--primary); font-weight:bold;">0</span> 站比較</small>
-          <button class="btn btn-ghost btn-sm" onclick="clearSelection()" id="clearSelBtn" style="display:none;">清除選取</button>
-          <button class="btn btn-ghost btn-sm" onclick="downloadChart('systemChart')">下載圖表</button>
-        </div>
-      </div>
-      <div style="height: 250px;">
-        <canvas id="systemChart"></canvas>
-      </div>
-    </div>
-
-    <div class="table-wrapper">
-      <div style="padding:15px; border-bottom:1px solid var(--border); display:flex; justify-content:space-between;">
-        <h3 style="margin:0; font-size:1.1rem;">各站運量統計表</h3>
-        <small style="color:var(--text-muted)" id="compareLabel">vs 基準年</small>
-      </div>
-      <div class="table-scroll">
-        <table id="mainTable">
-          <thead>
-            <tr>
-              <th width="40" title="勾選以比較">比</th>
-              <th width="50" title="列表序號">#</th>
-              <th>車站</th>
-              <th>預估運量</th>
-              <th>運量排名</th>
-              <th>近期趨勢</th>
-              <th>運量變動 %</th>
-              <th>總車次</th>
-              <th>車次變動</th>
-            </tr>
-          </thead>
-          <tbody></tbody>
-        </table>
+      <div class="station-grid">
+        <button class="station-btn" onclick="filterTrains('臺北', this)">臺北</button>
+        <button class="station-btn" onclick="filterTrains('松山', this)">松山</button>
+        <button class="station-btn" onclick="filterTrains('板橋', this)">板橋</button>
+        <button class="station-btn" onclick="filterTrains('桃園', this)">桃園</button>
+        <button class="station-btn" onclick="filterTrains('新竹', this)">新竹</button>
+        <button class="station-btn" onclick="filterTrains('臺中', this)">臺中</button>
+        <button class="station-btn" onclick="filterTrains('彰化', this)">彰化</button>
+        <button class="station-btn" onclick="filterTrains('臺東', this)">臺東</button>
       </div>
     </div>
-  </main>
-</div>
 
-<div id="modalBackdrop" class="modal-backdrop">
-  <div class="modal-content">
-    <div style="padding:20px; border-bottom:1px solid var(--border); display:flex; justify-content:space-between; align-items:center;">
-      <h2 style="margin:0;" id="mTitle">車站詳情</h2>
-      <button id="closeModalBtn" class="btn btn-ghost" style="font-size:1.5rem; padding:0 10px;">&times;</button>
-    </div>
-    <div class="modal-body">
-      <div class="kpi-grid" style="margin-bottom:20px;">
-        <div class="card">
-          <div class="kpi-sub">本年度預估運量</div>
-          <div class="kpi-val" id="mLoad">0</div>
-        </div>
-        <div class="card">
-          <div class="kpi-sub">運量變動 (YoY)</div>
-          <div class="kpi-val" id="mYoy">0%</div>
-        </div>
-        <div class="card">
-          <div class="kpi-sub">總車次</div>
-          <div class="kpi-val" id="mTrains">0</div>
-        </div>
-      </div>
-
-      <div style="display:grid; grid-template-columns: 1fr; gap:20px; margin-bottom:20px;">
-        <div class="card">
-          <div class="panel-title">該站總運量趨勢 (歷年~最新) - 含變動百分比</div>
-          <div class="chart-container">
-            <canvas id="modalHistoryChart"></canvas>
-          </div>
-        </div>
-        <div class="card">
-          <div class="panel-title">各車種【班次數量】趨勢 (歷年~最新)</div>
-          <div class="chart-container">
-            <canvas id="modalTypeChart"></canvas>
-          </div>
-        </div>
-      </div>
-
-      <div style="display:grid; grid-template-columns: 1fr 1fr; gap:20px;">
-        <div class="card">
-          <div class="panel-title">各時段【預估運量】分佈 (0-23時)</div>
-          <div class="chart-container" style="height: 200px;">
-            <canvas id="modalHourlyLoadChart"></canvas>
-          </div>
-        </div>
-        <div class="card">
-          <div class="panel-title">各時段【班次】分佈 (0-23時)</div>
-          <div class="chart-container" style="height: 200px;">
-            <canvas id="modalHourlyChart"></canvas>
-          </div>
-        </div>
-      </div>
-
+    <div class="card">
+      <table id="filteredTrainsTable">
+        <thead>
+          <tr>
+            <th>車次</th>
+            <th>車種</th>
+            <th>時間</th>
+            <th style="text-align:right">操作</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
     </div>
   </div>
-</div>
 
-<script src="train-schedule.js"></script>
-<script src="tra-history.js"></script>
-<script>
-  const stationMaxCapacities = {
-    '新自強': 838, '普悠瑪': 406, '自強號(新)': 1306, '自強號': 1366,
-    '莒光號': 1000, '復興號': 1000, '區間快': 1700, '區間車': 1700, '加班車': 638
-  };
-  
-  const STATIONS_ORDER = window.stations || [];
-  const stationOrderMap = {};
-  STATIONS_ORDER.forEach((s, i) => stationOrderMap[s] = i);
+  <div id="detailOverlay" class="detail-overlay" onclick="closeDetail()">
+    <div class="detail-card" onclick="event.stopPropagation()">
+      <button class="close-btn" onclick="closeDetail()">&times;</button>
+      <div id="detailTitleMain" style="font-size:1.2rem; font-weight:700;"></div>
+      <div id="detailTitleSub" style="color:var(--text-muted); margin-bottom:15px;"></div>
+      <div id="detailBody"></div>
+    </div>
+  </div>
 
-  let rawSchedule = window.trainSchedule || {};
-  let rawHistory = window.TRA_HISTORY || {};
-  let currentStats = {}; 
-  let activeTypes = new Set(Object.keys(stationMaxCapacities));
-  let selectedStations = new Set(); 
-  
-  let sysChart = null;
-  let mHistChart = null;
-  let mTypeChart = null;
-  let mHourChart = null;
-  let mHourLoadChart = null;
+  <script src="train-schedule.js"></script>
 
-  function normalizeType(t) {
-    if (!t) return '區間車';
-    t = t.trim();
-    if (stationMaxCapacities[t]) return t;
-    if (t.includes('普悠瑪') || t.includes('太魯閣')) return '普悠瑪';
-    if (t.includes('新自強') || t.includes('3000')) return '新自強';
-    if (t.includes('區間快')) return '區間快';
-    return '區間車';
+  <script>
+  let currentStart = "";
+
+  // 核心功能：使用 TDX DeepLink 進行呼叫
+  function callTdxBooking(trainNo, startStation) {
+    const today = new Date();
+    const dateStr = today.toISOString().split('T')[0]; // 自動生成 2026-01-27
+    
+    // 從資料中獲取該車次的終點站
+    const trainData = trainSchedule[trainNo];
+    const stations = trainData['車站時間'];
+    const endStation = stations[stations.length - 1][0];
+
+    // 構建請求網址
+    const url = `https://tdx.transportdata.tw/api/maas-tra/booking/deeplink/direct/tra?` + 
+                `start_station=${encodeURIComponent(startStation)}&` +
+                `end_station=${encodeURIComponent(endStation)}&` +
+                `train_date=${dateStr}&` +
+                `train_number=${trainNo}`;
+
+    window.open(url, '_blank');
   }
 
-  function calcLiveStats() {
-    const stats = {};
-    STATIONS_ORDER.forEach(st => {
-      stats[st] = { 
-        totalLoad:0, trainCount:0, sumMaxCap:0, byType:{},
-        hourly: new Array(24).fill(0),
-        hourlyLoad: new Array(24).fill(0) 
-      };
-      Object.keys(stationMaxCapacities).forEach(k => stats[st].byType[k]=0);
-    });
+  function filterTrains(station, btn) {
+    currentStart = station;
+    document.querySelectorAll('.station-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    renderFilteredTrains(station);
+  }
 
-    for (let tn in rawSchedule) {
-      let train = rawSchedule[tn];
-      let tType = normalizeType(train['車種']);
-      if (!activeTypes.has(tType) && activeTypes.size > 0) continue; 
+  function renderFilteredTrains(selectedStation) {
+    const tbody = document.querySelector('#filteredTrainsTable tbody');
+    tbody.innerHTML = ''; 
 
-      let maxCap = stationMaxCapacities[tType] || 100;
-      (train['車站時間']||[]).forEach(stop => {
-        let st = stop[0];
-        let timeStr = stop[1];
-        if (!stats[st]) return;
+    for (var trainNo in trainSchedule) {
+      var stops = trainSchedule[trainNo]['車站時間'];
+      var idx = stops.findIndex(s => s[0] === selectedStation);
+
+      if (idx !== -1) {
+        var row = tbody.insertRow();
+        row.insertCell(0).innerHTML = `<b>${trainNo}</b>`;
+        row.insertCell(1).innerHTML = getTrainTypeWithColor(trainSchedule[trainNo]['車種']);
+        row.insertCell(2).innerHTML = stops[idx][1];
         
-        let samples = [];
-        for(let k=0; k<10; k++) samples.push(Math.floor(Math.random()*maxCap)+1);
-        samples.sort((a,b)=>a-b);
-        let validSamples = samples.slice(1,9);
-        let load = Math.round(validSamples.reduce((a,b)=>a+b,0)/validSamples.length);
-        
-        stats[st].totalLoad += load;
-        stats[st].trainCount++;
-        stats[st].sumMaxCap += maxCap;
-        stats[st].byType[tType]++;
+        // 快速訂票按鈕
+        var cellAction = row.insertCell(3);
+        cellAction.style.textAlign = 'right';
+        cellAction.innerHTML = `<button class="btn-book" onclick="event.stopPropagation(); callTdxBooking('${trainNo}', '${selectedStation}')">訂票</button>`;
 
-        if (timeStr && timeStr.includes(':')) {
-          let h = parseInt(timeStr.split(':')[0], 10);
-          if (h >= 0 && h < 24) {
-            stats[st].hourly[h]++;
-            stats[st].hourlyLoad[h] += load;
-          }
-        }
-      });
-    }
-    return stats;
-  }
-
-  function getEstHistoryLoad(year, station) {
-    let data = rawHistory[year];
-    if (!data || !data[station]) return 0;
-    let stData = data[station];
-    let totalLoad = 0;
-    if (stData.byType) {
-      for (let t in stData.byType) {
-        let normT = normalizeType(t);
-        if (!activeTypes.has(normT)) continue;
-        let cnt = stData.byType[t];
-        let cap = stationMaxCapacities[normT] || 400;
-        totalLoad += cnt * (cap / 2); 
+        row.onclick = (function(n) { return function() { showTrainDetail(n); }; })(trainNo);
       }
-    } else {
-      if (stData.total) totalLoad = stData.total * 200;
     }
-    return Math.floor(totalLoad);
   }
 
-  function getHistoryTrainCount(year, station) {
-    let data = rawHistory[year];
-    if (!data || !data[station]) return 0;
-    let stData = data[station];
-    if (stData.byType) {
-      let count = 0;
-      for (let t in stData.byType) {
-        let normT = normalizeType(t);
-        if (activeTypes.has(normT)) count += stData.byType[t];
-      }
-      return count;
-    }
-    return stData.total || 0;
+  function showTrainDetail(num) {
+    const overlay = document.getElementById('detailOverlay');
+    overlay.style.display = 'flex';
+    const t = trainSchedule[num], arr = t['車站時間'];
+
+    document.getElementById('detailTitleMain').innerHTML = `
+      <div style="display:flex; justify-content:space-between; align-items:center;">
+        <span>${num}次 詳情</span>
+        <button class="btn-book" onclick="callTdxBooking('${num}', '${currentStart || arr[0][0]}')">立即訂票</button>
+      </div>
+    `;
+    document.getElementById('detailTitleSub').textContent = `${t['車種']} (${arr[0][0]} ➝ ${arr[arr.length-1][0]})`;
+    
+    // 渲染時間軸 (簡化版)
+    let html = `<div style="border-left:2px solid #eee; margin-left:10px; padding-left:20px;">`;
+    arr.forEach(s => {
+      html += `<div style="margin-bottom:10px;">${s[0]} - ${s[1]}</div>`;
+    });
+    document.getElementById('detailBody').innerHTML = html + `</div>`;
   }
 
-  function analyzeTrend(st, currentLoad) {
-    const years = Object.keys(rawHistory).sort();
-    if (years.length < 2) return { text: "資料不足", class: "badge-gray" };
+  function closeDetail() { document.getElementById('detailOverlay').style.display = 'none'; }
 
-    const lastYear = years[years.length - 1];
-    const prevYear = years[years.length - 2];
-    
-    const v1 = getEstHistoryLoad(lastYear, st); 
-    const v2 = getEstHistoryLoad(prevYear, st); 
-    const v0 = currentLoad; 
-
-    if (v1 > 0) {
-      let growth = (v0 - v1) / v1;
-      if (growth > 0.05) return { text: "🚀 大幅成長", class: "badge-green" };
-      if (growth < -0.05) return { text: "🔻 大幅衰退", class: "badge-red" };
-    }
-
-    if (v2 > 0) {
-      if (v0 > v1 && v1 > v2) return { text: "📈 連續成長", class: "badge-green" };
-      if (v0 < v1 && v1 < v2) return { text: "📉 連續下降", class: "badge-red" };
-    }
-
-    if (v1 > 0) {
-      let growth = (v0 - v1) / v1;
-      if (Math.abs(growth) < 0.015) return { text: "➡ 持平", class: "badge-gray" };
-    }
-
-    return { text: "🔄 波動", class: "badge-gray" };
+  function getTrainTypeWithColor(type) {
+    const colors = {'新自強':'#8600FF', '普悠瑪':'#FF1493', '自強號':'red', '莒光號':'orange', '區間快':'green', '區間車':'#0066CC'};
+    return `<span style="color:${colors[type] || '#64748b'}; font-weight:700;">${type}</span>`;
   }
-
-  function updateAll() {
-    currentStats = calcLiveStats();
-    renderTable();
-    renderMainChart();
-  }
-
-  function renderTable() {
-    const tbody = document.querySelector('#mainTable tbody');
-    tbody.innerHTML = '';
-    
-    const compYear = document.getElementById('compareYearSelect').value;
-    document.getElementById('compareLabel').textContent = `vs ${compYear}`;
-    
-    const sortMode = document.getElementById('sortSelect').value;
-    const search = document.getElementById('searchStation').value.trim();
-
-    let allStationsData = STATIONS_ORDER.map(st => {
-        return { name: st, load: currentStats[st] ? currentStats[st].totalLoad : 0 };
-    });
-    allStationsData.sort((a, b) => b.load - a.load);
-    let rankMap = {};
-    allStationsData.forEach((d, i) => rankMap[d.name] = i + 1);
-
-    let rows = STATIONS_ORDER.map(st => {
-      let s = currentStats[st];
-      let prevLoad = getEstHistoryLoad(compYear, st); 
-      let prevTrains = getHistoryTrainCount(compYear, st);
-      
-      let yoy = prevLoad > 0 ? ((s.totalLoad - prevLoad) / prevLoad) * 100 : 0;
-      let trainDelta = s.trainCount - prevTrains;
-      let usageRate = s.sumMaxCap > 0 ? (s.totalLoad / s.sumMaxCap * 100) : 0;
-      let trend = analyzeTrend(st, s.totalLoad);
-
-      return {
-        name: st, load: s.totalLoad, yoy: yoy, trains: s.trainCount,
-        delta: trainDelta, rate: usageRate, rankIdx: stationOrderMap[st],
-        rankLoad: rankMap[st], trend: trend
-      };
-    });
-
-    if (search) rows = rows.filter(r => r.name.includes(search));
-
-    rows.sort((a,b) => {
-      switch(sortMode) {
-        case 'load_desc': return b.load - a.load;
-        case 'yoy_desc': return b.yoy - a.yoy;
-        case 'yoy_asc': return a.yoy - b.yoy;
-        case 'delta_desc': return b.delta - a.delta;
-        case 'delta_asc': return a.delta - b.delta;
-        default: return a.rankIdx - b.rankIdx;
-      }
-    });
-
-    rows.forEach((r, i) => {
-      let tr = document.createElement('tr');
-      tr.onclick = (e) => {
-        if(e.target.type !== 'checkbox') openModal(r.name);
-      };
-      
-      let yoyClass = r.yoy > 0 ? 'trend-up' : (r.yoy < 0 ? 'trend-down' : '');
-      let yoySign = r.yoy > 0 ? '+' : '';
-      let deltaClass = r.delta > 0 ? 'trend-up' : (r.delta < 0 ? 'trend-down' : '');
-      let deltaSign = r.delta > 0 ? '▲ ' : (r.delta < 0 ? '▼ ' : '');
-      let isChecked = selectedStations.has(r.name) ? 'checked' : '';
-
-      let rankDisplay = `<span style="color:var(--text-muted)">#${r.rankLoad}</span>`;
-      if (r.rankLoad <= 3) {
-          rankDisplay = `<span style="display:inline-block; width:24px; height:24px; background:#f59e0b; color:white; border-radius:50%; text-align:center; line-height:24px; font-weight:bold;">${r.rankLoad}</span>`;
-      }
-
-      tr.innerHTML = `
-        <td class="checkbox-wrapper">
-          <input type="checkbox" ${isChecked} onchange="toggleStation('${r.name}')">
-        </td>
-        <td style="color:var(--text-muted);">${i+1}</td>
-        <td style="font-weight:700;">${r.name}</td>
-        <td style="font-family:monospace; font-size:1.05rem;">${r.load.toLocaleString()}</td>
-        <td>${rankDisplay}</td>
-        <td><span class="trend-badge ${r.trend.class}">${r.trend.text}</span></td>
-        <td class="${yoyClass}">${yoySign}${r.yoy.toFixed(1)}%</td>
-        <td>${r.trains}</td>
-        <td class="${deltaClass}">${deltaSign}${Math.abs(r.delta)}</td>
-      `;
-      tbody.appendChild(tr);
-    });
-  }
-
-  function renderMainChart() {
-    const ctx = document.getElementById('systemChart');
-    if (!ctx) return;
-    
-    let years = Object.keys(rawHistory).sort();
-    let labels = [...years, document.getElementById('currentYearLabel').value];
-    let datasets = [];
-    let title = "";
-
-    if (selectedStations.size > 0) {
-      title = "多站運量比較";
-      document.getElementById('selectionHint').style.display = 'inline';
-      document.getElementById('clearSelBtn').style.display = 'inline';
-      document.getElementById('selCount').textContent = selectedStations.size;
-
-      let colors = ['#3b82f6','#10b981','#f59e0b','#ef4444','#8b5cf6','#ec4899'];
-      let i = 0;
-      selectedStations.forEach(st => {
-        let d = years.map(y => getEstHistoryLoad(y, st));
-        d.push(currentStats[st] ? currentStats[st].totalLoad : 0);
-        
-        datasets.push({
-          label: st, data: d, borderColor: colors[i % colors.length],
-          backgroundColor: 'transparent', tension: 0.3
-        });
-        i++;
-      });
-    } else {
-      title = "全系統歷年總運量趨勢 (含變動%)";
-      document.getElementById('selectionHint').style.display = 'none';
-      document.getElementById('clearSelBtn').style.display = 'none';
-
-      let data = years.map(y => {
-        let sum = 0;
-        STATIONS_ORDER.forEach(st => sum += getEstHistoryLoad(y, st));
-        return sum;
-      });
-      let currSum = Object.values(currentStats).reduce((a,b)=>a+b.totalLoad, 0);
-      data.push(currSum);
-
-      datasets.push({
-        label: '系統總運量', data: data, borderColor: '#3b82f6',
-        backgroundColor: 'rgba(59, 130, 246, 0.1)', fill: true, tension: 0.3
-      });
-    }
-
-    document.getElementById('chartTitle').textContent = title;
-
-    if (sysChart) sysChart.destroy();
-    sysChart = new Chart(ctx, {
-      type: 'line',
-      data: { labels: labels, datasets: datasets },
-      options: {
-        responsive: true, maintainAspectRatio: false,
-        layout: { padding: { top: 30, right: 20, left: 10, bottom: 5 } },
-        plugins: { 
-          legend: { display: selectedStations.size > 0 }, 
-          tooltip: { mode: 'index', intersect: false }
-        },
-        scales: { 
-          y: { 
-            beginAtZero: false, // 改為自動縮放
-            grid: { color: '#334155' } 
-          },
-          x: { grid: { display: false } }
-        }
-      },
-      plugins: [{
-        id: 'yoyLabels',
-        afterDatasetsDraw(chart, args, options) {
-          if (chart.data.datasets.length > 1) return; 
-          const { ctx } = chart;
-          chart.data.datasets.forEach((dataset, i) => {
-            const meta = chart.getDatasetMeta(i);
-            meta.data.forEach((element, index) => {
-              if (index > 0) {
-                const current = dataset.data[index];
-                const prev = dataset.data[index - 1];
-                let pct = prev === 0 ? 0 : ((current - prev) / prev) * 100;
-                let text = (pct > 0 ? '+' : '') + pct.toFixed(1) + '%';
-                let color = pct >= 0 ? '#10b981' : '#ef4444';
-                ctx.save();
-                ctx.fillStyle = color;
-                ctx.font = 'bold 12px Inter';
-                ctx.textAlign = 'center';
-                let yPos = element.y - 15;
-                if (yPos < 20) yPos = element.y + 25;
-                ctx.fillText(text, element.x, yPos);
-                ctx.restore();
-              }
-            });
-          });
-        }
-      }]
-    });
-  }
-
-  window.toggleStation = function(st) {
-    if (selectedStations.has(st)) selectedStations.delete(st);
-    else selectedStations.add(st);
-    renderMainChart();
-  };
-  
-  window.clearSelection = function() {
-    selectedStations.clear();
-    renderTable(); 
-    renderMainChart();
-  };
-
-  function openModal(st) {
-    document.getElementById('mTitle').textContent = st;
-    document.getElementById('modalBackdrop').classList.add('show');
-    
-    let s = currentStats[st];
-    let compYear = document.getElementById('compareYearSelect').value;
-    let prevLoad = getEstHistoryLoad(compYear, st);
-    let yoy = prevLoad > 0 ? ((s.totalLoad - prevLoad)/prevLoad)*100 : 0;
-    
-    document.getElementById('mLoad').textContent = s.totalLoad.toLocaleString();
-    document.getElementById('mTrains').textContent = s.trainCount;
-    
-    let yEl = document.getElementById('mYoy');
-    yEl.textContent = (yoy>0?'+':'') + yoy.toFixed(1) + '%';
-    yEl.className = 'kpi-val ' + (yoy>0?'trend-up':(yoy<0?'trend-down':''));
-
-    let years = Object.keys(rawHistory).sort();
-    let labels = [...years, document.getElementById('currentYearLabel').value];
-
-    let histData = years.map(y => getEstHistoryLoad(y, st));
-    histData.push(s.totalLoad);
-    
-    if (mHistChart) mHistChart.destroy();
-    mHistChart = new Chart(document.getElementById('modalHistoryChart'), {
-      type: 'line',
-      data: {
-        labels: labels,
-        datasets: [{ label: '總運量', data: histData, borderColor: '#10b981', backgroundColor: 'rgba(16,185,129,0.1)', fill: true, tension: 0.3 }]
-      },
-      options: {
-        responsive: true, maintainAspectRatio: false,
-        layout: { padding: { top: 30, right: 20, left: 10, bottom: 5 } },
-        plugins: { legend: { display: false } },
-        scales: { 
-          y: { 
-            beginAtZero: false, // 改為自動縮放
-            grid: { color: '#334155' } 
-          }, 
-          x: { grid: { color: '#334155' } } 
-        }
-      },
-      plugins: [{
-        id: 'yoyLabelsStation',
-        afterDatasetsDraw(chart, args, options) {
-          const { ctx } = chart;
-          chart.data.datasets.forEach((dataset, i) => {
-            const meta = chart.getDatasetMeta(i);
-            meta.data.forEach((element, index) => {
-              if (index > 0) {
-                const current = dataset.data[index];
-                const prev = dataset.data[index - 1];
-                let pct = prev === 0 ? 0 : ((current - prev) / prev) * 100;
-                let text = (pct > 0 ? '+' : '') + pct.toFixed(1) + '%';
-                let color = pct >= 0 ? '#10b981' : '#ef4444';
-                ctx.save();
-                ctx.fillStyle = color;
-                ctx.font = 'bold 12px Inter';
-                ctx.textAlign = 'center';
-                let yPos = element.y - 15;
-                if (yPos < 20) yPos = element.y + 25;
-                ctx.fillText(text, element.x, yPos);
-                ctx.restore();
-              }
-            });
-          });
-        }
-      }]
-    });
-
-    let typeDatasets = [];
-    let colors = ['#3b82f6','#f59e0b','#ef4444','#8b5cf6','#ec4899','#14b8a6','#6366f1'];
-    Object.keys(stationMaxCapacities).forEach((t, idx) => {
-      let hasData = false;
-      let d = years.map(y => {
-        let val = 0;
-        if (rawHistory[y] && rawHistory[y][st] && rawHistory[y][st].byType) val = rawHistory[y][st].byType[t] || 0;
-        if(val > 0) hasData = true;
-        return val;
-      });
-      let currCount = s.byType[t] || 0;
-      d.push(currCount);
-      if(currCount > 0) hasData = true;
-      if(hasData) typeDatasets.push({ label: t, data: d, borderColor: colors[idx%colors.length], tension: 0.3, fill: false });
-    });
-
-    if (mTypeChart) mTypeChart.destroy();
-    mTypeChart = new Chart(document.getElementById('modalTypeChart'), {
-      type: 'line',
-      data: { labels: labels, datasets: typeDatasets },
-      options: { 
-        responsive: true, maintainAspectRatio: false, 
-        scales: { 
-          y: { 
-            beginAtZero: false, // 改為自動縮放
-            grid: { color: '#334155' } 
-          } 
-        } 
-      }
-    });
-
-    if (mHourLoadChart) mHourLoadChart.destroy();
-    mHourLoadChart = new Chart(document.getElementById('modalHourlyLoadChart'), {
-      type: 'bar',
-      data: {
-        labels: Array.from({length:24}, (_,i) => i.toString().padStart(2,'0')),
-        datasets: [{ label: '預估運量', data: s.hourlyLoad, backgroundColor: '#f59e0b', borderRadius: 4 }]
-      },
-      options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero:true, grid:{color:'#334155'} }, x: { grid: { display:false } } } }
-    });
-
-    if (mHourChart) mHourChart.destroy();
-    mHourChart = new Chart(document.getElementById('modalHourlyChart'), {
-      type: 'bar',
-      data: {
-        labels: Array.from({length:24}, (_,i) => i.toString().padStart(2,'0')),
-        datasets: [{ label: '班次數', data: s.hourly, backgroundColor: '#3b82f6', borderRadius: 4 }]
-      },
-      options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero:true, grid:{color:'#334155'} }, x: { grid: { display:false } } } }
-    });
-  }
-
-  window.downloadChart = function(canvasId) {
-    const canvas = document.getElementById(canvasId);
-    if(canvas) {
-      const link = document.createElement('a');
-      link.download = 'chart.png';
-      link.href = canvas.toDataURL();
-      link.click();
-    }
-  };
-
-  document.getElementById('copyCodeBtn').addEventListener('click', () => {
-    let year = document.getElementById('currentYearLabel').value;
-    let fullStats = {};
-    for (let tn in rawSchedule) {
-      let train = rawSchedule[tn];
-      let tType = normalizeType(train['車種']);
-      (train['車站時間']||[]).forEach(stop => {
-        let st = stop[0];
-        if (!fullStats[st]) fullStats[st] = { total: 0, byType: {} };
-        fullStats[st].total++;
-        fullStats[st].byType[tType] = (fullStats[st].byType[tType] || 0) + 1;
-      });
-    }
-    let lines = [`"${year}": {`];
-    let stationsList = STATIONS_ORDER.filter(st => fullStats[st]);
-    stationsList.forEach((st, i) => {
-      let d = fullStats[st];
-      let types = Object.keys(d.byType).map(t => `        "${t}": ${d.byType[t]}`).join(',\n');
-      let block = `  "${st}": {\n    total: ${d.total},\n    byType: {\n${types}\n    }\n  }`;
-      if (i < stationsList.length - 1) block += ',';
-      lines.push(block);
-    });
-    lines.push('}');
-    navigator.clipboard.writeText(lines.join('\n')).then(() => alert('已複製！'));
-  });
-
-  document.addEventListener('DOMContentLoaded', () => {
-    const chipBox = document.getElementById('typeChips');
-    Object.keys(stationMaxCapacities).forEach(t => {
-      let c = document.createElement('span');
-      c.className = 'chip active'; c.textContent = t;
-      c.onclick = () => {
-        if(activeTypes.has(t)) activeTypes.delete(t); else activeTypes.add(t);
-        c.classList.toggle('active');
-        updateAll();
-      };
-      chipBox.appendChild(c);
-    });
-
-    const ySel = document.getElementById('compareYearSelect');
-    let years = Object.keys(rawHistory).sort();
-    if(years.length > 0) {
-      years.forEach(y => {
-        let o = document.createElement('option'); o.value = y; o.textContent = y;
-        ySel.appendChild(o);
-      });
-      ySel.value = years[years.length - 1]; 
-    } else {
-      ySel.innerHTML = '<option value="">無歷史資料</option>';
-    }
-
-    updateAll();
-
-    document.getElementById('searchStation').oninput = updateAll;
-    document.getElementById('sortSelect').onchange = updateAll;
-    document.getElementById('compareYearSelect').onchange = updateAll;
-    document.getElementById('closeModalBtn').onclick = () => document.getElementById('modalBackdrop').classList.remove('show');
-  });
-
-  function toggleTypes(on) {
-    activeTypes.clear();
-    let chips = document.querySelectorAll('.chip');
-    chips.forEach(c => {
-      if(on) { activeTypes.add(c.textContent); c.classList.add('active'); }
-      else { c.classList.remove('active'); }
-    });
-    updateAll();
-  }
-</script>
+  </script>
 </body>
 </html>
