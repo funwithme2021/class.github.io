@@ -268,6 +268,58 @@
     background: var(--bg-body); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border);
     padding: 10px 20px; display: flex; align-items: center; gap: 10px; margin: 10px -20px 20px -20px;
   }
+
+  /* ===== 轉乘詳情：摘要卡片 ===== */
+  .transfer-summary{
+    padding: 14px 20px 6px 20px;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 12px;
+  }
+  .transfer-card{
+    border: 1px solid var(--border);
+    background: var(--bg-body);
+    border-radius: 14px;
+    padding: 12px 12px;
+    box-shadow: var(--shadow-sm);
+  }
+  .transfer-card-title{
+    font-size: .78rem;
+    color: var(--text-muted);
+    font-weight: 800;
+    letter-spacing: .02em;
+    margin-bottom: 6px;
+  }
+  .transfer-card-main{
+    font-size: .95rem;
+    font-weight: 700;
+    margin-bottom: 8px;
+  }
+  .kv-grid{
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px 10px;
+  }
+  .kv{
+    display:flex; flex-direction:column; gap:2px;
+    padding: 8px 10px;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    background: var(--bg-surface);
+  }
+  .kv span{ font-size:.75rem; color: var(--text-muted); font-weight:700; }
+  .kv b{ font-size:.92rem; font-variant-numeric: tabular-nums; }
+  .transfer-section{ padding: 0 0 6px 0; }
+  .transfer-sec-title{
+    padding: 10px 20px 0 20px;
+    font-weight: 900;
+    font-size: 1rem;
+  }
+
+  @media (max-width: 760px){
+    .transfer-summary{ grid-template-columns: 1fr; }
+    .kv-grid{ grid-template-columns: 1fr 1fr; }
+  }
   
   /* ===== Query Tabs ===== */
   .query-tabs{display:flex;gap:10px;flex-wrap:wrap;margin:0 0 14px 0}
@@ -277,6 +329,18 @@
   .query-tab.active{background:linear-gradient(135deg,#3b82f6,#2563eb);color:#fff;border-color:transparent}
   .query-panel.hidden{display:none}
 
+
+  .ticket-btn{
+    border:1px solid var(--border);
+    background:var(--bg-body);
+    color:var(--text-main);
+    border-radius:10px;
+    padding:6px 10px;
+    cursor:pointer;
+    font-size:16px;
+    line-height:1;
+  }
+  .ticket-btn:active{ transform:scale(.98); }
 </style>
 
   <style>
@@ -540,44 +604,60 @@ let modalCtx = null;            // {trainNo, originDate}
   function fillStationDatalist(keyword){
     const dl = document.getElementById('stationList');
     if(!dl) return;
+
     const k = normLoose(keyword||'');
-    dl.innerHTML='';
+    // ★ 手機效能：最多只顯示前 30 筆，且一次 innerHTML 寫入（避免大量 DOM append）
+    const limit = 30;
+    let out = '';
+    let count = 0;
 
-    const filtered = stationListSorted.filter(s=>{
-      if(!k.raw) return true;
-      const id = String(s.id);
-      const name = String(s.name);
-      const name2 = name.replace(/臺/g,'台');
-      return id.includes(k.raw) || id.includes(k.asTai) || id.includes(k.asTai2) ||
-             name.includes(k.raw) || name.includes(k.asTai) || name.includes(k.asTai2) ||
-             name2.includes(k.raw) || name2.includes(k.asTai) || name2.includes(k.asTai2);
-    });
+    for(let i=0;i<stationListSorted.length;i++){
+      const s = stationListSorted[i];
+      if(!s) continue;
 
-    filtered.forEach(s=>{
-      const opt = document.createElement('option');
-      opt.value = `${s.id}-${s.name}`;
-      dl.appendChild(opt);
-    });
+      if(k.raw){
+        const id = String(s.id);
+        const name = String(s.name);
+        const name2 = name.replace(/臺/g,'台');
+        const hit = id.includes(k.raw) || id.includes(k.asTai) || id.includes(k.asTai2) ||
+                    name.includes(k.raw) || name.includes(k.asTai) || name.includes(k.asTai2) ||
+                    name2.includes(k.raw) || name2.includes(k.asTai) || name2.includes(k.asTai2);
+        if(!hit) continue;
+      }
+
+      out += `<option value="${s.id}-${s.name}"></option>`;
+      count++;
+      if(count >= limit) break;
+    }
+
+    dl.innerHTML = out;
   }
 
   // ===== datalist 動態填入：車次 =====
   function fillTrainDatalist(keyword){
     const dl = document.getElementById('trainNumberList');
     if(!dl) return;
+
     const k = String(keyword||'').trim();
-    dl.innerHTML='';
+    // ★ 手機效能：最多只顯示前 50 筆，且一次 innerHTML 寫入
+    const limit = 50;
+    let out = '';
+    let count = 0;
 
     const nums = Object.keys(baseSchedule||{}).sort((a,b)=>String(a).localeCompare(String(b),'en'));
-    const filtered = nums.filter(n => !k || String(n).includes(k));
+    for(let i=0;i<nums.length;i++){
+      const n = nums[i];
+      if(k && !String(n).includes(k)) continue;
 
-    filtered.forEach(n=>{
       const t = baseSchedule[n];
       const arr = t?.['車站時間']||[];
       const range = (arr.length>=2)?`${arr[0][0]}➝${arr.slice(-1)[0][0]}`:'';
-      const opt = document.createElement('option');
-      opt.value = `${n}-${t?.['車種']||''}-${range}`;
-      dl.appendChild(opt);
-    });
+      out += `<option value="${n}-${t?.['車種']||''}-${range}"></option>`;
+      count++;
+      if(count >= limit) break;
+    }
+
+    dl.innerHTML = out;
   }
 
   function extractStationNameFromInput(raw){
@@ -785,9 +865,225 @@ function splitArrDep(stopRow){
     const s = String(label||'');
     if(s === '準點') return `<span style="color:#16a34a;font-weight:700">${s}</span>`;
     if(s === '已過站') return `<span style="color:#94a3b8;font-weight:700">${s}</span>`;
-    if(s === '未發車' || s === '已到終點') return `<span style="color:var(--text-main);font-weight:700">${s}</span>`;
+    if(s === '未發車' || s === '已到終點' || s === '已到終點站') return `<span style="color:var(--text-main);font-weight:700">${s}</span>`;
     return `<span style="color:#dc2626;font-weight:700">${s}</span>`;
   }
+
+  // ===== 詳細視窗用狀態（不顯示「已過站」） =====
+  function getStatusForModal(trainNo, originDateStr, stopsArr){
+    const todayStr = fmtDate(new Date());
+
+    // 未來/過去：直接固定
+    if(originDateStr && originDateStr > todayStr) return '未發車';
+    if(originDateStr && originDateStr < todayStr) return '已到終點站';
+
+    // 只有查今天才有即時意義
+    let raw = '';
+    try{ if(typeof getDelayStatus==='function') raw = getDelayStatus(String(trainNo)) || ''; }catch(e){ raw=''; }
+
+    if(raw && /停駛|取消|暫停|終止|運轉整理|截短|折返|部分停駛/i.test(raw)) return '停駛';
+
+    const first = (splitArrDep(stopsArr?.[0]||[]).dep || splitArrDep(stopsArr?.[0]||[]).arr || '');
+    const last  = (splitArrDep(stopsArr?.[stopsArr.length-1]||[]).arr || splitArrDep(stopsArr?.[stopsArr.length-1]||[]).dep || '');
+
+    const f = parseTime(first);
+    const l = parseTime(last);
+    const now = new Date();
+    const nowMin = now.getHours()*60 + now.getMinutes();
+
+    // 若已超過終點抵達時間（含跨日），優先顯示「已到終點站」（不要再顯示準點）
+    if(f !== null && l !== null){
+      const crosses = l < f;
+      const endMin = crosses ? l+1440 : l;
+      const nowAdj = crosses && nowMin < f ? nowMin+1440 : nowMin;
+      if(nowAdj > endMin + 10) return '已到終點站';
+      if(nowAdj < f) return '未發車';
+    }else{
+      if(f !== null && nowMin < f) return '未發車';
+    }
+
+    // 先用即時誤點顯示（若有）
+    if(raw){
+      if(/準點/.test(raw)) return '準點';
+      const m = raw.match(/晚\s*([\-\d]+)\s*分/);
+      if(m){
+        const d = parseInt(m[1],10);
+        if(Number.isFinite(d) && d>0) return `誤點 ${d} 分`;
+        if(Number.isFinite(d) && d<0) return `提早 ${Math.abs(d)} 分`;
+        return '準點';
+      }
+    }else{
+      const d = isQueryToday(originDateStr) ? getDelayMinutes(trainNo) : 0;
+      if(d>0) return `誤點 ${d} 分`;
+      if(d<0) return `提早 ${Math.abs(d)} 分`;
+      if(isQueryToday(originDateStr)) return '準點';
+    }
+
+    return '準點';
+  }
+
+  function statusBadge(label){
+    const s = String(label||'');
+    // 背景色塊（比單純字色更好讀）
+    let bg = 'rgba(15,23,42,.08)';
+    let fg = 'var(--text-main)';
+    if(s === '準點'){ bg = 'rgba(22,163,74,.12)'; fg = '#166534'; }
+    else if(s === '未發車'){ bg = 'rgba(100,116,139,.10)'; fg = '#334155'; }
+    else if(s === '已到終點' || s === '已到終點站'){ bg = 'rgba(37,99,235,.12)'; fg = '#1d4ed8'; }
+    else if(s === '停駛'){ bg = 'rgba(15,23,42,.85)'; fg = '#fff'; }
+    else if(/誤點/.test(s)){ bg = 'rgba(220,38,38,.12)'; fg = '#b91c1c'; }
+    else if(/提早/.test(s)){ bg = 'rgba(14,165,233,.14)'; fg = '#0369a1'; }
+
+    return `<span style="display:inline-flex;align-items:center;gap:6px;padding:6px 10px;border-radius:999px;background:${bg};color:${fg};font-weight:900;font-size:.85rem;white-space:nowrap;">${s}</span>`;
+  }
+
+  // ===== 起訖站直達：台鐵e訂通 深度連結（TDX）=====
+  
+// =============================
+// TDX OAuth2 (client credentials)
+// ⚠️ 注意：把 clientSecret 放在前端是不安全的；正式上線建議改由後端代取 token。
+// =============================
+
+
+let _tdxTokenCache = { token: '', exp: 0 }; // exp: ms epoch
+
+async function getTDXAccessToken(force=false){
+  const now = Date.now();
+  if(!force && _tdxTokenCache.token && now < _tdxTokenCache.exp - 30_000){
+    return _tdxTokenCache.token;
+  }
+  const tokenUrl = 'https://tdx.transportdata.tw/auth/realms/TDXConnect/protocol/openid-connect/token';
+  const body = new URLSearchParams({
+    grant_type: 'client_credentials',
+    client_id: TDX_CONFIG.clientId,
+    client_secret: TDX_CONFIG.clientSecret
+  });
+
+  let res;
+  try{
+    res = await fetch(tokenUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body
+    });
+  }catch(err){
+    // 多數情況是瀏覽器 CORS / Mixed content / 網路阻擋
+    console.error(err);
+    throw new Error('無法連線到 TDX Token 端點（可能是瀏覽器 CORS 限制或網路阻擋）。');
+  }
+
+  if(!res.ok){
+    const t = await res.text().catch(()=> '');
+    console.error('TDX token error', res.status, t);
+    throw new Error('TDX Token 取得失敗（HTTP ' + res.status + '）。');
+  }
+  const data = await res.json();
+  const token = data.access_token || '';
+  const expiresIn = Number(data.expires_in || 0);
+  if(!token) throw new Error('TDX Token 回傳格式異常（沒有 access_token）。');
+
+  _tdxTokenCache = {
+    token,
+    exp: Date.now() + Math.max(60, expiresIn) * 1000
+  };
+  return token;
+}
+
+async function openTraBookingDeepLink(trainNo, startStationName, endStationName, dateStr){
+    // 官方 swagger 顯示：start_station / end_station 使用「站名」（URL encode），並搭配 train_date / train_number
+    // 但平台也可能接受站碼版本；因此同時準備兩套，出錯時自動降級重試
+    const sName = normTW(String(startStationName||'').replace(/台/g,'臺'));
+    const eName = normTW(String(endStationName||'').replace(/台/g,'臺'));
+
+    // 站碼備援（若你系統內用站碼也能轉）
+    const oId = nameToId[sName] || nameToId[normTW(String(startStationName||'').replace(/台/g,'臺'))];
+    const dId = nameToId[eName] || nameToId[normTW(String(endStationName||'').replace(/台/g,'臺'))];
+
+
+    // ⚠️ 這支 API 需要 TDX 授權（Bearer token）。你若已有 token 取得流程，把 getTDXAccessToken() 寫好即可。
+    try{
+      const token = (typeof getTDXAccessToken === 'function') ? await getTDXAccessToken() : '';
+      if(!token){
+        alert('尚未設定 TDX Access Token，無法取得台鐵e訂通深度連結。\n你可以在程式中加入 getTDXAccessToken() 取得 token。');
+        return;
+      }
+
+      // 官方 swagger：start_station / end_station（站名） + train_date / train_number
+      const url1 = `https://tdx.transportdata.tw/api/maas-tra/booking/deeplink/direct/tra?start_station=${encodeURIComponent(sName)}&end_station=${encodeURIComponent(eName)}&train_date=${encodeURIComponent(dateStr)}&train_number=${encodeURIComponent(String(trainNo))}`;
+      // 站碼版本（部分情況可用）：ride_date / train_no
+      const urlId = (oId && dId)
+        ? `https://tdx.transportdata.tw/api/maas-tra/booking/deeplink/direct/tra?start_station=${encodeURIComponent(oId)}&end_station=${encodeURIComponent(dId)}&ride_date=${encodeURIComponent(dateStr)}&train_no=${encodeURIComponent(String(trainNo))}`
+        : '';
+      // 兼容舊版參數（若平台端改回去，可自動切換）
+      const url2 = (oId && dId)
+        ? `https://tdx.transportdata.tw/api/maas-tra/booking/deeplink/direct/tra?OriginStationID=${encodeURIComponent(oId)}&DestinationStationID=${encodeURIComponent(dId)}&RideDate=${encodeURIComponent(dateStr)}&TrainNo=${encodeURIComponent(String(trainNo))}`
+        : '';
+
+      let url = url1;
+
+      let res = await fetch(url, {
+        method: 'GET',
+        headers: { 'Authorization': `Bearer ${token}`, 'Accept': 'application/json' }
+      });
+
+      // token 失效時自動刷新一次再打
+      if(res.status === 401){
+        const token2 = await getTDXAccessToken(true);
+        res = await fetch(url, {
+          method: 'GET',
+          headers: { 'Authorization': `Bearer ${token2}`, 'Accept': 'application/json' }
+        });
+      }
+
+      if(!res.ok){
+  // 500 常見：參數名稱不符（例如回 {"msg":"\"start_station\" is required"} ）
+  if(res.status === 500){
+    let payload = null;
+    try{ payload = await res.clone().json(); }catch(_e){}
+    const msg = payload?.error?.msg || payload?.msg || '';
+    // 若回覆說 start_station 必填：代表參數命名/內容不符，先切回官方站名版本
+    if(String(msg).includes('start_station') && url !== url1){
+      url = url1;
+      res = await fetch(url, { method:'GET', headers:{ 'Authorization': `Bearer ${token}`, 'Accept':'application/json' } });
+    }
+
+    // 若官方站名版本仍 500：嘗試站碼版本（若可用）
+    if(!res.ok && urlId){
+      url = urlId;
+      res = await fetch(url, { method:'GET', headers:{ 'Authorization': `Bearer ${token}`, 'Accept':'application/json' } });
+    }
+
+    // 若帶車次仍 500：降級成「不帶車次」再試一次（至少能開到起訖站+日期的訂票流程）
+    if(!res.ok && url.startsWith('https://tdx.transportdata.tw/api/maas-tra/booking/deeplink/direct/tra?')){
+      const urlNoTrain = `https://tdx.transportdata.tw/api/maas-tra/booking/deeplink/direct/tra?start_station=${encodeURIComponent(sName)}&end_station=${encodeURIComponent(eName)}&train_date=${encodeURIComponent(dateStr)}`;
+      res = await fetch(urlNoTrain, { method:'GET', headers:{ 'Authorization': `Bearer ${token}`, 'Accept':'application/json' } });
+    }
+  }
+
+  if(!res.ok){
+    throw new Error('HTTP ' + res.status + (res.status===401 ? '（未授權：token 無效或未帶入）' : ''));
+  }
+}
+
+const data = await res.json();
+
+      // 期待回傳中有 Deeplink / DeepLinkUrl / Url 之類欄位（以實際 swagger 為準）
+      const link = data?.Deeplink || data?.DeepLink || data?.DeepLinkUrl || data?.URL || data?.Url || data?.url;
+      if(!link){
+        console.log('Deeplink response:', data);
+        alert('已取得回應，但找不到深度連結欄位（請看 console）。');
+        return;
+      }
+
+      // 嘗試喚醒 APP
+      window.location.href = link;
+
+    }catch(err){
+      console.error(err);
+      alert('取得訂票深度連結失敗（可能是 token 或 API 欄位不同）。\n請開 console 看錯誤。');
+    }
+  }
+
 
   // ===== 取消尖峰時間特別顏色 =====
   function highlightPeak(t){ return t || '--'; }
@@ -1038,15 +1334,25 @@ setInterval(async ()=>{
     const input = document.getElementById(inputId);
     if(!input) return;
 
-    input.addEventListener('focus', ()=>{
-      fillStationDatalist(input.value); // 空白會顯示全站
-    });
-    input.addEventListener('input', ()=>{
-      fillStationDatalist(input.value);
-    });
+    // ★ 手機優化：debounce + rAF，避免每次 keypress 都大量重建 datalist
+    let tmr = null;
+    let raf = null;
+    const schedule = ()=>{
+      if(tmr) clearTimeout(tmr);
+      tmr = setTimeout(()=>{
+        if(raf) cancelAnimationFrame(raf);
+        raf = requestAnimationFrame(()=>fillStationDatalist(input.value));
+      }, 120);
+    };
+
+    input.addEventListener('focus', ()=> fillStationDatalist(input.value)); // 空白會顯示前 N 站
+    input.addEventListener('input', schedule, { passive: true });
+
     input.addEventListener('blur', ()=>{
       const resolved = extractStationNameFromInput(input.value);
       if(resolved) input.value = resolved;
+      if(tmr) clearTimeout(tmr);
+      if(raf) cancelAnimationFrame(raf);
       fillStationDatalist('');
     });
   }
@@ -1055,11 +1361,24 @@ setInterval(async ()=>{
     const input = document.getElementById(inputId);
     if(!input) return;
 
+    let tmr = null;
+    let raf = null;
+    const schedule = ()=>{
+      if(tmr) clearTimeout(tmr);
+      tmr = setTimeout(()=>{
+        if(raf) cancelAnimationFrame(raf);
+        raf = requestAnimationFrame(()=>fillTrainDatalist(input.value));
+      }, 120);
+    };
+
     input.addEventListener('focus', ()=> fillTrainDatalist(input.value));
-    input.addEventListener('input', ()=> fillTrainDatalist(input.value));
+    input.addEventListener('input', schedule, { passive: true });
+
     input.addEventListener('blur', ()=>{
       const no = extractTrainNoFromInput(input.value);
       if(no) input.value = no;
+      if(tmr) clearTimeout(tmr);
+      if(raf) cancelAnimationFrame(raf);
       fillTrainDatalist('');
     });
   }
@@ -1242,13 +1561,87 @@ function renderTimeWithDelay(trainNo, schedHHMM, queryDateStr, opts){
         <th>耗時 <span id="sortDurIcon">↕</span></th>
         <th>停靠</th>
         <th>狀態</th>
+        <th style="text-align:center">訂票</th>
       `;
       initStartEndSorting();
       updateStartEndSortIcons();
     }
 
-    const tbody=document.querySelector('#scheduleTableByStation tbody');
+    const tbody = document.querySelector('#scheduleTableByStation tbody');
+    if(!tbody) return;
     tbody.innerHTML='';
+
+    // 單一事件代理：列點擊開詳情；票券按鈕點擊跳 APP；停靠展開
+    tbody.onclick = async (e)=>{
+      const ticket = e.target.closest('.ticket-btn');
+      if(ticket){
+        e.stopPropagation();
+        const idx = Number(ticket.dataset.idx);
+        const r = currentStartEndList[idx];
+        if(!r) return;
+        await openTraBookingDeepLink(r.num, r.startStation, r.endStation, currentQueryDateStr);
+        return;
+      }
+
+      const arrow = e.target.closest('.toggle-arrow');
+      if(arrow){
+        e.stopPropagation();
+        const tr = arrow.closest('tr');
+        const idx = Number(tr?.dataset?.idx);
+        const r = currentStartEndList[idx];
+        if(!r) return;
+        toggleStopsRow(tr, r.startStation, r.endStation, r.num);
+        return;
+      }
+
+      const tr = e.target.closest('tr');
+      if(!tr || tr.parentElement !== tbody) return;
+      const idx = Number(tr.dataset.idx);
+      const r = currentStartEndList[idx];
+      if(!r) return;
+      showTrainDetails(r.num, currentQueryDateStr);
+    };
+
+    const mins = currentStartEndList.map(r=>r.travelMin).filter(x=>Number.isFinite(x)).sort((a,b)=>a-b);
+    const cap = percentile(mins, 0.95); // P95 當上限，極端值塗滿
+
+    currentStartEndList.forEach((r, idx)=>{
+      let tr = tbody.insertRow();
+      tr.dataset.idx = idx;
+
+      tr.insertCell().innerHTML = String(r.num).includes('A')
+        ? `<b>${r.num}</b><span class="badge-sea">海</span>`
+        : `<b>${r.num}</b>`;
+
+      tr.insertCell().innerHTML = `${colorType(r.type)} <span class="train-route">(${r.range})</span>`;
+      tr.insertCell().innerHTML = r.depHTML;
+      tr.insertCell().innerHTML = r.arrHTML;
+
+      const bar = getTravelBarStyle(r.travelMin, cap);
+      let cell = tr.insertCell();
+      cell.innerHTML = `
+        <div style="font-size:.85rem;font-weight:600">
+          ${r.travel}${bar.isExtreme ? ' <span style="color:var(--text-muted);font-weight:600">(極端)</span>' : ''}
+        </div>
+        <div class="progress-bar">
+          <div class="progress-fill" style="width:${bar.widthPct.toFixed(1)}%;background:${bar.fillBg};"></div>
+        </div>`;
+
+      let stopsCell = tr.insertCell();
+      if(r.stopsCount>0){
+        stopsCell.innerHTML = `${r.stopsCount}站 <span class="toggle-arrow">▼</span>`;
+      } else {
+        stopsCell.innerHTML = '<span style="color:#16a34a;font-weight:600">直達</span>';
+      }
+
+      tr.insertCell().innerHTML = colorStatus(r.status);
+
+      // 訂票：僅起訖站直達模式提供
+      const ticketCell = tr.insertCell();
+      ticketCell.style.textAlign = 'center';
+      ticketCell.innerHTML = `<button class="ticket-btn" data-idx="${idx}" title="開啟台鐵e訂通訂票">🎫</button>`;
+    });
+  };
 
     const mins = currentStartEndList.map(r=>r.travelMin).filter(x=>Number.isFinite(x)).sort((a,b)=>a-b);
     const cap = percentile(mins, 0.95); // P95 當上限，極端值塗滿
@@ -1286,7 +1679,6 @@ function renderTimeWithDelay(trainNo, schedHHMM, queryDateStr, opts){
       tr.insertCell().innerHTML=colorStatus(r.status);
       tr.addEventListener('click',()=>showTrainDetails(r.num, currentQueryDateStr));
     });
-  }
 
   function toggleStopsRow(tr, st, ed, num){
     const next=tr.nextElementSibling;
@@ -1308,7 +1700,7 @@ function renderTimeWithDelay(trainNo, schedHHMM, queryDateStr, opts){
     const row=document.createElement('tr');
     row.className='stops-row';
     const td=document.createElement('td');
-    td.colSpan=7;
+    td.colSpan=8;
     td.textContent=stops?`沿途停靠：${stops}`:'（無中途停靠）';
     row.appendChild(td);
     tr.parentNode.insertBefore(row, tr.nextSibling);
@@ -1334,26 +1726,24 @@ function renderTimeWithDelay(trainNo, schedHHMM, queryDateStr, opts){
 
     const abs1 = buildAbsArrDep(a1);
 
-    // 第一班車「起站開車時間」（用於耗時計算）
-    const originDepStr = (splitArrDep(a1[0]||[]).dep || splitArrDep(a1[0]||[]).arr || '');
-    const originDepAbs = abs1.absDep[0] ?? abs1.absArr[0];
-    if(originDepAbs === null || originDepAbs === undefined) return;
-
-    // 顯示用：使用者輸入起點 st 的開車時間
-    const stDepStr = a1[sIdx]?.[2] || a1[sIdx]?.[1] || '--';
+    // ✅ 以「查詢出發站 st」的開車時間作為方案出發時間與耗時計算基準（不是列車起站）
+    const originStation = a1[0]?.[0] || '';
+    const stDepStr = (splitArrDep(a1[sIdx]||[]).dep || splitArrDep(a1[sIdx]||[]).arr || '--');
+    const stDepAbs = abs1.absDep[sIdx] ?? abs1.absArr[sIdx];
     const stDepAdj = getAdjustedTime(n1, stDepStr, currentQueryDateStr);
+    if(stDepAbs === null || stDepAbs === undefined) return;
 
     // 試算「直達方案」（n1 本身可到達 ed 且 ed 在 st 之後）
     let bestPlan = null;
 
     const eIdxDirect = a1.findIndex(x=>x[0]===ed);
     if(eIdxDirect >= 0 && eIdxDirect > sIdx){
-      const endArrStr = a1[eIdxDirect]?.[1] || a1[eIdxDirect]?.[2] || '--';
+      const endArrStr = (splitArrDep(a1[eIdxDirect]||[]).arr || splitArrDep(a1[eIdxDirect]||[]).dep || '--'); // 迄站「到達」時間
       const endArrAdj = getAdjustedTime(n1, endArrStr, currentQueryDateStr);
 
       const endArrAbs = abs1.absArr[eIdxDirect] ?? abs1.absDep[eIdxDirect];
       if(endArrAbs !== null && endArrAbs !== undefined){
-        const travelMin = endArrAbs - originDepAbs;
+        const travelMin = endArrAbs - stDepAbs;
         if(Number.isFinite(travelMin) && travelMin >= 0){
           const status = getTrainStatusLabel(
             n1,
@@ -1374,8 +1764,11 @@ function renderTimeWithDelay(trainNo, schedHHMM, queryDateStr, opts){
             endStation: ed,
             transferStation: null,
 
+            originStation,
+            stDepStr,
             depSched: stDepStr,
             depHTML: renderTimeWithDelay(n1, stDepStr, currentQueryDateStr, { suppressStrike: status==='已過站' }),
+            startDepAtQueryStation: stDepStr,
 
             arrSched: endArrStr,
             arrHTML: renderTimeWithDelay(n1, endArrStr, currentQueryDateStr, { suppressStrike: (status==='已到終點' || status==='已過站') }),
@@ -1411,7 +1804,7 @@ function renderTimeWithDelay(trainNo, schedHHMM, queryDateStr, opts){
 
       // n2 的「迄站到達時間」（用於耗時計算）
       const endArrAbs2 = abs2.absArr[eIdx2] ?? abs2.absDep[eIdx2];
-      const endArrStr2 = a2[eIdx2]?.[1] || a2[eIdx2]?.[2] || '--';
+      const endArrStr2 = (splitArrDep(a2[eIdx2]||[]).arr || splitArrDep(a2[eIdx2]||[]).dep || '--'); // 迄站「到達」時間
       if(endArrAbs2 === null || endArrAbs2 === undefined) return;
 
       // 逐一找可轉乘的 mid（取第一個符合且 travel 最短的 mid）
@@ -1440,7 +1833,7 @@ function renderTimeWithDelay(trainNo, schedHHMM, queryDateStr, opts){
         if(wait < 3) continue;     // ★ 不得小於 3 分鐘
         if(wait > 90) continue;    // ★ 避免超長等待
 
-        const travelMin = (endArrAbs2 + (isQueryToday(currentQueryDateStr) ? getDelayMinutes(n2) : 0)) - (originDepAbs + (isQueryToday(currentQueryDateStr) ? getDelayMinutes(n1) : 0));
+        const travelMin = (endArrAbs2 + (isQueryToday(currentQueryDateStr) ? getDelayMinutes(n2) : 0)) - (stDepAbs + (isQueryToday(currentQueryDateStr) ? getDelayMinutes(n1) : 0));
         if(!Number.isFinite(travelMin) || travelMin < 0) continue;
 
         const status = getTrainStatusLabel(
@@ -1463,8 +1856,11 @@ function renderTimeWithDelay(trainNo, schedHHMM, queryDateStr, opts){
           endStation: ed,
           transferStation: mid,
 
+          originStation,
+          stDepStr,
           depSched: stDepStr,
           depHTML: renderTimeWithDelay(n1, stDepStr, currentQueryDateStr, { suppressStrike: status==='已過站' }),
+          startDepAtQueryStation: stDepStr,
 
           arrSched: endArrStr2,
           arrHTML: renderTimeWithDelay(n2, endArrStr2, currentQueryDateStr, { suppressStrike: (status==='已到終點' || status==='已過站') }),
@@ -1531,12 +1927,24 @@ function renderTransferTable(){
   const tbody = table?.querySelector('tbody');
   if(!tbody) return;
   tbody.innerHTML='';
+  // 單一事件代理（避免每列綁 click，手機效能更好）
+  tbody.onclick = (e)=>{
+    const tr = e.target.closest('tr');
+    if(!tr || tr.parentElement !== tbody) return;
+    const idx = Number(tr.dataset.idx);
+    if(!Number.isFinite(idx)) return;
+    const r = currentTransferList[idx];
+    if(!r) return;
+    if(r.isDirect) showTrainDetails(r.n1, currentQueryDateStr);
+    else showTransferDetails(r);
+  };
 
   const mins = currentTransferList.map(r=>r.travelMin).filter(x=>Number.isFinite(x)).sort((a,b)=>a-b);
   const cap = percentile(mins, 0.95);
 
-  currentTransferList.forEach(r=>{
+  currentTransferList.forEach((r, idx)=>{
     let tr = tbody.insertRow();
+    tr.dataset.idx = idx;
 
     tr.insertCell().innerHTML = String(r.trainNumber).includes('A')
       ? `<b>${r.trainNumber}</b><span class="badge-sea">海</span>` : `<b>${r.trainNumber}</b>`;
@@ -1557,10 +1965,8 @@ function renderTransferTable(){
     }else{
       tr.insertCell().innerHTML =
         `<div style="font-weight:700">${r.transferStation}</div>`+
-        `<div class="train-route">抵達 ${r.midArrHTML||highlightPeak(r.midArr)} / 發車 ${r.midDepHTML||highlightPeak(r.midDep)}（等 ${r.waitMin} 分）</div>`+
-        `
-`;
-    }
+        `<div class="train-route">抵達 ${r.midArrHTML||highlightPeak(r.midArr)} / 發車 ${r.midDepHTML||highlightPeak(r.midDep)}（等 ${r.waitMin} 分）</div>`;
+}
 
     tr.insertCell().innerHTML = r.arrHTML;
 
@@ -1574,17 +1980,9 @@ function renderTransferTable(){
     `;
 
     tr.insertCell().innerHTML = colorStatus(r.status);
-
-    // 點擊：直達顯示該班車；轉乘則顯示兩班列車並標示轉乘站
-    tr.addEventListener('click', ()=>{
-      if(r.isDirect){
-        showTrainDetails(r.n1, currentQueryDateStr);
-      }else{
-        showTransferDetails(r);
-      }
-    });
   });
 }
+
 
   // ===== 車站時刻表：順行=偶數車次 / 逆行=奇數車次 =====
   function isEvenTrainNo(num){
@@ -1607,6 +2005,17 @@ function renderTransferTable(){
 
     const tbody=document.querySelector('#scheduleTableByStationName tbody');
     tbody.innerHTML='';
+  // 單一事件代理（避免每列綁 click，手機效能更好）
+  tbody.onclick = (e)=>{
+    const tr = e.target.closest('tr');
+    if(!tr || tr.parentElement !== tbody) return;
+    const idx = Number(tr.dataset.idx);
+    if(!Number.isFinite(idx)) return;
+    const r = currentTransferList[idx];
+    if(!r) return;
+    if(r.isDirect) showTrainDetails(r.n1, currentQueryDateStr);
+    else showTransferDetails(r);
+  };
 
     selectedTrainTypesStation=getSelectedTypes('trainTypeChipsStation');
 
@@ -1675,6 +2084,17 @@ function renderTransferTable(){
 
     const tbody=document.querySelector('#scheduleTableByNumber tbody');
     tbody.innerHTML='';
+  // 單一事件代理（避免每列綁 click，手機效能更好）
+  tbody.onclick = (e)=>{
+    const tr = e.target.closest('tr');
+    if(!tr || tr.parentElement !== tbody) return;
+    const idx = Number(tr.dataset.idx);
+    if(!Number.isFinite(idx)) return;
+    const r = currentTransferList[idx];
+    if(!r) return;
+    if(r.isDirect) showTrainDetails(r.n1, currentQueryDateStr);
+    else showTransferDetails(r);
+  };
     const t=baseSchedule[num];
     if(!t) return;
 
@@ -1803,44 +2223,122 @@ function renderTransferTable(){
     if(!plan) return;
     const originDateStr = currentQueryDateStr;
 
-    // 取兩班列車資料（皆以查詢日的發車資料為主）
     const t1 = baseSchedule[plan.n1];
     const t2 = baseSchedule[plan.n2];
     if(!t1 || !t2) return;
 
-    const arr1 = t1['車站時間']||[];
-    const arr2 = t2['車站時間']||[];
+    const arr1All = t1['車站時間']||[];
+    const arr2All = t2['車站時間']||[];
 
-    // Modal 標題
-    document.getElementById('modalTitleMain').textContent = `${plan.trainNumber}｜轉乘`;
-    document.getElementById('modalTitleSub').innerHTML = `${plan.startStation} ➝ ${plan.endStation} ｜狀態：${colorStatus(plan.status||'')}`;
+    const pickIndex = (arr, name)=>arr.findIndex(x=>x[0]===name);
+    const i1Mid = pickIndex(arr1All, plan.transferStation);
+    const i2Mid = pickIndex(arr2All, plan.transferStation);
+    const i2End = pickIndex(arr2All, plan.endStation);
+
+    if(i1Mid < 0 || i2Mid < 0 || i2End < 0) return;
+
+    // 第一段只顯示到「轉乘站」；第二段只顯示「轉乘站→迄站」
+    const i1Start = pickIndex(arr1All, plan.startStation);
+    if(i1Start < 0 || i1Mid <= i1Start) return;
+    const arr1 = arr1All.slice(i1Start, i1Mid+1);
+    const arr2 = arr2All.slice(i2Mid, i2End+1);
+
+    const seg1Dep = (splitArrDep(arr1[0]||[]).dep || splitArrDep(arr1[0]||[]).arr || '--'); // 起站開車
+    const seg1Arr = (splitArrDep(arr1[arr1.length-1]||[]).arr || splitArrDep(arr1[arr1.length-1]||[]).dep || '--'); // 轉乘站到達
+
+    const seg2Dep = (splitArrDep(arr2[0]||[]).dep || splitArrDep(arr2[0]||[]).arr || '--'); // 轉乘站開車
+    const seg2Arr = (splitArrDep(arr2[arr2.length-1]||[]).arr || splitArrDep(arr2[arr2.length-1]||[]).dep || '--'); // 迄站到達（★修正：不是開車）
+
+    // 狀態：不顯示「已過站」
+    const s1 = getStatusForModal(plan.n1, originDateStr, arr1All);
+    const s2 = getStatusForModal(plan.n2, originDateStr, arr2All);
+
+    document.getElementById('modalTitleMain').textContent = `${plan.n1}+${plan.n2}｜轉乘`;
+    document.getElementById('modalTitleSub').innerHTML = `${plan.startStation} ➝ ${plan.endStation}`;
 
     const body = document.getElementById('modalBody');
     body.innerHTML = '';
 
-    const wrap = document.createElement('div');
+    // ===== 顶部資訊卡（兩班車 + 轉乘點 + 狀態）=====
+    const top = document.createElement('div');
+    top.style.padding = '16px 16px 8px 16px';
 
-    // 小標題區塊
+    top.innerHTML = `
+      <div style="display:grid;gap:10px;">
+        <div style="display:flex;align-items:flex-start;gap:10px;background:var(--bg-body);border:1px solid var(--border);border-radius:12px;padding:12px;">
+          <div style="font-size:20px;line-height:1">🚆</div>
+          <div style="flex:1">
+            <div style="font-weight:900">
+              ${plan.n1}｜${t1['車種']} <span class="train-route">(${plan.startStation}➝${plan.transferStation})</span>
+            </div>
+            <div class="train-route" style="margin-top:2px;">
+              出發站開車 ${renderTimeWithDelay(plan.n1, seg1Dep, originDateStr)} ｜轉乘站抵達 ${renderTimeWithDelay(plan.n1, seg1Arr, originDateStr)}
+            </div>
+          </div>
+          <div>${statusBadge(s1)}</div>
+        </div>
+
+        <div class="transfer-banner" style="margin:0;">
+          <div style="width:34px;height:34px;border-radius:10px;background:rgba(217,119,6,.12);display:flex;align-items:center;justify-content:center;font-weight:900;color:#b45309;">⇄</div>
+          <div style="flex:1">
+            <div style="font-weight:900;color:var(--text-main);">${plan.transferStation} 轉乘</div>
+            <div class="train-route">
+              第一段抵達 ${renderTimeWithDelay(plan.n1, seg1Arr, originDateStr)} ｜第二段發車 ${renderTimeWithDelay(plan.n2, seg2Dep, originDateStr)} ｜等待 <b>${plan.waitMin}</b> 分
+            </div>
+          </div>
+        </div>
+
+        <div style="display:flex;align-items:flex-start;gap:10px;background:var(--bg-body);border:1px solid var(--border);border-radius:12px;padding:12px;">
+          <div style="font-size:20px;line-height:1">🚆</div>
+          <div style="flex:1">
+            <div style="font-weight:900">
+              ${plan.n2}｜${t2['車種']} <span class="train-route">(${plan.transferStation}➝${plan.endStation})</span>
+            </div>
+            <div class="train-route" style="margin-top:2px;">
+              轉乘站開車 ${renderTimeWithDelay(plan.n2, seg2Dep, originDateStr)} ｜迄站抵達 ${renderTimeWithDelay(plan.n2, seg2Arr, originDateStr)}
+            </div>
+          </div>
+          <div>${statusBadge(s2)}</div>
+        </div>
+      </div>
+    `;
+
+    body.appendChild(top);
+
+    // ===== 站表（第一段到轉乘站；第二段到迄站）=====
+    const wrap = document.createElement('div');
+    wrap.style.padding = '0 16px 16px 16px';
+
     const sec1 = document.createElement('div');
-    sec1.innerHTML = `<div style="font-weight:900;font-size:1rem;margin:8px 0 6px;">${plan.n1}｜${t1['車種']} <span class="train-route">(${arr1[0]?.[0]||''}➝${arr1.slice(-1)[0]?.[0]||''})</span></div>`;
+    sec1.className = 'transfer-section';
+    sec1.innerHTML = `<div class="transfer-sec-title">${plan.n1}｜${t1['車種']} <span class="train-route">(${arr1[0]?.[0]||''}➝${arr1.slice(-1)[0]?.[0]||''})</span></div>`;
     sec1.appendChild(buildTimelineForTrain(plan.n1, arr1, plan.transferStation));
     wrap.appendChild(sec1);
 
-    const midHint = document.createElement('div');
-    midHint.style.margin = '10px 0';
-    midHint.style.color = 'var(--text-muted)';
-    midHint.style.fontWeight = '700';
-    midHint.textContent = `在 ${plan.transferStation} 轉乘`;
-    wrap.appendChild(midHint);
+    const banner2 = document.createElement('div');
+    banner2.className = 'transfer-banner';
+    banner2.style.marginTop = '10px';
+    banner2.innerHTML = `
+      <div style="width:34px;height:34px;border-radius:10px;background:rgba(217,119,6,.12);display:flex;align-items:center;justify-content:center;font-weight:900;color:#b45309;">⇄</div>
+      <div style="flex:1">
+        <div style="font-weight:900">${plan.transferStation}</div>
+        <div class="train-route">等待 ${plan.waitMin} 分（${renderTimeWithDelay(plan.n1, seg1Arr, originDateStr)} → ${renderTimeWithDelay(plan.n2, seg2Dep, originDateStr)}）</div>
+      </div>
+    `;
+    wrap.appendChild(banner2);
 
     const sec2 = document.createElement('div');
-    sec2.innerHTML = `<div style="font-weight:900;font-size:1rem;margin:8px 0 6px;">${plan.n2}｜${t2['車種']} <span class="train-route">(${arr2[0]?.[0]||''}➝${arr2.slice(-1)[0]?.[0]||''})</span></div>`;
+    sec2.className = 'transfer-section';
+    sec2.style.marginTop = '10px';
+    sec2.innerHTML = `<div class="transfer-sec-title">${plan.n2}｜${t2['車種']} <span class="train-route">(${arr2[0]?.[0]||''}➝${arr2.slice(-1)[0]?.[0]||''})</span></div>`;
     sec2.appendChild(buildTimelineForTrain(plan.n2, arr2, plan.transferStation));
     wrap.appendChild(sec2);
 
     body.appendChild(wrap);
+
     modal.style.display = 'flex';
   }
+
 
   function buildTimelineForTrain(trainNo, arr, transferStation){
     const timeline = document.createElement('div');
