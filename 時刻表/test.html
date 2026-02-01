@@ -1003,177 +1003,47 @@ async function getTDXAccessToken(force=false){
   return token;
 }
 
-async function openTraBookingDeepLink(trainNo, startStationName, endStationName, dateStr){
-    // === Deeplink 節流：避免 429 ===
-    const now = Date.now();
-    if(_deeplinkInFlight){
-      throw new Error('TOO_FAST_IN_FLIGHT');
-    }
-    if(now < _deeplinkCooldownUntil){
-      throw new Error('TOO_FAST_COOLDOWN');
-    }
+async function openTraBookingDeepLink(trainNo, startStationName, endStationName, dateStr) {
+    if (_deeplinkInFlight) return;
     _deeplinkInFlight = true;
 
-    // 官方 swagger 顯示：start_station / end_station 使用「站名」（URL encode），並搭配 train_date / train_number
-    // 但平台也可能接受站碼版本；因此同時準備兩套，出錯時自動降級重試
-    const sName = normTW(String(startStationName||'').replace(/台/g,'臺'));
-    const eName = normTW(String(endStationName||'').replace(/台/g,'臺'));
+    try {
+        const token = await getTDXAccessToken();
+        const sName = normTW(startStationName);
+        const eName = normTW(endStationName);
 
-    // 站碼備援（若你系統內用站碼也能轉）
-    const oId = nameToId[sName] || nameToId[normTW(String(startStationName||'').replace(/台/g,'臺'))];
-    const dId = nameToId[eName] || nameToId[normTW(String(endStationName||'').replace(/台/g,'臺'))];
+        // 建立請求連結
+        const url = `https://tdx.transportdata.tw/api/maas-tra/booking/deeplink/direct/tra?start_station=${encodeURIComponent(sName)}&end_station=${encodeURIComponent(eName)}&train_date=${encodeURIComponent(dateStr)}&train_number=${encodeURIComponent(String(trainNo))}`;
 
-
-    // ⚠️ 這支 API 需要 TDX 授權（Bearer token）。你若已有 token 取得流程，把 getTDXAccessToken() 寫好即可。
-    try{
-      const token = (typeof getTDXAccessToken === 'function') ? await getTDXAccessToken() : '';
-      if(!token){
-        alert('尚未設定 TDX Access Token，無法取得台鐵e訂通深度連結。\n你可以在程式中加入 getTDXAccessToken() 取得 token。');
-        return;
-      }
-
-      // 官方 swagger：start_station / end_station（站名） + train_date / train_number
-      const url1 = `https://tdx.transportdata.tw/api/maas-tra/booking/deeplink/direct/tra?start_station=${encodeURIComponent(sName)}&end_station=${encodeURIComponent(eName)}&train_date=${encodeURIComponent(dateStr)}&train_number=${encodeURIComponent(String(trainNo))}`;
-      // 站碼版本（部分情況可用）：ride_date / train_no
-      const urlId = (oId && dId)
-        ? `https://tdx.transportdata.tw/api/maas-tra/booking/deeplink/direct/tra?start_station=${encodeURIComponent(oId)}&end_station=${encodeURIComponent(dId)}&ride_date=${encodeURIComponent(dateStr)}&train_no=${encodeURIComponent(String(trainNo))}`
-        : '';
-      // 兼容舊版參數（若平台端改回去，可自動切換）
-      const url2 = (oId && dId)
-        ? `https://tdx.transportdata.tw/api/maas-tra/booking/deeplink/direct/tra?OriginStationID=${encodeURIComponent(oId)}&DestinationStationID=${encodeURIComponent(dId)}&RideDate=${encodeURIComponent(dateStr)}&TrainNo=${encodeURIComponent(String(trainNo))}`
-        : '';
-
-      let url = url1;
-
-      
-      // 使用 manual redirect，避免被 fetch 跟到自訂 scheme（deep link）而抓不到 Location
-      let res = await fetch(url, {
-        method: 'GET',
-        redirect: 'manual',
-        headers: { 'Authorization': `Bearer ${token}`, 'Accept': '*/*' }
-      });
-      if(res.status === 429){
-        _deeplinkCooldownUntil = Date.now() + _getDeeplinkCooldownMs(res);
-        throw new Error('HTTP_429');
-      }
-
-      // token 失效時自動刷新一次再打
-      if(res.status === 401){
-        const token2 = await getTDXAccessToken(true);
-        res = await fetch(url, {
-          method: 'GET',
-          redirect: 'manual',
-          headers: { 'Authorization': `Bearer ${token2}`, 'Accept': '*/*' }
+        // 1. 先用 fetch 取得跳轉後的真正連結 (Deeplink)
+        const res = await fetch(url, {
+            method: 'GET',
+            headers: { 'Authorization': `Bearer ${token}` }
         });
-        if(res.status === 429){
-          _deeplinkCooldownUntil = Date.now() + _getDeeplinkCooldownMs(res);
-          throw new Error('HTTP_429');
+
+        if (res.ok) {
+            const data = await res.json();
+            // TDX API 通常會回傳一個包含 URL 的 JSON 或直接跳轉
+            const deepLinkUrl = data.DeepLinkUrl || data.url || data.Deeplink;
+            
+            if (deepLinkUrl) {
+                // 2. 真正觸發手機 App 的動作
+                window.location.href = deepLinkUrl;
+            } else {
+                // 如果 API 是直接做 302 跳轉，上面的 fetch 可能會拿不到 JSON
+                // 這種情況最簡單的方法是直接在新視窗打開 API URL，讓瀏覽器處理跳轉
+                window.open(url + `&access_token=${token}`, '_blank');
+            }
+        } else if (res.status === 429) {
+            alert("請求太頻繁，請稍候再試");
         }
-      }
-
-      // Helper：從 response 取出 deeplink（支援 redirect / json / text）
-      async function _extractDeepLink(resp){
-        // 1) redirect：看 Location
-        const loc = resp.headers ? (resp.headers.get('location') || resp.headers.get('Location')) : null;
-        if(loc && String(loc).trim()) return String(loc).trim();
-
-        // 2) content-type 判斷
-        const ct = (resp.headers && resp.headers.get('content-type')) ? resp.headers.get('content-type') : '';
-        const isJson = ct && ct.toLowerCase().includes('application/json');
-
-        if(isJson){
-          let data = null;
-          try{ data = await resp.clone().json(); }catch(_e){}
-          if(data){
-            // 常見欄位名（依實際可能變動，這裡盡量涵蓋）
-            const cand = [
-              data.Deeplink, data.DeepLink, data.DeepLinkUrl, data.DeepLinkURL,
-              data.URL, data.Url, data.url, data.link, data.Link,
-              data.result?.deeplink, data.result?.deepLink, data.result?.url, data.data?.url,
-              data.data?.deeplink, data.data?.DeepLinkUrl
-            ].find(v => typeof v === 'string' && v.trim());
-            if(cand) return cand.trim();
-          }
-        }
-
-        // 3) 當成文字解析
-        let txt = '';
-        try{ txt = await resp.clone().text(); }catch(_e){}
-        if(txt){
-          // 嘗試抓出 URL 或 deep link scheme
-          const m = txt.match(/([a-zA-Z][a-zA-Z0-9+\-.]*:\/\/[^\s"'<>\]]+)/);
-          if(m && m[1]) return m[1];
-        }
-        return '';
-      }
-
-      if(!res.ok){
-  // 500 常見：參數名稱不符（例如回 {"msg":"\"start_station\" is required"} ）
-  if(res.status === 500){
-    let payload = null;
-    try{ payload = await res.clone().json(); }catch(_e){}
-    const msg = payload?.error?.msg || payload?.msg || '';
-    // 若回覆說 start_station 必填：代表參數命名/內容不符，先切回官方站名版本
-    if(String(msg).includes('start_station') && url !== url1){
-      url = url1;
-      res = await fetch(url, { method:'GET', headers:{ 'Authorization': `Bearer ${token}`, 'Accept':'application/json' } });
+    } catch (err) {
+        console.error("訂票跳轉失敗:", err);
+        alert("無法開啟訂票連結，請確認是否已安裝『台鐵e訂通』App");
+    } finally {
+        _deeplinkInFlight = false;
     }
-
-    // 若官方站名版本仍 500：嘗試站碼版本（若可用）
-    if(!res.ok && urlId){
-      url = urlId;
-      res = await fetch(url, { method:'GET', headers:{ 'Authorization': `Bearer ${token}`, 'Accept':'application/json' } });
-    }
-
-    // 若帶車次仍 500：降級成「不帶車次」再試一次（至少能開到起訖站+日期的訂票流程）
-    if(!res.ok && url.startsWith('https://tdx.transportdata.tw/api/maas-tra/booking/deeplink/direct/tra?')){
-      const urlNoTrain = `https://tdx.transportdata.tw/api/maas-tra/booking/deeplink/direct/tra?start_station=${encodeURIComponent(sName)}&end_station=${encodeURIComponent(eName)}&train_date=${encodeURIComponent(dateStr)}`;
-      res = await fetch(urlNoTrain, { method:'GET', headers:{ 'Authorization': `Bearer ${token}`, 'Accept':'application/json' } });
-    }
-  }
-
-  if(!res.ok && !(res.status>=300 && res.status<400)){
-    throw new Error('HTTP ' + res.status + (res.status===401 ? '（未授權：token 無效或未帶入）' : ''));
-  }
 }
-
-function bindStationInput(inputId){
-  const input = document.getElementById(inputId);
-  if(!input) return;
-
-  let timer = null;
-  const scheduleFill = (value)=>{
-    if(timer) clearTimeout(timer);
-    timer = setTimeout(()=>{
-      // 用 rAF 讓渲染切到下一幀，減少手機卡頓
-      requestAnimationFrame(()=>fillStationDatalist(value));
-    }, 120);
-  };
-
-  input.addEventListener('focus', ()=>{
-    scheduleFill(input.value);
-  });
-  input.addEventListener('input', ()=>{
-    scheduleFill(input.value);
-  });
-  input.addEventListener('blur', ()=>{
-    const resolved = extractStationNameFromInput(input.value);
-    if(resolved) input.value = resolved;
-
-    if(timer) clearTimeout(timer);
-    // blur 就清空，避免長列表留在 DOM
-    clearStationDatalist();
-    _stationDatalistLastKey = null;
-  });
-}
-
-    }catch(err){
-      _deeplinkInFlight = false;
-      console.error(err);
-      alert('取得訂票深度連結失敗（可能是 token 或 API 欄位不同）。\n請開 console 看錯誤。');
-    }
-  }
-  _deeplinkInFlight = false;
 
 
   // ===== 取消尖峰時間特別顏色 =====
