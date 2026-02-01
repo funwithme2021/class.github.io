@@ -1,7 +1,3 @@
-/**
- * 台鐵真實時刻表數據驅動模組
- * 功能：自動處理身分驗證、車站對照、跨日期數據抓取及即時誤點資訊
- */
 
 const TDX_CONFIG = {
     clientId: 'r36144112-d7b2ebdd-ce4c-40c3',
@@ -35,7 +31,8 @@ async function getAccessToken() {
     }
 }
 
-// 2. 初始化車站對照表 (將 1000 轉換為 "臺北")
+
+// 2. 初始化車站資料 (stationMap)
 async function initStationMap() {
     if (!accessToken) await getAccessToken();
     try {
@@ -43,16 +40,16 @@ async function initStationMap() {
             headers: { 'Authorization': `Bearer ${accessToken}` }
         });
         const data = await res.json();
+
+        // ✅ 重建並寫回 window.stationMap，確保 HTML 端拿得到
+        window.stationMap = {};
         data.Stations.forEach(s => {
-            stationMap[s.StationID] = s.StationName.Zh_tw;
+            window.stationMap[s.StationID] = s.StationName.Zh_tw;
         });
     } catch (error) {
         console.error("車站資料抓取失敗:", error);
     }
 }
-
-// 3. 抓取指定日期的時刻表並轉換格式
-// ... 前面取得 Token 與 StationMap 的部分保持不變 ...
 
 async function fetchRealData(date) {
     if (!accessToken) await getAccessToken();
@@ -77,14 +74,18 @@ async function fetchRealData(date) {
             else if (typeName.includes("自強")) typeName = "自強號";
             else if (typeName.includes("區間快")) typeName = "區間快";
             else if (typeName.includes("區間")) typeName = "區間車";
+            else if (typeName.includes("太魯閣(太魯閣)")) typeName = "太魯閣";
+            else if (typeName.includes("莒光(無身障座位)")) typeName = "莒光號";
+            else if (typeName.includes("莒光(有身障座位)")) typeName = "莒光號";
 
             translated[trainNo] = {
                 '車種': typeName,
-                '車站時間': item.StopTimes.map(stop => [
-                    // 使用 stop.StationName.Zh_tw 或透過 ID 轉名
-                    stop.StationName.Zh_tw, 
-                    stop.ArrivalTime
-                ])
+                '車站時間': item.StopTimes.map(stop => ([
+  stop.StationName.Zh_tw,
+  stop.DepartureTime, // ✅ 開車時間（station timetable 用這個）
+  stop.ArrivalTime    // ✅ 到達時間（起迄查詢終點用這個）
+]))
+
             };
         });
 

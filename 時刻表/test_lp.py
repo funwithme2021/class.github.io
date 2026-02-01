@@ -1,72 +1,124 @@
-# file: single_machine_mip.py
-import random
-import gurobipy as gp
-from gurobipy import GRB
-import matplotlib.pyplot as plt
 
-random.seed(42)
+const TDX_CONFIG = {
+    clientId: 'r36144112-d7b2ebdd-ce4c-40c3',
+    clientSecret: '141d81d1-a450-4610-9309-412c8151cc3d'
+};
 
-num_job = 10
-J = list(range(num_job))
+// 全域變數，保持與原網頁邏輯銜接
+window.trainSchedule = {}; 
+let accessToken = "";
+let stationMap = {}; // ID 轉 中文名
+let liveDelayMap = {}; // 車次轉 誤點分鐘
 
-# data
-p = {i: random.randint(10, 21) for i in J}           # processing time
-d = {i: random.randint(35, 66) for i in J}           # due date
-r = {i: random.randint(0, 21)  for i in J}           # release date
-w = {i: random.randint(1, 6)   for i in J}           # tardiness weight
-u = {(i, j): random.randint(1, 16) for i in J for j in J if i != j}  # seq-dep setup
+// 1. 取得 TDX 存取權杖 (Access Token)
+async function getAccessToken() {
+    try {
+        const params = new URLSearchParams({
+            'grant_type': 'client_credentials',
+            'client_id': TDX_CONFIG.clientId,
+            'client_secret': TDX_CONFIG.clientSecret
+        });
+        const res = await fetch("https://tdx.transportdata.tw/auth/realms/TDXConnect/protocol/openid-connect/token", {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: params
+        });
+        const data = await res.json();
+        accessToken = data.access_token;
+        return accessToken;
+    } catch (error) {
+        console.error("無法取得 Token:", error);
+    }
+}
 
-# a safe Big-M (上界可用「最晚開始」近似）
-M = sum(p.values()) + max(d.values()) + 100
 
-m = gp.Model("SingleMachine")
+// 2. 初始化車站資料 (stationMap)
+async function initStationMap() {
+    if (!accessToken) await getAccessToken();
+    try {
+        const res = await fetch("https://tdx.transportdata.tw/api/basic/v3/Rail/TRA/Station?%24format=JSON", {
+            headers: { 'Authorization': `Bearer ${accessToken}` }
+        });
+        const data = await res.json();
 
-# variables (連續會比較快)
-S = m.addVars(J, lb=0.0, vtype=GRB.CONTINUOUS, name="S")   # start time
-C = m.addVars(J, lb=0.0, vtype=GRB.CONTINUOUS, name="C")   # completion
-T = m.addVars(J, lb=0.0, vtype=GRB.CONTINUOUS, name="T")   # tardiness
+        // ✅ 重建並寫回 window.stationMap，確保 HTML 端拿得到
+        window.stationMap = {};
+        data.Stations.forEach(s => {
+            window.stationMap[s.StationID] = s.StationName.Zh_tw;
+        });
+    } catch (error) {
+        console.error("車站資料抓取失敗:", error);
+    }
+}
 
-# 對每一對 i<j，建立一個二元變數 b[i,j] 表示「i 在 j 前面」
-pairs = [(i, j) for i in J for j in J if i < j]
-b = m.addVars(pairs, vtype=GRB.BINARY, name="b")           # precedence selector
+async function fetchRealData(date) {
+    if (!accessToken) await getAccessToken();
+    if (Object.keys(stationMap).length === 0) await initStationMap();
 
-# objective: minimize weighted tardiness
-m.setObjective(gp.quicksum(w[j] * T[j] for j in J), GRB.MINIMIZE)
+    try {
+        const url = `https://tdx.transportdata.tw/api/basic/v3/Rail/TRA/DailyTrainTimetable/TrainDate/${date}?%24format=JSON`;
+        const res = await fetch(url, { headers: { 'Authorization': `Bearer ${accessToken}` } });
+        const data = await res.json();
 
-# linking
-m.addConstrs((C[j] == S[j] + p[j] for j in J), name="link_C")
-m.addConstrs((T[j] >= C[j] - d[j] for j in J), name="tardiness")
-m.addConstrs((S[j] >= r[j] for j in J), name="release")
+        const translated = {};
 
-# disjunctive non-overlap for each pair (i<j)
-# 若 b[i,j]=1 代表 i 在 j 前： S[j] >= S[i] + p[i] + u[i,j]
-# 否則 j 在 i 前：          S[i] >= S[j] + p[j] + u[j,i]
-for i, j in pairs:
-    m.addConstr(S[j] >= S[i] + p[i] + u[i, j] - M * (1 - b[i, j]), name=f"i_before_j_{i}_{j}")
-    m.addConstr(S[i] >= S[j] + p[j] + u[j, i] - M * b[i, j],       name=f"j_before_i_{i}_{j}")
+        // 這裡對應你貼出的 TrainTimetables 結構
+        data.TrainTimetables.forEach(item => {
+            const info = item.TrainInfo;
+            const trainNo = info.TrainNo;
 
-# 可選：稍微收斂的參數
-m.Params.MIPGap = 0.0
-m.Params.TimeLimit = 30
+            // 處理車種名稱 (因為 API 會回傳長串如 "自強(3000)..."，我們簡化它)
+            let typeName = info.TrainTypeName.Zh_tw;
+            if (typeName.includes("自強(3000)")) typeName = "新自強";
+            else if (typeName.includes("普悠瑪")) typeName = "普悠瑪";
+            else if (typeName.includes("自強")) typeName = "自強號";
+            else if (typeName.includes("區間快")) typeName = "區間快";
+            else if (typeName.includes("區間")) typeName = "區間車";
+            else if (typeName.includes("太魯閣(太魯閣)")) typeName = "太魯閣";
+            else if (typeName.includes("莒光(無身障座位)")) typeName = "莒光號";
+            else if (typeName.includes("莒光(有身障座位)")) typeName = "莒光號";
 
-m.optimize()
+            translated[trainNo] = {
+                '車種': typeName,
+                '車站時間': item.StopTimes.map(stop => ([
+  stop.StationName.Zh_tw,
+  stop.DepartureTime, // ✅ 開車時間（station timetable 用這個）
+  stop.ArrivalTime    // ✅ 到達時間（起迄查詢終點用這個）
+]))
 
-print("\nBest objective:", m.objVal)
-for j in J:
-    print(f"Job {j:2d}: S={S[j].X:.1f}, C={C[j].X:.1f}, T={T[j].X:.1f}")
+            };
+        });
 
-# --- Gantt plot ---
-schedule = sorted([(j, S[j].X, p[j]) for j in J], key=lambda x: x[1])
-fig, ax = plt.subplots(figsize=(10, 2.8))
-for k, (job, start, dur) in enumerate(schedule):
-    ax.broken_barh([(star  t, dur)], (0.4*k, 0.35))
-    ax.text(start + dur/2, 0.4*k + 0.175, f'J{job}', ha='center', va='center')
-    # due date line
-    ax.plot([d[job], d[job]], [0.4*k-0.05, 0.4*k+0.4], linestyle='--')
+        window.trainSchedule = translated;
+        console.log("資料轉換成功！範例車次 111:", window.trainSchedule['111']);
+        
+    } catch (error) {
+        console.error("解析失敗:", error);
+    }
+}
 
-ax.set_xlabel("Time")
-ax.set_yticks([0.4*k+0.175 for k in range(len(schedule))])
-ax.set_yticklabels([f'Job {j}' for j,_,_ in schedule])
-ax.set_title("Single Machine Schedule (seq-dep setup)")
-plt.tight_layout()
-plt.show()
+// 4. 更新即時誤點資訊
+async function updateLiveDelay() {
+    if (!accessToken) await getAccessToken();
+    try {
+        const res = await fetch("https://tdx.transportdata.tw/api/basic/v3/Rail/TRA/TrainLiveBoard?%24format=JSON", {
+            headers: { 'Authorization': `Bearer ${accessToken}` }
+        });
+        const data = await res.json();
+        liveDelayMap = {};
+        data.TrainLiveBoards.forEach(b => {
+            liveDelayMap[b.TrainNo] = b.DelayTime;
+        });
+        console.log("即時誤點資訊已同步");
+    } catch (error) {
+        console.error("即時資訊抓取失敗:", error);
+    }
+}
+
+// 輔助函式：取得特定車次的誤點文字
+function getDelayStatus(trainNo) {
+    const delay = liveDelayMap[trainNo];
+    if (delay === undefined) return "";
+    if (delay === 0) return '<span style="color:green"> (準點)</span>';
+    return `<span style="color:red"> (晚 ${delay} 分)</span>`;
+}
