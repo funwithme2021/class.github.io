@@ -1021,9 +1021,12 @@ async function openTraBookingDeepLink(trainNo, startStationName, endStationName,
 
       let url = url1;
 
+      
+      // 使用 manual redirect，避免被 fetch 跟到自訂 scheme（deep link）而抓不到 Location
       let res = await fetch(url, {
         method: 'GET',
-        headers: { 'Authorization': `Bearer ${token}`, 'Accept': 'application/json' }
+        redirect: 'manual',
+        headers: { 'Authorization': `Bearer ${token}`, 'Accept': '*/*' }
       });
 
       // token 失效時自動刷新一次再打
@@ -1031,8 +1034,45 @@ async function openTraBookingDeepLink(trainNo, startStationName, endStationName,
         const token2 = await getTDXAccessToken(true);
         res = await fetch(url, {
           method: 'GET',
-          headers: { 'Authorization': `Bearer ${token2}`, 'Accept': 'application/json' }
+          redirect: 'manual',
+          headers: { 'Authorization': `Bearer ${token2}`, 'Accept': '*/*' }
         });
+      }
+
+      // Helper：從 response 取出 deeplink（支援 redirect / json / text）
+      async function _extractDeepLink(resp){
+        // 1) redirect：看 Location
+        const loc = resp.headers ? (resp.headers.get('location') || resp.headers.get('Location')) : null;
+        if(loc && String(loc).trim()) return String(loc).trim();
+
+        // 2) content-type 判斷
+        const ct = (resp.headers && resp.headers.get('content-type')) ? resp.headers.get('content-type') : '';
+        const isJson = ct && ct.toLowerCase().includes('application/json');
+
+        if(isJson){
+          let data = null;
+          try{ data = await resp.clone().json(); }catch(_e){}
+          if(data){
+            // 常見欄位名（依實際可能變動，這裡盡量涵蓋）
+            const cand = [
+              data.Deeplink, data.DeepLink, data.DeepLinkUrl, data.DeepLinkURL,
+              data.URL, data.Url, data.url, data.link, data.Link,
+              data.result?.deeplink, data.result?.deepLink, data.result?.url, data.data?.url,
+              data.data?.deeplink, data.data?.DeepLinkUrl
+            ].find(v => typeof v === 'string' && v.trim());
+            if(cand) return cand.trim();
+          }
+        }
+
+        // 3) 當成文字解析
+        let txt = '';
+        try{ txt = await resp.clone().text(); }catch(_e){}
+        if(txt){
+          // 嘗試抓出 URL 或 deep link scheme
+          const m = txt.match(/([a-zA-Z][a-zA-Z0-9+\-.]*:\/\/[^\s"'<>\]]+)/);
+          if(m && m[1]) return m[1];
+        }
+        return '';
       }
 
       if(!res.ok){
@@ -1060,23 +1100,40 @@ async function openTraBookingDeepLink(trainNo, startStationName, endStationName,
     }
   }
 
-  if(!res.ok){
+  if(!res.ok && !(res.status>=300 && res.status<400)){
     throw new Error('HTTP ' + res.status + (res.status===401 ? '（未授權：token 無效或未帶入）' : ''));
   }
 }
 
-const data = await res.json();
+function bindStationInput(inputId){
+  const input = document.getElementById(inputId);
+  if(!input) return;
 
-      // 期待回傳中有 Deeplink / DeepLinkUrl / Url 之類欄位（以實際 swagger 為準）
-      const link = data?.Deeplink || data?.DeepLink || data?.DeepLinkUrl || data?.URL || data?.Url || data?.url;
-      if(!link){
-        console.log('Deeplink response:', data);
-        alert('已取得回應，但找不到深度連結欄位（請看 console）。');
-        return;
-      }
+  let timer = null;
+  const scheduleFill = (value)=>{
+    if(timer) clearTimeout(timer);
+    timer = setTimeout(()=>{
+      // 用 rAF 讓渲染切到下一幀，減少手機卡頓
+      requestAnimationFrame(()=>fillStationDatalist(value));
+    }, 120);
+  };
 
-      // 嘗試喚醒 APP
-      window.location.href = link;
+  input.addEventListener('focus', ()=>{
+    scheduleFill(input.value);
+  });
+  input.addEventListener('input', ()=>{
+    scheduleFill(input.value);
+  });
+  input.addEventListener('blur', ()=>{
+    const resolved = extractStationNameFromInput(input.value);
+    if(resolved) input.value = resolved;
+
+    if(timer) clearTimeout(timer);
+    // blur 就清空，避免長列表留在 DOM
+    clearStationDatalist();
+    _stationDatalistLastKey = null;
+  });
+}
 
     }catch(err){
       console.error(err);
