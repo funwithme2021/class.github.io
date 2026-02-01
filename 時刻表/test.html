@@ -961,90 +961,90 @@ function _getDeeplinkCooldownMs(resp){
   return 12000; // default 12s
 }
 
-async function getTDXAccessToken(force=false){
-  const now = Date.now();
-  if(!force && _tdxTokenCache.token && now < _tdxTokenCache.exp - 30_000){
+// 修改 test.html 內的 getTDXAccessToken，確保它能抓到 token
+async function getTDXAccessToken(force = false) {
+  // 檢查是否已有快取且未過期
+  if (!force && _tdxTokenCache.token && Date.now() < _tdxTokenCache.exp - 30000) {
     return _tdxTokenCache.token;
   }
+
   const tokenUrl = 'https://tdx.transportdata.tw/auth/realms/TDXConnect/protocol/openid-connect/token';
   const body = new URLSearchParams({
     grant_type: 'client_credentials',
-    client_id: TDX_CONFIG.clientId,
-    client_secret: TDX_CONFIG.clientSecret
+    client_id: TDX_CONFIG.clientId, // 使用 train.real-schedule.js 定義的 ID
+    client_secret: TDX_CONFIG.clientSecret // 使用密鑰
   });
 
-  let res;
-  try{
-    res = await fetch(tokenUrl, {
+  try {
+    const res = await fetch(tokenUrl, {
       method: 'POST',
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      body
+      body: body
     });
-  }catch(err){
-    // 多數情況是瀏覽器 CORS / Mixed content / 網路阻擋
-    console.error(err);
-    throw new Error('無法連線到 TDX Token 端點（可能是瀏覽器 CORS 限制或網路阻擋）。');
-  }
 
-  if(!res.ok){
-    const t = await res.text().catch(()=> '');
-    console.error('TDX token error', res.status, t);
-    throw new Error('TDX Token 取得失敗（HTTP ' + res.status + '）。');
-  }
-  const data = await res.json();
-  const token = data.access_token || '';
-  const expiresIn = Number(data.expires_in || 0);
-  if(!token) throw new Error('TDX Token 回傳格式異常（沒有 access_token）。');
+    if (!res.ok) throw new Error("認證失敗，請檢查 Key 是否正確");
 
-  _tdxTokenCache = {
-    token,
-    exp: Date.now() + Math.max(60, expiresIn) * 1000
-  };
-  return token;
+    const data = await res.json();
+    _tdxTokenCache = {
+      token: data.access_token,
+      exp: Date.now() + (data.expires_in * 1000)
+    };
+    return data.access_token;
+  } catch (err) {
+    console.error("TDX Auth Error:", err);
+    return "";
+  }
 }
 
+// 修改跳轉函式：直接導向 API URL 觸發瀏覽器跳轉
 async function openTraBookingDeepLink(trainNo, startStationName, endStationName, dateStr) {
-    if (_deeplinkInFlight) return;
-    _deeplinkInFlight = true;
-
-    try {
-        const token = await getTDXAccessToken();
-        const sName = normTW(startStationName);
-        const eName = normTW(endStationName);
-
-        // 建立請求連結
-        const url = `https://tdx.transportdata.tw/api/maas-tra/booking/deeplink/direct/tra?start_station=${encodeURIComponent(sName)}&end_station=${encodeURIComponent(eName)}&train_date=${encodeURIComponent(dateStr)}&train_number=${encodeURIComponent(String(trainNo))}`;
-
-        // 1. 先用 fetch 取得跳轉後的真正連結 (Deeplink)
-        const res = await fetch(url, {
-            method: 'GET',
-            headers: { 'Authorization': `Bearer ${token}` }
-        });
-
-        if (res.ok) {
-            const data = await res.json();
-            // TDX API 通常會回傳一個包含 URL 的 JSON 或直接跳轉
-            const deepLinkUrl = data.DeepLinkUrl || data.url || data.Deeplink;
-            
-            if (deepLinkUrl) {
-                // 2. 真正觸發手機 App 的動作
-                window.location.href = deepLinkUrl;
-            } else {
-                // 如果 API 是直接做 302 跳轉，上面的 fetch 可能會拿不到 JSON
-                // 這種情況最簡單的方法是直接在新視窗打開 API URL，讓瀏覽器處理跳轉
-                window.open(url + `&access_token=${token}`, '_blank');
-            }
-        } else if (res.status === 429) {
-            alert("請求太頻繁，請稍候再試");
-        }
-    } catch (err) {
-        console.error("訂票跳轉失敗:", err);
-        alert("無法開啟訂票連結，請確認是否已安裝『台鐵e訂通』App");
-    } finally {
-        _deeplinkInFlight = false;
+  try {
+    // 1. 確保拿到最新的 Token (直接調用 train.real-schedule.js 裡的變數或函式)
+    const token = await getAccessToken(); 
+    if (!token) {
+      alert("認證授權失敗，請檢查 Key 設定");
+      return;
     }
+
+    // 2. 格式化參數：站名必須轉為「臺」而非「台」
+    const sName = startStationName.replace(/台/g, '臺');
+    const eName = endStationName.replace(/台/g, '臺');
+    
+    const apiUrl = `https://tdx.transportdata.tw/api/maas-tra/booking/deeplink/direct/tra?start_station=${encodeURIComponent(sName)}&end_station=${encodeURIComponent(eName)}&train_date=${encodeURIComponent(dateStr)}&train_number=${encodeURIComponent(String(trainNo))}`;
+
+    // 3. 使用 Header 帶入 Token 進行請求
+    const response = await fetch(apiUrl, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Accept': 'application/json'
+      }
+    });
+
+    if (response.status === 401 || response.status === 403) {
+      alert("存取被拒絕 (Access key not found)，請檢查 TDX Key 是否擁有 Maas API 權限");
+      return;
+    }
+
+    // 在 test.html 約 1030 行附近的邏輯修改
+const result = await response.json();
+
+// 修正：根據你的 Console 截圖，連結是在 result.data.deeplink
+const jumpUrl = (result.data && result.data.deeplink) || result.DeepLinkUrl || result.url;
+
+if (jumpUrl) {
+    console.log("正在跳轉至：", jumpUrl);
+    window.location.href = jumpUrl; // 執行跳轉
+} else {
+    console.error("API 結構不符，請檢查：", result);
+    alert("取得連結失敗，格式不正確");
 }
 
+  } catch (err) {
+    console.error("訂票流程出錯:", err);
+    alert("系統錯誤，請查看主控台");
+  }
+}
 
   // ===== 取消尖峰時間特別顏色 =====
   function highlightPeak(t){ return t || '--'; }

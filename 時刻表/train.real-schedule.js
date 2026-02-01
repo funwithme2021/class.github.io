@@ -13,21 +13,29 @@ let liveDelayMap = {}; // 車次轉 誤點分鐘
 // 1. 取得 TDX 存取權杖 (Access Token)
 async function getAccessToken() {
     try {
-        const params = new URLSearchParams({
-            'grant_type': 'client_credentials',
-            'client_id': TDX_CONFIG.clientId,
-            'client_secret': TDX_CONFIG.clientSecret
-        });
+        const params = new URLSearchParams();
+        params.append('grant_type', 'client_credentials');
+        params.append('client_id', TDX_CONFIG.clientId);
+        params.append('client_secret', TDX_CONFIG.clientSecret);
+
         const res = await fetch("https://tdx.transportdata.tw/auth/realms/TDXConnect/protocol/openid-connect/token", {
             method: 'POST',
             headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
             body: params
         });
+
+        if (!res.ok) {
+            const errorText = await res.text();
+            throw new Error(`Token 取得失敗: ${res.status} ${errorText}`);
+        }
+
         const data = await res.json();
         accessToken = data.access_token;
+        console.log("Token 取得成功");
         return accessToken;
     } catch (error) {
-        console.error("無法取得 Token:", error);
+        console.error("Critical Error (getAccessToken):", error);
+        // 如果是在瀏覽器環境，這通常是 Client Secret 錯誤或 CORS 問題
     }
 }
 
