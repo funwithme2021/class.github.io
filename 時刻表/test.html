@@ -967,7 +967,7 @@ function statusBadge(label){
   }
 
     // ===== 剩餘座位（OD） =====
-  let currentSeatMap = {}; // trainNo -> {standard,business}
+  let currentSeatMap = {}; // key(trainNo|originDate) -> {standard,business}
 
 // ===== 起訖站直達 =====
   let currentStartEndList = [];
@@ -1016,7 +1016,17 @@ async function refreshSeatForCurrentOD(st, ed){
     if(!dateStr || !oId || !dId) return;
 
     // 抓取座位後更新全域變數並重新渲染
-    currentSeatMap = await window.fetchSeatStatusOD(dateStr, oId, dId);
+    {
+        // 同時抓「查詢日」與「前一日」的座位資訊，並用「trainNo|發車日」做 key，避免跨日車抓錯日期
+        const prevDateStr = addDays(dateStr, -1);
+        const [mToday, mPrev] = await Promise.all([
+          window.fetchSeatStatusOD(dateStr, oId, dId).catch(()=>({})),
+          window.fetchSeatStatusOD(prevDateStr, oId, dId).catch(()=>({}))
+        ]);
+        currentSeatMap = {};
+        Object.keys(mPrev||{}).forEach(k=>{ currentSeatMap[`${String(k)}|${prevDateStr}`] = mPrev[k]; });
+        Object.keys(mToday||{}).forEach(k=>{ currentSeatMap[`${String(k)}|${dateStr}`] = mToday[k]; });
+      }
     renderStartEndTable(); 
 }
 
@@ -1110,8 +1120,14 @@ async function refreshSeatForCurrentOD(st, ed){
     if(!dateStr || !o || !d) return;
     if(typeof window.fetchSeatStatusOD !== 'function') return;
 
-    const m = await window.fetchSeatStatusOD(dateStr, o, d);
-    currentSeatMap = m || {};
+    const prevDateStr = addDays(dateStr, -1);
+    const [mToday, mPrev] = await Promise.all([
+      window.fetchSeatStatusOD(dateStr, o, d).catch(()=>({})),
+      window.fetchSeatStatusOD(prevDateStr, o, d).catch(()=>({}))
+    ]);
+    currentSeatMap = {};
+    Object.keys(mPrev||{}).forEach(k=>{ currentSeatMap[`${String(k)}|${prevDateStr}`] = mPrev[k]; });
+    Object.keys(mToday||{}).forEach(k=>{ currentSeatMap[`${String(k)}|${dateStr}`] = mToday[k]; });
     renderStartEndTable();
   }catch(e){
     console.warn("refreshSeatForCurrentOD failed:", e);
@@ -1119,8 +1135,9 @@ async function refreshSeatForCurrentOD(st, ed){
 }
 
 // 新增圖示轉換函數
-function getSeatIcon(trainNo, type) {
-  const info = currentSeatMap?.[String(trainNo)];
+function getSeatIcon(trainNo, type, originDateStr) {
+  const key = `${String(trainNo)}|${originDateStr || currentQueryDateStr || ''}`;
+  const info = currentSeatMap?.[key];
   const status = info ? info[type] : '--';
   
   switch(status) {
@@ -1164,7 +1181,7 @@ function renderStartEndTable() {
                         (row.originDate === todayStr && depMin !== null && (depMin - nowMin) > 10);
 
         const ticketBtnHtml = canBook 
-            ? `<button class="ticket-btn" onclick="event.stopPropagation(); openTHSRBooking('${row.trainNo}')">🎟️</button>`
+            ? `<button class="ticket-btn" onclick="event.stopPropagation(); openTHSRBooking('${row.trainNo}')">🎫</button>`
             : `<span style="color:var(--text-light); font-size: 12px;">停止預訂</span>`;
 
         const stopHtml = (row.stopBetween <= 0)
@@ -1177,8 +1194,8 @@ function renderStartEndTable() {
         let seatCells = '';
         if (!isPastOrToday) {
             seatCells = `
-                <td style="text-align:center;">${getSeatIcon(row.trainNo, 'standard')}</td>
-                <td style="text-align:center;">${getSeatIcon(row.trainNo, 'business')}</td>
+                <td style="text-align:center;">${getSeatIcon(row.trainNo, 'standard', row.originDate)}</td>
+                <td style="text-align:center;">${getSeatIcon(row.trainNo, 'business', row.originDate)}</td>
             `;
         }
 
@@ -1417,6 +1434,8 @@ function renderStartEndTable() {
         ${first} → ${last} <span style="margin:0 4px; color:var(--text-light);">|</span> 
         狀態：<span class="status-text-${statusLabel}">${statusLabel}</span> <span style="margin:0 4px; color:var(--text-light);">|</span> 
         <span style="color:var(--text-muted); font-weight:500;">發車日：${originDateStr}</span>
+        <span style="margin:0 4px; color:var(--text-light);">|</span></br>
+        <span style="color:var(--text-muted); font-size:0.85rem;">狀態依預定時刻與目前時間推估，非即時列車動態</span>
     `;
 
     modalCtx = { trainNo, originDate: originDateStr };
