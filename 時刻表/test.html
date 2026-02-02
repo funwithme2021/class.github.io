@@ -977,34 +977,33 @@ window.fetchCollegeDiscount = async function() {
 };
 
 async function runStartEndSearch() {
-    const st = extractStationNameFromInput(document.getElementById('startStation').value);
-    const ed = extractStationNameFromInput(document.getElementById('endStation').value);
+    const stInput = document.getElementById('startStation').value;
+    const edInput = document.getElementById('endStation').value;
+    const st = extractStationNameFromInput(stInput);
+    const ed = extractStationNameFromInput(edInput);
+    
+    // 更新顯示的站名
+    document.getElementById('startStation').value = st;
+    document.getElementById('endStation').value = ed;
+
     const queryDate = document.getElementById('mainQueryDate').value;
     const todayStr = fmtDate(new Date());
 
     if(!st || !ed) return;
 
-    // --- 同步隱藏表格標題 ---
+    // 同步隱藏標題
     const isPastOrToday = queryDate <= todayStr;
-    const seatHeaders = document.querySelectorAll('.seat-col-header');
-    seatHeaders.forEach(th => {
+    document.querySelectorAll('.seat-col-header').forEach(th => {
         th.style.display = isPastOrToday ? 'none' : '';
     });
 
     lastStartEndQuery = { st, ed };
-    const h = loadHistory().filter(x=>!(x.s===st && x.e===ed));
-    h.unshift({s:st, e:ed});
-    saveHistory(h);
-    renderHistory();
-
     buildDirectList(st, ed);
-    
-    // 只有未來日期才需要抓取座位，並確保執行渲染
+    renderStartEndTable();
+
+    // 只有未來日期才抓取座位
     if (!isPastOrToday) {
-        await refreshSeatForCurrentOD(st, ed); 
-    } else {
-        currentSeatMap = {}; // 清空座位紀錄，防止殘留
-        renderStartEndTable();
+        await refreshSeatForCurrentOD(st, ed);
     }
 }
 
@@ -1154,12 +1153,13 @@ function getSeatIcon(trainNo, type, originDateStr) {
 
 function renderStartEndTable() {
     const tbody = document.querySelector('#scheduleTableByStation tbody');
+    if (!tbody) return;
     tbody.innerHTML = '';
     
     const queryDate = document.getElementById('mainQueryDate').value;
     const todayStr = fmtDate(new Date());
     const isPastOrToday = queryDate <= todayStr;
-    const colSpanNum = isPastOrToday ? 8 : 10; // 動態調整跨欄數
+    const colSpanNum = isPastOrToday ? 8 : 10;
 
     if (!currentStartEndList.length) {
         const tr = document.createElement('tr');
@@ -1176,7 +1176,6 @@ function renderStartEndTable() {
         const tr = document.createElement('tr');
         const depMin = parseTime(row.dep);
 
-        // 訂票按鈕邏輯
         const canBook = (row.originDate > todayStr) || 
                         (row.originDate === todayStr && depMin !== null && (depMin - nowMin) > 10);
 
@@ -1190,7 +1189,6 @@ function renderStartEndTable() {
                  ${row.stopBetween}站 <span class="toggle-arrow">${expandedStops.has(String(row.trainNo)) ? '▲' : '▼'}</span>
                </span>`;
 
-        // 根據日期決定是否加入座位欄位
         let seatCells = '';
         if (!isPastOrToday) {
             seatCells = `
@@ -1232,7 +1230,7 @@ function renderStartEndTable() {
             </td>`;
             tbody.appendChild(tr2);
         }
-    }); // 確保 forEach 正確閉合
+    });
 
     // 重新綁定事件
     tbody.querySelectorAll('.stop-toggle').forEach(el => {
