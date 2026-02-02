@@ -1,3 +1,4 @@
+
 const TDX_CONFIG = {
     clientId: 'r36144112-d7b2ebdd-ce4c-40c3',
     clientSecret: '141d81d1-a450-4610-9309-412c8151cc3d'
@@ -84,5 +85,6 @@ window.fetchSeatStatusOD = async function(date, originID, destinationID) {
         return {};
     }
 };
+
 
 async function updateLiveDelay() { return Promise.resolve(); }
