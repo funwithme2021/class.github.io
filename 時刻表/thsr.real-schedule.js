@@ -46,14 +46,13 @@ async function initStationMap() {
     }
 }
 
-// 3. 抓取時刻表 (V2 正確路徑：DailyTrainTimetable/TrainDate/{date})
+// 3. 抓取時刻表 (修正跨日資料處理邏輯)
 async function fetchRealData(date) {
     if (!accessToken) await getAccessToken();
     if (Object.keys(window.stationMap || {}).length === 0) await initStationMap();
 
     try {
-        // ✅ 修正：V2 高鐵每日時刻表端點應為 DailyTimetable
-const url = `https://tdx.transportdata.tw/api/basic/v2/Rail/THSR/DailyTimetable/TrainDate/${date}?$format=JSON`;
+        const url = `https://tdx.transportdata.tw/api/basic/v2/Rail/THSR/DailyTimetable/TrainDate/${date}?$format=JSON`;
         const res = await fetch(url, { headers: { 'Authorization': `Bearer ${accessToken}` } });
         
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
@@ -72,34 +71,35 @@ const url = `https://tdx.transportdata.tw/api/basic/v2/Rail/THSR/DailyTimetable/
             };
         });
 
+        // 將結果存入全域，供 test.html 使用
         window.trainSchedule = translated;
-        console.log("THSR 時刻表轉換成功！車次總數:", Object.keys(window.trainSchedule).length);
+        console.log(`THSR ${date} 時刻表轉換成功！車次總數:`, Object.keys(translated).length);
+        return translated;
     } catch (error) {
         console.error("時刻表解析失敗:", error);
+        return {};
     }
 }
 
-/**
- * 抓取指定日期、起訖站的剩餘座位狀態 (V2)
- * @param {string} date - 格式 YYYY-MM-DD
- * @param {string} originID - 起點車站 ID
- * @param {string} destinationID - 終點車站 ID
- */
+// 4. 抓取剩餘座位 (加入參數安全性檢查，防止 400 錯誤)
 window.fetchSeatStatusOD = async function(date, originID, destinationID) {
-    // 確保參數存在才發送請求
-    if (!date || !originID || !destinationID) return {};
+    // 關鍵修正：確保所有參數都存在且不是空字串，避免產生無效網址導致 400 錯誤
+    if (!date || !originID || !destinationID || originID === "" || destinationID === "") {
+        return {};
+    }
     
     if (!accessToken) await getAccessToken();
     const url = `https://tdx.transportdata.tw/api/basic/v2/Rail/THSR/AvailableSeatStatus/Train/OD/${originID}/to/${destinationID}/TrainDate/${date}?$format=JSON`;
     
     try {
         const res = await fetch(url, { headers: { 'Authorization': `Bearer ${accessToken}` } });
-        if (!res.ok) return {}; // 若 API 回傳 400/500 直接跳出
+        if (!res.ok) return {}; 
         
         const data = await res.json();
         const results = {};
         const items = data.AvailableSeats || [];
         items.forEach(item => {
+            // 回傳原始代碼 O/L/X，由前端渲染圖示
             results[String(item.TrainNo)] = {
                 standard: item.StandardSeatStatus,
                 business: item.BusinessSeatStatus
@@ -112,16 +112,8 @@ window.fetchSeatStatusOD = async function(date, originID, destinationID) {
     }
 };
 
-// 讓此函數回傳原始代碼，不做文字轉換
-function translateSeatStatus(status) {
-    return status || '--';
-}
-
-
-
-// 4. 移除誤點資料抓取邏輯
+// 5. 移除不再需要的誤點與優惠邏輯
 async function updateLiveDelay() {
-    // 根據用戶需求，不再請求即時資訊，直接回傳空值或維持現狀
-    liveDelayMap = {}; 
     return Promise.resolve();
+}
 }
