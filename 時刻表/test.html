@@ -606,7 +606,20 @@
   // ===== 台/臺 正規化 =====
   function normTW(s){ return String(s||'').trim().replace(/台/g,'臺'); }
   function sameStation(a,b){ return normTW(a) === normTW(b); }
-  function normLoose(s){
+    // ===== 高鐵固定站序（用於判斷北上/南下）=====
+  const THSR_STATION_ORDER = ['南港','臺北','板橋','桃園','新竹','苗栗','臺中','彰化','雲林','嘉義','臺南','左營'];
+  function normTHSRStationName(s){
+    const n = normTW(s||'');
+    if(n==='高雄' || n==='新左營') return '左營';
+    return n;
+  }
+  function thsrStationIndex(name){
+    const n = normTHSRStationName(name);
+    const i = THSR_STATION_ORDER.indexOf(n);
+    return i; // -1 if unknown
+  }
+
+function normLoose(s){
     const t = String(s||'').trim();
     return { raw:t, asTai:t.replace(/台/g,'臺'), asTai2:t.replace(/臺/g,'台') };
   }
@@ -1249,7 +1262,11 @@ function renderStartEndTable() {
         // 方向：用「區間」判斷（首站/末站）
         const first = stops[0]?.[0] || '';
         const last  = stops.slice(-1)[0]?.[0] || '';
-        const isSouth = (first && last) ? (first.localeCompare(last,'zh-Hant') < 0) : true; // fallback
+        // 以高鐵固定站序判斷：站序由北到南（南港→左營）
+        const fi = thsrStationIndex(first);
+        const li = thsrStationIndex(last);
+        // fallback：若遇到未知站名，退回以字串比較（維持原本容錯）
+        const isSouth = (fi>=0 && li>=0) ? (fi < li) : ((first && last) ? (first.localeCompare(last,'zh-Hant') < 0) : true);
         if(dir==='south' && !isSouth) return;
         if(dir==='north' && isSouth) return;
 
@@ -1397,9 +1414,9 @@ function renderStartEndTable() {
     document.getElementById('modalTitleMain').innerHTML = `${trainNo} <span style="font-weight:400; color:var(--text-muted); margin:0 4px;">|</span> 高鐵`;
     
     document.getElementById('modalTitleSub').innerHTML = `
-        <span style="color:var(--text-muted); font-weight:500;">發車日：${originDateStr}</span> <span style="margin:0 4px; color:var(--text-light);">|</span> 
         ${first} → ${last} <span style="margin:0 4px; color:var(--text-light);">|</span> 
-        狀態：<span class="status-text-${statusLabel}">${statusLabel}</span>
+        狀態：<span class="status-text-${statusLabel}">${statusLabel}</span> <span style="margin:0 4px; color:var(--text-light);">|</span> 
+        <span style="color:var(--text-muted); font-weight:500;">發車日：${originDateStr}</span>
     `;
 
     modalCtx = { trainNo, originDate: originDateStr };
