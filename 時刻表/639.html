@@ -391,14 +391,14 @@
         let prizePool = totalSales * GAME.payoutRate;
         
         let mockWinners = {
-            '頭獎': Math.floor(Math.random() * 1.5) === 0 ? 1 : 0, 
-            '二獎': Math.round(GAME.totalTickets / (19575738/5)),
-            '三獎': Math.round(GAME.totalTickets / (19575738/33)),
-            '四獎': Math.round(GAME.totalTickets / (19575738/165)),
-            '五獎': Math.round(GAME.totalTickets / (19575738/1122)),
-            '六獎': Math.round(GAME.totalTickets / (19575738/3300)),
-            '七獎': Math.round(GAME.totalTickets / (19575738/22440)),
-            '八獎': Math.round(GAME.totalTickets / (19575738/24750)),
+            '頭獎': Math.floor(Math.random() * 2), // 0或1人中
+            '二獎': Math.round(GAME.totalTickets / (19575738/10)),
+            '三獎': Math.round(GAME.totalTickets / (19575738/30)),
+            '四獎': Math.round(GAME.totalTickets / (19575738/153)),
+            '五獎': Math.round(GAME.totalTickets / (19575738/1124)),
+            '六獎': Math.round(GAME.totalTickets / (19575738/3302)),
+            '七獎': Math.round(GAME.totalTickets / (19575738/22442)),
+            '八獎': Math.round(GAME.totalTickets / (19575738/24754)),
             '普獎': Math.round(GAME.totalTickets / (19575738/151470))
         };
 
