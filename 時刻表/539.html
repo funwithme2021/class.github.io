@@ -1,399 +1,553 @@
 <!DOCTYPE html>
 <html lang="zh-TW">
 <head>
-  <meta charset="UTF-8">
-  <title>539 模擬 - 分成兩部分</title>
-  <style>
-    body {
-      margin: 0; padding: 0; font-family: sans-serif; background: #f3f3f3;
-    }
-    header {
-      background: #5F9EA0; color: #fff; padding: 10px 20px;
-      display: flex; justify-content: space-between; align-items: center;
-    }
-    header h1 { margin: 0; font-size: 1.2rem; }
-    .nav-buttons {
-      display: flex; gap: 10px;
-    }
-    .nav-buttons button {
-      padding: 6px 12px; border: none; cursor: pointer; background: #fff; color: #333;
-      border-radius: 4px; transition: 0.3s;
-    }
-    .nav-buttons button:hover {
-      background: #eee;
-    }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LottoX 極致開獎模擬系統</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=Noto+Sans+TC:wght@400;700&display=swap');
 
-    main {
-      margin: 20px; background: #fff; border-radius: 8px; padding: 20px;
-      box-shadow: 0 0 10px rgba(0,0,0,0.1);
-    }
-    .section { display: none; }
-    .section.active { display: block; }
+        :root {
+            --bg-dark: #0b0f19;
+            --bg-card: rgba(26, 32, 44, 0.7);
+            --primary: #3b82f6;
+            --primary-glow: rgba(59, 130, 246, 0.5);
+            --accent: #f59e0b;
+            --accent-glow: rgba(245, 158, 11, 0.4);
+            --text-main: #f1f5f9;
+            --text-muted: #94a3b8;
+            --border: rgba(255, 255, 255, 0.1);
+            --success: #10b981;
+        }
 
-    .form-group { margin-bottom: 10px; }
-    label {
-      display: inline-block; width: 120px; font-weight: bold;
-    }
-    input[type="text"], input[type="number"] {
-      padding: 4px 8px; width: 120px; margin-right: 5px;
-    }
-    button {
-      padding: 6px 12px; cursor: pointer; border-radius: 4px; border: none;
-      background: #5F9EA0; color: #fff; transition: 0.3s;
-    }
-    button:hover { background: #53868B; }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', 'Noto Sans TC', sans-serif; }
+        
+        body { 
+            background: radial-gradient(circle at top, #1e293b 0%, var(--bg-dark) 100%);
+            color: var(--text-main); 
+            line-height: 1.6; 
+            min-height: 100vh;
+            overflow-y: scroll;
+        }
 
-    table {
-      border-collapse: collapse; width: 100%; margin-top: 20px;
-    }
-    table th, table td {
-      border: 1px solid #ccc; padding: 6px; text-align: center;
-    }
-    table th { background: #f0f0f0; }
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: rgba(0,0,0,0.2); }
+        ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
 
-    .info-box {
-      margin: 10px 0; padding: 10px; background: #fafafa;
-      border: 1px solid #ddd; border-radius: 4px;
-    }
-    .info-box p { margin: 5px 0; }
+        nav { 
+            background: rgba(11, 15, 25, 0.8); 
+            backdrop-filter: blur(12px); 
+            -webkit-backdrop-filter: blur(12px);
+            padding: 1rem 5%; 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            border-bottom: 1px solid var(--border); 
+            position: sticky; 
+            top: 0; 
+            z-index: 100; 
+        }
+        .logo { font-size: 1.6rem; font-weight: 800; color: #fff; letter-spacing: 1px; }
+        .logo span { color: var(--accent); text-shadow: 0 0 10px var(--accent-glow); }
+        .nav-links button { 
+            background: transparent; border: none; color: var(--text-muted); 
+            font-size: 1rem; margin-left: 1rem; cursor: pointer; transition: 0.3s; 
+            font-weight: 600; padding: 0.6rem 1.2rem; border-radius: 8px; 
+        }
+        .nav-links button.active, .nav-links button:hover { 
+            color: #fff; background: rgba(255, 255, 255, 0.08); 
+        }
 
-    .btn-group { margin-top: 20px; display: flex; gap: 10px; }
-  </style>
+        .container { max-width: 1100px; margin: 2rem auto; padding: 0 1rem; }
+        .page { display: none; animation: fadeUp 0.4s ease forwards; }
+        .page.active { display: block; }
+        @keyframes fadeUp { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
+
+        .card {
+            background: var(--bg-card);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+
+        /* 儀表板 */
+        .dashboard { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1.5rem; margin-bottom: 2rem; }
+        .stat-card { padding: 1.5rem; text-align: center; border-radius: 16px; border: 1px solid var(--border); background: linear-gradient(145deg, rgba(255,255,255,0.03) 0%, rgba(255,255,255,0) 100%); }
+        .stat-card h3 { color: var(--text-muted); font-size: 0.85rem; text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 0.8rem; }
+        .stat-card .value { font-size: 2rem; font-weight: 800; color: #fff; }
+        .stat-card .value.jackpot { color: var(--accent); text-shadow: 0 0 15px var(--accent-glow); }
+
+        /* 開獎區塊 */
+        .draw-area { padding: 4rem 2rem; text-align: center; }
+        .balls-container { display: flex; justify-content: center; gap: 1.2rem; flex-wrap: wrap; margin-bottom: 2.5rem; }
+        .ball-slot { width: 90px; height: 140px; display: flex; flex-direction: column; align-items: center; justify-content: space-between; background: rgba(0,0,0,0.3); border-radius: 45px; border: 2px dashed rgba(255,255,255,0.2); padding: 10px; position: relative; }
+        .ball-slot.special-slot { border-color: rgba(245, 158, 11, 0.4); background: rgba(245, 158, 11, 0.05); }
+        
+        .ball { width: 65px; height: 65px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.8rem; font-weight: 800; color: white; background: radial-gradient(circle at 35% 35%, #ef4444, #7f1d1d); box-shadow: inset -4px -4px 10px rgba(0,0,0,0.4), 0 8px 15px rgba(0,0,0,0.4); display: none; animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275); margin-top: auto; margin-bottom: auto;}
+        .ball.special { background: radial-gradient(circle at 35% 35%, #fbbf24, #b45309); color: #111; }
+        @keyframes popIn { 0% { transform: scale(0) rotate(-45deg); opacity: 0; } 100% { transform: scale(1) rotate(0); opacity: 1; } }
+
+        .btn { padding: 0.8rem 1.2rem; border: none; border-radius: 10px; font-size: 1rem; font-weight: 600; cursor: pointer; transition: all 0.2s; }
+        .btn-draw { background: rgba(59, 130, 246, 0.2); color: var(--primary); border: 1px solid var(--primary); width: 100%; font-size: 0.9rem; padding: 0.5rem; border-radius: 30px;}
+        .btn-draw:hover:not(:disabled) { background: var(--primary); color: white; box-shadow: 0 0 15px var(--primary-glow); }
+        .btn-draw:disabled { background: transparent; border-color: var(--border); color: var(--text-muted); cursor: not-allowed; }
+        
+        .btn-draw-sp { background: rgba(245, 158, 11, 0.1); color: var(--accent); border: 1px solid var(--accent); }
+        .btn-draw-sp:hover:not(:disabled) { background: var(--accent); color: #111; box-shadow: 0 0 15px var(--accent-glow); }
+        
+        .btn-confirm { background: linear-gradient(135deg, var(--success), #059669); color: white; font-size: 1.2rem; padding: 1.2rem 3.5rem; margin-top: 1rem; border-radius: 50px; display: none; box-shadow: 0 10px 25px rgba(16, 185, 129, 0.3); letter-spacing: 1px; }
+        .btn-confirm:hover { transform: translateY(-2px); box-shadow: 0 15px 30px rgba(16, 185, 129, 0.4); }
+
+        /* 表格區塊 */
+        .table-header-info { padding: 1.5rem 2rem; border-bottom: 1px solid var(--border); }
+        .table-scroll { max-height: 600px; overflow-y: auto; border-bottom-left-radius: 16px; border-bottom-right-radius: 16px; }
+        table { width: 100%; border-collapse: collapse; text-align: left; }
+        th, td { padding: 1rem 2rem; border-bottom: 1px solid var(--border); }
+        th { background-color: rgba(11, 15, 25, 0.95); color: var(--text-muted); font-weight: 600; font-size: 0.85rem; letter-spacing: 1px; position: sticky; top: 0; z-index: 10; backdrop-filter: blur(5px); }
+        tr:hover td { background-color: rgba(255,255,255,0.03); }
+        
+        .badge { background: rgba(255,255,255,0.08); padding: 0.3rem 0.6rem; border-radius: 6px; font-size: 0.9rem; font-family: monospace; margin-right: 6px; border: 1px solid rgba(255,255,255,0.1); }
+        .badge.sp { background: rgba(245, 158, 11, 0.15); color: var(--accent); border-color: rgba(245, 158, 11, 0.3); }
+
+        /* 名人堂 */
+        .hall-of-fame { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin-bottom: 2rem; }
+        .hof-card { background: linear-gradient(135deg, rgba(245, 158, 11, 0.1) 0%, transparent 100%); border: 1px solid rgba(245, 158, 11, 0.3); border-radius: 12px; padding: 1.2rem; text-align: center; position: relative; overflow: hidden; }
+        .hof-card::before { content: '👑'; position: absolute; top: -10px; right: -10px; font-size: 3rem; opacity: 0.1; }
+        .hof-title { color: var(--accent); font-size: 0.9rem; font-weight: bold; margin-bottom: 0.5rem; }
+        .hof-amount { font-size: 1.6rem; font-weight: 800; color: #fff; margin-bottom: 0.2rem; }
+        .hof-period { font-size: 0.8rem; color: var(--text-muted); }
+
+        /* 歷史明細 */
+        .history-card { padding: 1.5rem 2rem; margin-bottom: 1.5rem; transition: 0.3s; }
+        .history-header { display: flex; justify-content: space-between; align-items: center; }
+        .history-balls { display: flex; gap: 0.5rem; align-items: center; }
+        .history-balls .ball { width: 32px; height: 32px; font-size: 0.85rem; display: flex; box-shadow: none; border-radius: 50%; margin: 0; }
+        
+        details { margin-top: 1.5rem; background: rgba(0,0,0,0.2); border-radius: 10px; overflow: hidden; border: 1px solid var(--border); }
+        summary { padding: 1rem 1.5rem; cursor: pointer; font-weight: 600; color: var(--primary); display: flex; align-items: center; user-select: none; transition: 0.2s; }
+        summary:hover { background: rgba(255,255,255,0.03); }
+        summary::after { content: '▼'; margin-left: auto; font-size: 0.8rem; transition: transform 0.3s; }
+        details[open] summary::after { transform: rotate(180deg); }
+        details[open] summary { border-bottom: 1px solid var(--border); background: rgba(0,0,0,0.3); }
+        
+        .empty-state { text-align: center; padding: 4rem; color: var(--text-muted); font-size: 1.1rem; }
+        
+        @media (max-width: 768px) {
+            .hall-of-fame { grid-template-columns: 1fr; }
+            .history-header { flex-direction: column; align-items: flex-start; gap: 1rem; }
+            .balls-container { gap: 0.5rem; }
+            .ball-slot { width: 70px; height: 110px; }
+            .ball { width: 50px; height: 50px; font-size: 1.2rem; }
+            .btn-draw { font-size: 0.8rem; }
+        }
+    </style>
 </head>
 <body>
 
-<header>
-  <h1>539 模擬</h1>
-  <div class="nav-buttons">
-    <button onclick="showSection('current')">本期資料</button>
-    <button onclick="showSection('history')">歷史資料</button>
-  </div>
-</header>
+    <nav>
+        <div class="logo">Lotto<span>X</span></div>
+        <div class="nav-links">
+            <button class="active" onclick="switchTab('draw', this)">開獎大廳</button>
+            <button onclick="switchTab('betting', this)">下期投注狀況</button>
+            <button onclick="switchTab('history', this)">歷史中獎紀錄</button>
+        </div>
+    </nav>
 
-<main>
-  <!-- 本期區塊 -->
-  <div id="section-current" class="section active">
-    <h2>第 <span id="labelDrawIndex">1</span> 期 資料</h2>
-    <!-- 前期累積獎金 -->
-    <div class="form-group">
-      <label>前期頭獎累積：</label>
-      <input type="number" id="carryHead" value="0" />
-    </div>
-    <div class="form-group">
-      <label>前期二獎累積：</label>
-      <input type="number" id="carrySecond" value="0" />
-    </div>
-    <!-- 產生本期 -->
-    <div class="form-group">
-      <button onclick="generateBets()">產生本期投注資料</button>
-    </div>
+    <div class="container">
+        <div class="dashboard" id="main-dashboard">
+            <div class="card stat-card">
+                <h3>當前開獎期數</h3>
+                <div class="value" id="dash-period">第 1 期</div>
+            </div>
+            <div class="card stat-card">
+                <h3>當期預估注數</h3>
+                <div class="value" id="dash-tickets">0 注</div>
+            </div>
+            <div class="card stat-card">
+                <h3>當期總銷售額</h3>
+                <div class="value" id="dash-sales">$0</div>
+            </div>
+            <div class="card stat-card">
+                <h3>累積頭獎上看</h3>
+                <div class="value jackpot" id="dash-jackpot">$0</div>
+            </div>
+        </div>
 
-    <!-- 顯示本期投注資訊 -->
-    <div id="currentInfo" class="info-box" style="display:none;"></div>
+        <div id="page-draw" class="page active">
+            <div class="card draw-area">
+                <h2 style="margin-bottom: 0.5rem; color: #fff; font-size: 1.8rem;">啟動開獎程序</h2>
+                <p style="color: var(--text-muted); margin-bottom: 2.5rem;">請點擊按鈕，依序開出五個基本號碼與一個特別號</p>
+                <div class="balls-container" id="draw-slots">
+                </div>
+                <button id="btn-confirm-draw" class="btn btn-confirm" onclick="confirmDraw()">確定開獎並結算</button>
+            </div>
+        </div>
 
-    <!-- 投注表 -->
-    <table id="betTable">
-      <thead>
-        <tr>
-          <th>投注組合 (5個號碼)</th>
-          <th>注數</th>
-        </tr>
-      </thead>
-      <tbody></tbody>
-    </table>
+        <div id="page-betting" class="page">
+            <div class="card">
+                <div class="table-header-info">
+                    <h2 style="color: #fff; font-size: 1.5rem; margin-bottom: 0.3rem;">市場熱門投注組合</h2>
+                    <p style="color: var(--text-muted);">系統已截取本期前 50 組高頻投注組合與其注數分布</p>
+                </div>
+                <div class="table-scroll">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>熱門排名</th>
+                                <th>基本號碼組合 (5碼)</th>
+                                <th>特別號 (1碼)</th>
+                                <th>全台投注注數</th>
+                            </tr>
+                        </thead>
+                        <tbody id="betting-table-body">
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
 
-    <div class="form-group">
-      <label>本期開獎號碼：</label>
-      <input type="text" id="winningNumbers" placeholder="5個不重複(1~39)" />
+        <div id="page-history" class="page">
+            <h3 style="color: var(--text-muted); margin-bottom: 1rem; font-size: 0.9rem; letter-spacing: 1px;">🏆 歷史最高獎金紀錄</h3>
+            <div class="hall-of-fame">
+                <div class="hof-card">
+                    <div class="hof-title">最高頭獎單注</div>
+                    <div class="hof-amount" id="hof-1-amount">$0</div>
+                    <div class="hof-period" id="hof-1-period">尚未開出</div>
+                </div>
+                <div class="hof-card">
+                    <div class="hof-title">最高二獎單注</div>
+                    <div class="hof-amount" id="hof-2-amount">$0</div>
+                    <div class="hof-period" id="hof-2-period">尚未開出</div>
+                </div>
+                <div class="hof-card">
+                    <div class="hof-title">最高三獎單注</div>
+                    <div class="hof-amount" id="hof-3-amount">$0</div>
+                    <div class="hof-period" id="hof-3-period">尚未開出</div>
+                </div>
+            </div>
+
+            <div id="history-container">
+                <div class="card empty-state">目前尚無開獎紀錄。請至開獎大廳完成一次開獎。</div>
+            </div>
+        </div>
     </div>
-    <div class="btn-group">
-      <button onclick="calculatePrize()">計算並顯示獎金</button>
-      <button onclick="exportCurrentCSV()">匯出本期投注表</button>
-    </div>
-
-    <!-- 本期計算結果 -->
-    <div id="currentResult" class="info-box" style="display:none;"></div>
-  </div>
-
-  <!-- 歷史區塊 -->
-  <div id="section-history" class="section">
-    <h2>歷史資料</h2>
-    <table id="historyTable">
-      <thead>
-        <tr>
-          <th>期數</th>
-          <th>開獎號碼</th>
-          <th>總注數</th>
-          <th>頭獎(中/單注)</th>
-          <th>二獎(中/單注)</th>
-          <th>三獎(中/單注)</th>
-          <th>四獎(中/單注)</th>
-          <th>總發獎金</th>
-          <th>頭獎累積</th>
-          <th>二獎累積</th>
-        </tr>
-      </thead>
-      <tbody></tbody>
-    </table>
-    <div class="btn-group">
-      <button onclick="exportHistoryCSV()">匯出歷史資料</button>
-    </div>
-  </div>
-</main>
 
 <script>
-/* ============= 全域變數 ============= */
-let currentDrawIndex=1;
-let betData = {};  // { '1,2,3,4,5': 次數, ... }
-let carryOverHead = 0;    // 前期頭獎累積
-let carryOverSecond = 0;  // 前期二獎累積
-let historyData = [];     // 歷史紀錄
+    const GAME = {
+        costPerTicket: 50,
+        payoutRate: 0.56,
+        currentPeriod: 1,
+        rollovers: { '頭獎': 0, '二獎': 0, '三獎': 0 },
+        totalTickets: 0,
+        drawnBalls: [],
+        drawnSpecial: null,
+        history: [],
+        fixedPrizes: { '四獎': 40000, '五獎': 20000, '六獎': 800, '七獎': 300, '八獎': 100, '普獎': 50 },
+        mockBets: [],
+        highestPrizes: {
+            '頭獎': { amount: 0, period: '-' },
+            '二獎': { amount: 0, period: '-' },
+            '三獎': { amount: 0, period: '-' }
+        }
+    };
 
-/* ============= UI 切換 ============= */
-function showSection(sec){
-  document.getElementById('section-current').classList.remove('active');
-  document.getElementById('section-history').classList.remove('active');
-  if(sec==='current'){
-    document.getElementById('section-current').classList.add('active');
-  } else {
-    document.getElementById('section-history').classList.add('active');
-  }
-}
+    function init() { prepareNextPeriod(); }
 
-/* ============= 產生本期投注 ============= */
-function generateBets(){
-  betData={};
-  // 讀取前期累積
-  carryOverHead= parseInt(document.getElementById('carryHead').value)||0;
-  carryOverSecond= parseInt(document.getElementById('carrySecond').value)||0;
-  // 隨機決定本期總注數(>70000, 無上限, 這裡示範 7萬~10萬)
-  const totalBets = 80000 + Math.floor(Math.random()*50001);
+    function switchTab(tabId, btnElement) {
+        document.querySelectorAll('.page').forEach(page => page.classList.remove('active'));
+        document.querySelectorAll('.nav-links button').forEach(btn => btn.classList.remove('active'));
+        document.getElementById(`page-${tabId}`).classList.add('active');
+        if(btnElement) btnElement.classList.add('active');
 
-  // 逐筆生成
-  for(let i=0; i< totalBets; i++){
-    let combo = pick5distinct();
-    if(!betData[combo]) betData[combo]=0;
-    betData[combo]++;
-  }
+        const dashboard = document.getElementById('main-dashboard');
+        dashboard.style.display = (tabId === 'history') ? 'none' : 'grid';
+    }
 
-  // 渲染表格
-  renderBetTable();
+    function updateDashboard() {
+        document.getElementById('dash-period').innerText = `第 ${GAME.currentPeriod} 期`;
+        document.getElementById('dash-tickets').innerText = `${GAME.totalTickets.toLocaleString()} 注`;
+        
+        let totalSales = GAME.totalTickets * GAME.costPerTicket;
+        document.getElementById('dash-sales').innerText = `$${totalSales.toLocaleString()}`;
 
-  // 顯示本期資訊
-  const totalAmount = totalBets*50;
-  const infoDiv= document.getElementById('currentInfo');
-  infoDiv.style.display='block';
-  infoDiv.innerHTML=`
-    <p>本期總注數：${totalBets} (每注50元, 總金額 ${totalAmount})</p>
-    <p>前期頭獎累積：${carryOverHead}</p>
-    <p>前期二獎累積：${carryOverSecond}</p>
-    <p>可輸入本期開獎號碼後按「計算並顯示獎金」</p>
-  `;
-  // 清空計算結果
-  document.getElementById('currentResult').style.display='none';
-  document.getElementById('currentResult').innerHTML='';
-}
+        let displayJackpot = GAME.rollovers['頭獎'];
+        document.getElementById('dash-jackpot').innerText = `$${displayJackpot.toLocaleString()}`;
+    }
 
-/* 隨機 5 個不重複 (1~39) */
-function pick5distinct(){
-  let arr=[];
-  while(arr.length<5){
-    let r= 1 + Math.floor(Math.random()*39);
-    if(!arr.includes(r)) arr.push(r);
-  }
-  arr.sort((a,b)=>a-b);
-  return arr.join(',');
-}
+    function updateHallOfFame() {
+        document.getElementById('hof-1-amount').innerText = `$${GAME.highestPrizes['頭獎'].amount.toLocaleString()}`;
+        document.getElementById('hof-1-period').innerText = GAME.highestPrizes['頭獎'].amount > 0 ? `於 第 ${GAME.highestPrizes['頭獎'].period} 期開出` : '尚未開出';
+        
+        document.getElementById('hof-2-amount').innerText = `$${GAME.highestPrizes['二獎'].amount.toLocaleString()}`;
+        document.getElementById('hof-2-period').innerText = GAME.highestPrizes['二獎'].amount > 0 ? `於 第 ${GAME.highestPrizes['二獎'].period} 期開出` : '尚未開出';
+        
+        document.getElementById('hof-3-amount').innerText = `$${GAME.highestPrizes['三獎'].amount.toLocaleString()}`;
+        document.getElementById('hof-3-period').innerText = GAME.highestPrizes['三獎'].amount > 0 ? `於 第 ${GAME.highestPrizes['三獎'].period} 期開出` : '尚未開出';
+    }
 
-function renderBetTable(){
-  const tbody= document.getElementById('betTable').querySelector('tbody');
-  tbody.innerHTML='';
-  const combos= Object.keys(betData).sort();
-  combos.forEach(c=>{
-    const tr= document.createElement('tr');
-    const tdCombo= document.createElement('td'); tdCombo.textContent= c;
-    const tdCount= document.createElement('td'); tdCount.textContent= betData[c];
-    tr.appendChild(tdCombo);
-    tr.appendChild(tdCount);
-    tbody.appendChild(tr);
-  });
-}
+    function prepareNextPeriod() {
+        // 1. 基礎買氣：50萬 ~ 100萬注
+        let baseTickets = Math.floor(Math.random() * 500001) + 500000;
+        
+        // 2. 頭獎累積加成：頭獎越高，買氣越旺。每累積 100 元，大約隨機增加 0.5 ~ 1.5 注買氣
+        let hypeBonus = Math.floor((GAME.rollovers['頭獎'] / 100) * (Math.random() * 1 + 0.5));
+        
+        GAME.totalTickets = baseTickets + hypeBonus;
+        
+        GAME.drawnBalls = [];
+        GAME.drawnSpecial = null;
+        GAME.mockBets = [];
+        
+        for(let i=1; i<=50; i++) {
+            let b = getRandomNumbers(5, 39);
+            let s = getRandomNumbers(1, 39, b)[0];
+            let count = Math.floor(Math.random() * 50) + 5; 
+            GAME.mockBets.push({ base: b, special: s, count: count });
+        }
+        GAME.mockBets.sort((a,b) => b.count - a.count);
 
-/* ============= 計算並顯示獎金 ============= */
-function calculatePrize(){
-  if(!Object.keys(betData).length){
-    alert("尚未產生本期投注資料");
-    return;
-  }
-  const winStr= document.getElementById('winningNumbers').value.trim();
-  const winArr = winStr.split(',').map(n=>parseInt(n)).sort((a,b)=>a-b);
-  if(winArr.length!==5){
-    alert("請輸入5個不重複號碼(1~39)，以逗號分隔");
-    return;
-  }
-  // 總注數
-  let totalBets=0;
-  for(let c in betData){
-    totalBets+= betData[c];
-  }
-  const totalAmount= totalBets*50;
+        updateDashboard();
+        renderBettingTable();
+        renderDrawArea();
+        document.getElementById('btn-confirm-draw').style.display = 'none';
+    }
 
-  // 統計中獎
-  let headCount=0, secondCount=0, thirdCount=0, fourthCount=0;
+    function getRandomNumbers(count, max, exclude = []) {
+        let nums = new Set();
+        while (nums.size < count) {
+            let n = Math.floor(Math.random() * max) + 1;
+            if (!exclude.includes(n)) nums.add(n);
+        }
+        return Array.from(nums).sort((a, b) => a - b);
+    }
 
-  for(let combo in betData){
-    const picks = combo.split(',').map(n=>parseInt(n));
-    const match = checkMatch(picks, winArr);
-    const cnt= betData[combo];
-    if(match===5) headCount+= cnt;
-    else if(match===4) secondCount+= cnt;
-    else if(match===3) thirdCount+= cnt;
-    else if(match===2) fourthCount+= cnt;
-  }
+    function renderDrawArea() {
+        const container = document.getElementById('draw-slots');
+        container.innerHTML = '';
+        for(let i = 0; i < 5; i++) {
+            container.innerHTML += `
+                <div class="ball-slot">
+                    <div class="ball" id="ball-${i}"></div>
+                    <button class="btn btn-draw" id="btn-draw-${i}" onclick="drawSingleBall(${i}, 'base')">開出</button>
+                </div>
+            `;
+        }
+        container.innerHTML += `
+            <div class="ball-slot special-slot">
+                <div class="ball special" id="ball-special"></div>
+                <button class="btn btn-draw btn-draw-sp" id="btn-draw-special" onclick="drawSingleBall('special', 'special')">開特號</button>
+            </div>
+        `;
+    }
 
-  // 頭獎
-  const headPool = Math.floor(totalAmount*0.4 + carryOverHead);
-  let headPrizeSingle=0, distHead=0, newCarryHead=0;
-  if(headCount>0){
-    headPrizeSingle= Math.floor(headPool/ headCount);
-    distHead= headPrizeSingle* headCount;
-    newCarryHead= headPool- distHead;
-  } else {
-    // 無中獎 => 全累積
-    newCarryHead= headPool;
-  }
+    function drawSingleBall(index, type) {
+        const btn = document.getElementById(`btn-draw-${index}`);
+        const ballDiv = document.getElementById(`ball-${index}`);
+        btn.disabled = true;
+        btn.innerText = '已開出';
 
-  // 二獎
-  const secondPool = Math.floor(totalAmount*0.25 + carryOverSecond);
-  let secondPrizeSingle=0, distSecond=0, newCarrySecond=0;
-  if(secondCount>0){
-    secondPrizeSingle= Math.floor(secondPool/ secondCount);
-    distSecond= secondPrizeSingle* secondCount;
-    newCarrySecond= secondPool- distSecond;
-  } else {
-    newCarrySecond= secondPool;
-  }
+        let newNum;
+        if (type === 'base') {
+            newNum = getRandomNumbers(1, 39, [...GAME.drawnBalls, GAME.drawnSpecial].filter(n=>n))[0];
+            GAME.drawnBalls.push(newNum);
+            GAME.drawnBalls.sort((a, b) => a - b); 
+        } else {
+            newNum = getRandomNumbers(1, 39, GAME.drawnBalls)[0];
+            GAME.drawnSpecial = newNum;
+        }
 
-  // 三獎(固定400), 四獎(固定50) --此處簡化，未加動態調整
-  const thirdPrize=400, fourthPrize=50;
-  let distThird= thirdCount* thirdPrize;
-  let distFourth= fourthCount* fourthPrize;
-  let totalPaid= distHead + distSecond + distThird + distFourth;
+        ballDiv.innerText = newNum;
+        ballDiv.style.display = 'flex';
+        checkAllDrawn();
+    }
 
-  // 顯示
-  const resultDiv= document.getElementById('currentResult');
-  resultDiv.style.display='block';
-  resultDiv.innerHTML=`
-    <p>本期開獎號碼：<strong>${winArr.join(',')}</strong></p>
-    <p>頭獎中獎注數：${headCount}，單注：${headPrizeSingle}，累積後：${newCarryHead}</p>
-    <p>二獎中獎注數：${secondCount}，單注：${secondPrizeSingle}，累積後：${newCarrySecond}</p>
-    <p>三獎中獎注數：${thirdCount}，單注：${thirdPrize}</p>
-    <p>四獎中獎注數：${fourthCount}，單注：${fourthPrize}</p>
-    <p>總發獎金：${totalPaid}</p>
-  `;
+    function checkAllDrawn() {
+        if (GAME.drawnBalls.length === 5 && GAME.drawnSpecial !== null) {
+            document.getElementById('btn-confirm-draw').style.display = 'inline-block';
+        }
+    }
 
-  // 更新 下期累積
-  document.getElementById('carryHead').value= newCarryHead;
-  document.getElementById('carrySecond').value= newCarrySecond;
+    function renderBettingTable() {
+        const tbody = document.getElementById('betting-table-body');
+        tbody.innerHTML = '';
+        GAME.mockBets.forEach((bet, index) => {
+            let baseHtml = bet.base.map(n => `<span class="badge">${n.toString().padStart(2, '0')}</span>`).join('');
+            let spHtml = `<span class="badge sp">${bet.special.toString().padStart(2, '0')}</span>`;
+            tbody.innerHTML += `
+                <tr>
+                    <td style="color:var(--text-muted)">#${index + 1}</td>
+                    <td>${baseHtml}</td>
+                    <td>${spHtml}</td>
+                    <td style="font-weight:600;">${bet.count} 注</td>
+                </tr>
+            `;
+        });
+    }
 
-  // 紀錄到歷史
-  const drawRecord = {
-    drawIndex: currentDrawIndex,
-    winArr,
-    totalBets,
-    headCount, headPrizeSingle,
-    secondCount, secondPrizeSingle,
-    thirdCount, thirdPrize,
-    fourthCount, fourthPrize,
-    totalPaid,
-    newCarryHead,
-    newCarrySecond
-  };
-  historyData.push(drawRecord);
-  renderHistory();
-  currentDrawIndex++;
-}
+    function confirmDraw() {
+        let totalSales = GAME.totalTickets * GAME.costPerTicket;
+        let prizePool = totalSales * GAME.payoutRate;
+        
+        let mockWinners = {
+            '頭獎': Math.floor(Math.random() * 2), // 0或1人中
+            '二獎': Math.round(GAME.totalTickets / (19575738/10)),
+            '三獎': Math.round(GAME.totalTickets / (19575738/30)),
+            '四獎': Math.round(GAME.totalTickets / (19575738/153)),
+            '五獎': Math.round(GAME.totalTickets / (19575738/1124)),
+            '六獎': Math.round(GAME.totalTickets / (19575738/3302)),
+            '七獎': Math.round(GAME.totalTickets / (19575738/22442)),
+            '八獎': Math.round(GAME.totalTickets / (19575738/24754)),
+            '普獎': Math.round(GAME.totalTickets / (19575738/151470))
+        };
 
-// 檢查匹配
-function checkMatch(picks, wins){
-  let matched=0;
-  for(let n of picks){
-    if(wins.includes(n)) matched++;
-  }
-  return matched;
-}
+        let fixedPayout = 0;
+        let actualFixedPrizes = { ...GAME.fixedPrizes };
+        for (let p in GAME.fixedPrizes) { fixedPayout += mockWinners[p] * GAME.fixedPrizes[p]; }
 
-/* ============= 更新歷史表格 ============= */
-function renderHistory(){
-  const tb= document.getElementById('historyTable').querySelector('tbody');
-  tb.innerHTML='';
-  historyData.forEach((rec)=>{
-    const tr= document.createElement('tr');
-    tr.innerHTML=`
-      <td>${rec.drawIndex}</td>
-      <td>${rec.winArr.join(',')}</td>
-      <td>${rec.totalBets}</td>
-      <td>${rec.headCount}/${rec.headPrizeSingle}</td>
-      <td>${rec.secondCount}/${rec.secondPrizeSingle}</td>
-      <td>${rec.thirdCount}/${rec.thirdPrize}</td>
-      <td>${rec.fourthCount}/${rec.fourthPrize}</td>
-      <td>${rec.totalPaid}</td>
-      <td>${rec.newCarryHead}</td>
-      <td>${rec.newCarrySecond}</td>
-    `;
-    tb.appendChild(tr);
-  });
-}
+        let cap75 = prizePool * 0.75;
+        let isCapped = false;
+        if (fixedPayout > cap75) {
+            isCapped = true;
+            let ratio = cap75 / fixedPayout;
+            for (let p in GAME.fixedPrizes) {
+                if (mockWinners[p] > 0) {
+                    actualFixedPrizes[p] = Math.floor((mockWinners[p] * GAME.fixedPrizes[p] * ratio) / mockWinners[p]);
+                }
+            }
+            fixedPayout = cap75;
+        }
 
-/* ============= 匯出功能 ============= */
-// 匯出本期投注表CSV
-function exportCurrentCSV(){
-  if(!Object.keys(betData).length){
-    alert("尚未產生本期投注，無法匯出。");
-    return;
-  }
-  let csv= "data:text/csv;charset=utf-8,組合,注數\n";
-  const combos= Object.keys(betData).sort();
-  combos.forEach(c=>{
-    csv += `${c},${betData[c]}\n`;
-  });
-  const link= document.createElement('a');
-  link.setAttribute('href', encodeURI(csv));
-  link.setAttribute('download', `第${currentDrawIndex}期_投注.csv`);
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
-}
+        let variablePool = prizePool - fixedPayout;
+        let currentAllocations = {
+            '頭獎': variablePool * 0.70,
+            '二獎': variablePool * 0.21,
+            '三獎': variablePool * 0.09
+        };
 
-// 匯出歷史表
-function exportHistoryCSV(){
-  if(!historyData.length){
-    alert("尚無歷史紀錄");
-    return;
-  }
-  let csv= "data:text/csv;charset=utf-8,期數,開獎號碼,總注數,頭獎(中/單注),二獎(中/單注),三獎(中/單注),四獎(中/單注),總發獎金,頭獎累積,二獎累積\n";
-  historyData.forEach((rec)=>{
-    csv+= [
-      rec.drawIndex,
-      rec.winArr.join(';'),
-      rec.totalBets,
-      `${rec.headCount}/${rec.headPrizeSingle}`,
-      `${rec.secondCount}/${rec.secondPrizeSingle}`,
-      `${rec.thirdCount}/${rec.thirdPrize}`,
-      `${rec.fourthCount}/${rec.fourthPrize}`,
-      rec.totalPaid,
-      rec.newCarryHead,
-      rec.newCarrySecond
-    ].join(",")+"\n";
-  });
-  const link= document.createElement('a');
-  link.setAttribute('href', encodeURI(csv));
-  link.setAttribute('download', "歷史資料.csv");
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
-}
+        let finalPrizes = { ...actualFixedPrizes };
 
+        let totalJackpot = currentAllocations['頭獎'] + GAME.rollovers['頭獎'];
+        if (mockWinners['頭獎'] > 0) {
+            finalPrizes['頭獎'] = Math.floor(totalJackpot / mockWinners['頭獎']);
+            GAME.rollovers['頭獎'] = 0; 
+        } else {
+            finalPrizes['頭獎'] = 0;
+            GAME.rollovers['頭獎'] += currentAllocations['頭獎']; 
+        }
+
+        let total2nd = currentAllocations['二獎'] + GAME.rollovers['二獎'];
+        if (mockWinners['二獎'] > 0) {
+            finalPrizes['二獎'] = Math.floor(total2nd / mockWinners['二獎']);
+            GAME.rollovers['二獎'] = 0;
+        } else {
+            finalPrizes['二獎'] = 0;
+            GAME.rollovers['二獎'] += currentAllocations['二獎'];
+        }
+
+        let total3rd = currentAllocations['三獎'] + GAME.rollovers['三獎'];
+        if (mockWinners['三獎'] > 0) {
+            finalPrizes['三獎'] = Math.floor(total3rd / mockWinners['三獎']);
+            GAME.rollovers['三獎'] = 0;
+        } else {
+            finalPrizes['三獎'] = 0;
+            GAME.rollovers['三獎'] += currentAllocations['三獎'];
+        }
+
+        ['頭獎', '二獎', '三獎'].forEach(prize => {
+            if (mockWinners[prize] > 0 && finalPrizes[prize] > GAME.highestPrizes[prize].amount) {
+                GAME.highestPrizes[prize] = { amount: finalPrizes[prize], period: GAME.currentPeriod };
+            }
+        });
+
+        let currentRecord = {
+            period: GAME.currentPeriod,
+            sales: totalSales,
+            pool: prizePool,
+            winBase: [...GAME.drawnBalls],
+            winSp: GAME.drawnSpecial,
+            winners: mockWinners,
+            prizes: finalPrizes,
+            isCapped: isCapped
+        };
+        GAME.history.unshift(currentRecord);
+
+        GAME.currentPeriod++;
+        
+        prepareNextPeriod();
+        updateHallOfFame();
+        renderHistory();
+
+        switchTab('betting', document.querySelectorAll('.nav-links button')[1]);
+    }
+
+    function renderHistory() {
+        const container = document.getElementById('history-container');
+        if(GAME.history.length === 0) return;
+        
+        container.innerHTML = '';
+        GAME.history.forEach(record => {
+            let baseHtml = record.winBase.map(n => `<div class="ball">${n.toString().padStart(2, '0')}</div>`).join('');
+            let spHtml = `<div class="ball special">${record.winSp.toString().padStart(2, '0')}</div>`;
+            
+            let tableRows = '';
+            let allPrizes = ['頭獎', '二獎', '三獎', '四獎', '五獎', '六獎', '七獎', '八獎', '普獎'];
+            allPrizes.forEach(p => {
+                let note = '';
+                if (record.isCapped && GAME.fixedPrizes[p]) note = '<span style="color:#ef4444; font-size:0.8rem; margin-left:10px;">(防呆平分)</span>';
+                
+                let winText = record.winners[p] > 0 ? `<b style="color:#fff">$${record.prizes[p].toLocaleString()}</b>` : '<span style="color:var(--text-muted)">$0</span>';
+                
+                let totalPayout = record.winners[p] * record.prizes[p];
+                let payoutText = record.winners[p] > 0 ? `$${totalPayout.toLocaleString()}` : '<span style="color:var(--text-muted)">$0</span>';
+
+                tableRows += `
+                    <tr>
+                        <td>${p}</td>
+                        <td>${record.winners[p].toLocaleString()} 注</td>
+                        <td>${winText} ${note}</td>
+                        <td style="color: var(--success); font-weight: 600;">${payoutText}</td>
+                    </tr>
+                `;
+            });
+
+            container.innerHTML += `
+                <div class="card history-card">
+                    <div class="history-header">
+                        <div>
+                            <h2 style="color:var(--primary); font-size: 1.4rem; margin-bottom:0.2rem;">第 ${record.period} 期開獎結果</h2>
+                            <p style="color:var(--text-muted); font-size:0.85rem;">總銷售額: $${record.sales.toLocaleString()} | 總獎金池: $${record.pool.toLocaleString()}</p>
+                        </div>
+                        <div class="history-balls">
+                            <span style="color:var(--text-muted); font-size:0.8rem; margin-right:5px;">獎號</span>
+                            ${baseHtml} ${spHtml}
+                        </div>
+                    </div>
+                    
+                    <details>
+                        <summary>查看各獎項派彩明細</summary>
+                        <div style="padding: 0; overflow-x: auto;">
+                            <table style="font-size: 0.9rem; background: transparent;">
+                                <thead>
+                                    <tr>
+                                        <th style="background: rgba(0,0,0,0.4)">獎項</th>
+                                        <th style="background: rgba(0,0,0,0.4)">中獎注數</th>
+                                        <th style="background: rgba(0,0,0,0.4)">單注獎金</th>
+                                        <th style="background: rgba(0,0,0,0.4)">當期發出總獎金</th>
+                                    </tr>
+                                </thead>
+                                <tbody>${tableRows}</tbody>
+                            </table>
+                        </div>
+                    </details>
+                </div>
+            `;
+        });
+    }
+
+    init();
 </script>
+
 </body>
 </html>
